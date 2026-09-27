@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 180" width="100%" height="100%">
+    <rect width="300" height="180" rx="16" fill="#C2410C"/>
+    <path d="M110 100 C120 40 180 40 190 70 C160 70 140 90 120 100 Z" fill="#FFFFFF"/>
+    <text x="150" y="150" font-family="sans-serif" font-size="18" font-weight="900" fill="#FFFFFF" text-anchor="middle">Turbo VPN</text>
+  </svg>
