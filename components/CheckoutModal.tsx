@@ -40,7 +40,7 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
     id: "rocket",
     name: "Rocket (রকেট)",
     type: "Send Money",
-    number: "01990800188",
+    number: "01302271472",
     accountType: "Personal",
     color: "from-purple-600 to-indigo-600",
     badge: "Send Money Only ⚡",
@@ -280,18 +280,18 @@ export default function CheckoutModal({
                           setSelectedPayment(pm.id);
                         }}
                         className={`p-3 rounded-2xl text-left border transition-all duration-200 flex flex-col justify-between ${pm.disabled
-                            ? "bg-slate-950/40 border-slate-800/60 opacity-60 cursor-not-allowed"
-                            : isSelected
-                              ? "bg-slate-900 border-cyan-500 shadow-md shadow-cyan-500/10"
-                              : "bg-slate-900/40 border-slate-800 hover:bg-slate-900/80 cursor-pointer"
+                          ? "bg-slate-950/40 border-slate-800/60 opacity-60 cursor-not-allowed"
+                          : isSelected
+                            ? "bg-slate-900 border-cyan-500 shadow-md shadow-cyan-500/10"
+                            : "bg-slate-900/40 border-slate-800 hover:bg-slate-900/80 cursor-pointer"
                           }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-white">{pm.name}</span>
                           <span
                             className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected
-                                ? "border-cyan-400 bg-cyan-400"
-                                : "border-slate-600"
+                              ? "border-cyan-400 bg-cyan-400"
+                              : "border-slate-600"
                               }`}
                           >
                             {isSelected && <Check className="w-3 h-3 text-slate-950 stroke-[3]" />}
