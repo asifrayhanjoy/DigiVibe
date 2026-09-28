@@ -31,19 +31,28 @@ import {
   MessageSquare,
   Plus,
   X,
-  Laptop
+  Laptop,
+  Settings,
+  DollarSign,
+  Users,
+  BarChart3,
+  RefreshCw,
+  Sliders,
+  PlusCircle
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import {
   apiFetchProfile,
   apiUpdateProfile,
-  apiAddWalletCredit,
   apiFetchUserAssets,
-  apiFetchUserOrders
+  apiFetchUserOrders,
+  apiFetchAllOrders,
+  apiUpdateOrderStatus,
+  apiDeleteOrder
 } from "@/lib/api/services";
 
-type TabId = "assets" | "edit-profile" | "orders" | "security" | "support";
+type TabId = "assets" | "edit-profile" | "orders" | "security" | "support" | "admin";
 
 export default function ProfilePage() {
   const { user: authUser, logout } = useAuth();
@@ -60,18 +69,24 @@ export default function ProfilePage() {
     address: authUser?.address || "",
     avatar: authUser?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80",
     memberSince: authUser?.createdAt ? new Date(authUser.createdAt).toLocaleDateString() : "2026",
-    walletBalance: authUser?.walletBalance || 0,
   });
 
-  // Real Database Records State (NO MOCK DATA)
+  // Strict Admin Check Rule
+  const isAdmin = (authUser?.email?.toLowerCase() || profile.email?.toLowerCase()) === "mdasifrayhanjoy2@gmail.com";
+
+  // Real Database Records State
   const [dbAssets, setDbAssets] = useState<any[]>([]);
   const [dbOrders, setDbOrders] = useState<any[]>([]);
   const [isLoadingDb, setIsLoadingDb] = useState<boolean>(true);
 
+  // Admin Order Approval System State - Loaded directly from MongoDB
+  const [adminOrdersList, setAdminOrdersList] = useState<any[]>([]);
+
+  const [adminOrderFilter, setAdminOrderFilter] = useState<"all" | "pending" | "completed" | "rejected">("all");
+  const [adminSearchQuery, setAdminSearchQuery] = useState("");
+
   const [isEditingHeader, setIsEditingHeader] = useState(false);
   const [editForm, setEditForm] = useState({ ...profile });
-  const [isAddCreditOpen, setIsAddCreditOpen] = useState(false);
-  const [addCreditAmount, setAddCreditAmount] = useState("500");
   const [ticketSubject, setTicketSubject] = useState("");
   const [ticketMessage, setTicketMessage] = useState("");
   const [currentPass, setCurrentPass] = useState("");
@@ -81,6 +96,57 @@ export default function ProfilePage() {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Order Approval System Handlers
+  const handleApproveOrder = async (orderId: string) => {
+    showToast("Approving Order... 🚀", `Updating order #${orderId} in MongoDB...`);
+    const res = await apiUpdateOrderStatus(orderId, "Completed");
+    if (res.success) {
+      setAdminOrdersList((prev) =>
+        prev.map((o) => (o.orderId === orderId ? { ...o, status: "Completed" } : o))
+      );
+      showToast("Order Approved! 🚀", `Order #${orderId} approved & activated.`);
+      const userEmail = authUser?.email || localStorage.getItem("digivibe_user_email") || profile.email;
+      if (userEmail) {
+        apiFetchUserOrders(userEmail).then((ords) => setDbOrders(ords || []));
+        apiFetchUserAssets(userEmail).then((asts) => setDbAssets(asts || []));
+      }
+    } else {
+      showToast("Approval Failed ❌", res.message);
+    }
+  };
+
+  const handleRejectOrder = async (orderId: string) => {
+    showToast("Rejecting Order...", `Updating order #${orderId}...`);
+    const res = await apiUpdateOrderStatus(orderId, "Rejected");
+    if (res.success) {
+      setAdminOrdersList((prev) =>
+        prev.map((o) => (o.orderId === orderId ? { ...o, status: "Rejected" } : o))
+      );
+      showToast("Order Rejected ❌", `Order #${orderId} marked as rejected.`);
+      const userEmail = authUser?.email || localStorage.getItem("digivibe_user_email") || profile.email;
+      if (userEmail) {
+        apiFetchUserOrders(userEmail).then((ords) => setDbOrders(ords || []));
+      }
+    } else {
+      showToast("Rejection Failed", res.message);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    showToast("Deleting Order...", `Removing #${orderId} from MongoDB...`);
+    const res = await apiDeleteOrder(orderId);
+    if (res.success) {
+      setAdminOrdersList((prev) => prev.filter((o) => o.orderId !== orderId));
+      showToast("Order Removed 🗑️", `Order #${orderId} deleted from database.`);
+      const userEmail = authUser?.email || localStorage.getItem("digivibe_user_email") || profile.email;
+      if (userEmail) {
+        apiFetchUserOrders(userEmail).then((ords) => setDbOrders(ords || []));
+      }
+    } else {
+      showToast("Delete Failed", res.message);
+    }
+  };
+
   // FETCH REAL USER PROFILE, ASSETS & ORDERS DIRECTLY FROM MONGODB ATLAS
   useEffect(() => {
     const userEmail = authUser?.email || localStorage.getItem("digivibe_user_email");
@@ -88,36 +154,51 @@ export default function ProfilePage() {
       setIsLoadingDb(true);
 
       // 1. Fetch User Document
-      apiFetchProfile(userEmail).then((dbUser) => {
-        if (dbUser) {
-          const updated = {
-            name: dbUser.name || profile.name,
-            email: dbUser.email || profile.email,
-            phone: dbUser.phone || profile.phone,
-            whatsapp: dbUser.whatsapp || profile.whatsapp,
-            address: dbUser.address || profile.address,
-            avatar: dbUser.avatar || profile.avatar,
-            memberSince: dbUser.createdAt ? new Date(dbUser.createdAt).toLocaleDateString() : profile.memberSince,
-            walletBalance: dbUser.walletBalance ?? 0,
-          };
-          setProfile(updated);
-          setEditForm(updated);
-        }
-      });
+      apiFetchProfile(userEmail)
+        .then((dbUser) => {
+          if (dbUser) {
+            const updated = {
+              name: dbUser.name || profile.name,
+              email: dbUser.email || profile.email,
+              phone: dbUser.phone || profile.phone,
+              whatsapp: dbUser.whatsapp || profile.whatsapp,
+              address: dbUser.address || profile.address,
+              avatar: dbUser.avatar || profile.avatar,
+              memberSince: dbUser.createdAt ? new Date(dbUser.createdAt).toLocaleDateString() : profile.memberSince,
+              walletBalance: dbUser.walletBalance ?? 0,
+            };
+            setProfile(updated);
+            setEditForm(updated);
+          }
+        })
+        .catch(() => {});
 
       // 2. Fetch User Assets from MongoDB Atlas
-      apiFetchUserAssets(userEmail).then((assets) => {
-        setDbAssets(assets);
-      });
+      apiFetchUserAssets(userEmail)
+        .then((assets) => {
+          setDbAssets(assets || []);
+        })
+        .catch(() => {});
 
       // 3. Fetch User Orders from MongoDB Atlas
-      apiFetchUserOrders(userEmail).then((orders) => {
-        setDbOrders(orders);
-        setIsLoadingDb(false);
-      });
+      apiFetchUserOrders(userEmail)
+        .then((orders) => {
+          setDbOrders(orders || []);
+          setIsLoadingDb(false);
+        })
+        .catch(() => {
+          setIsLoadingDb(false);
+        });
     } else {
       setIsLoadingDb(false);
     }
+
+    // Load ALL Orders directly from MongoDB Atlas for Admin Panel
+    apiFetchAllOrders().then((adminOrds) => {
+      if (adminOrds) {
+        setAdminOrdersList(adminOrds);
+      }
+    });
   }, [authUser]);
 
   const showToast = (title: string, message: string) => {
@@ -234,23 +315,7 @@ export default function ProfilePage() {
     }
   };
 
-  // Wallet Top-Up in MongoDB Atlas
-  const handleAddCredit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const amountNum = parseInt(addCreditAmount, 10) || 0;
-    setIsAddCreditOpen(false);
 
-    showToast("Processing Top-Up...", "Saving credit to MongoDB Atlas...");
-
-    const res = await apiAddWalletCredit(profile.email, amountNum);
-
-    if (res.success && res.walletBalance !== undefined) {
-      setProfile((prev) => ({ ...prev, walletBalance: res.walletBalance! }));
-      showToast("Credit Saved to Database! 💳", res.message);
-    } else {
-      showToast("Top-Up Request Sent", res.message);
-    }
-  };
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -278,6 +343,25 @@ export default function ProfilePage() {
     setConfirmPass("");
     showToast("Password Changed 🔐", "Security password has been updated.");
   };
+
+  // Filtered Orders for Admin Approval System
+  const filteredOrders = adminOrdersList.filter((ord) => {
+    const matchesFilter =
+      adminOrderFilter === "all" ||
+      (adminOrderFilter === "pending" && ord.status === "Pending") ||
+      (adminOrderFilter === "completed" && ord.status === "Completed") ||
+      (adminOrderFilter === "rejected" && ord.status === "Rejected");
+
+    const query = adminSearchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      (ord.orderId && ord.orderId.toLowerCase().includes(query)) ||
+      (ord.userEmail && ord.userEmail.toLowerCase().includes(query)) ||
+      (ord.customerEmail && ord.customerEmail.toLowerCase().includes(query)) ||
+      (ord.trxId && ord.trxId.toLowerCase().includes(query));
+
+    return matchesFilter && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative selection:bg-cyan-500 selection:text-slate-950">
@@ -372,48 +456,31 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Real Database Quick Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-slate-800/80">
-            {/* Wallet Balance Card */}
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400">
-                  <Wallet className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-[11px] text-slate-400 font-semibold">Wallet Balance</div>
-                  <div className="text-lg font-black text-white">৳{profile.walletBalance}</div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setIsAddCreditOpen(true)}
-                className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-sky-600 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center gap-1 hover:opacity-90"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                <span>Add Credit</span>
-              </button>
-            </div>
-
-            {/* Total Orders Completed Card */}
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-sky-500/10 text-sky-400">
-                <ShoppingBag className="w-5 h-5" />
+          {/* CLEAN & BALANCED PROFILE STATS GRID (COMPLETED VS INCOMPLETE/PENDING ORDERS) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8 pt-6 border-t border-slate-800/80">
+            {/* 1. Completed Orders Status Summary */}
+            <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-4 hover:border-emerald-500/30 transition-all shadow-lg">
+              <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <CheckCircle2 className="w-6 h-6" />
               </div>
               <div>
-                <div className="text-[11px] text-slate-400 font-semibold">Orders Completed</div>
-                <div className="text-lg font-black text-white">{dbOrders.length} Completed</div>
+                <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Completed Orders</div>
+                <div className="text-2xl font-black text-emerald-400 mt-0.5">
+                  {dbOrders.filter((o) => o.status === "Completed" || !o.status).length} Orders
+                </div>
               </div>
             </div>
 
-            {/* Active Subscriptions Card */}
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
-                <Zap className="w-5 h-5" />
+            {/* 2. Incomplete / Pending Orders Status Summary */}
+            <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-4 hover:border-amber-500/30 transition-all shadow-lg">
+              <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <Clock className="w-6 h-6" />
               </div>
               <div>
-                <div className="text-[11px] text-slate-400 font-semibold">Active Digital Assets</div>
-                <div className="text-lg font-black text-cyan-400">{dbAssets.length} Active</div>
+                <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Incomplete / Pending</div>
+                <div className="text-2xl font-black text-amber-400 mt-0.5">
+                  {dbOrders.filter((o) => o.status === "Pending").length} Pending
+                </div>
               </div>
             </div>
           </div>
@@ -476,6 +543,19 @@ export default function ProfilePage() {
               <Send className="w-4 h-4" />
               <span>💬 Support & Help</span>
             </button>
+
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab("admin")}
+                className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-bold text-xs sm:text-sm transition-all ${activeTab === "admin"
+                  ? "border-amber-400 text-amber-400 bg-amber-500/10 rounded-t-xl"
+                  : "border-transparent text-amber-400/80 hover:text-amber-300"
+                  }`}
+              >
+                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <span>⚡ Admin Panel</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -904,42 +984,237 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
-      </main>
+        {/* TAB 6: REDESIGNED ADMIN PANEL (DISTINCT ORDER APPROVAL COMMAND CENTER) */}
+        {activeTab === "admin" && isAdmin && (
+          <div className="space-y-8 animate-in fade-in">
+            {/* Admin Header Card - Distinct Look */}
+            <div className="p-6 sm:p-8 rounded-3xl border border-amber-500/40 bg-gradient-to-br from-slate-950 via-amber-950/20 to-slate-950 shadow-2xl relative overflow-hidden">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 w-max">
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                    <span>Authorized Master Admin</span>
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-black text-white mt-2 flex items-center gap-2">
+                    <span>⚡ Order Approval & Management Engine</span>
+                  </h2>
+                  <p className="text-xs text-amber-300/80 font-mono mt-1">
+                    Logged in as: <span className="font-bold text-white">mdasifrayhanjoy2@gmail.com</span>
+                  </p>
+                </div>
 
-      {/* ADD CREDIT MODAL */}
-      {isAddCreditOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
-          <div onClick={() => setIsAddCreditOpen(false)} className="fixed inset-0 bg-slate-950/80 backdrop-blur-md" />
-          <div className="relative w-full max-w-md bg-slate-950 border border-slate-800 rounded-3xl p-6 z-10 space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Wallet className="w-5 h-5 text-cyan-400" />
-                <span>Add Wallet Credit (MongoDB Atlas)</span>
-              </h3>
-              <button onClick={() => setIsAddCreditOpen(false)} className="p-1 text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddCredit} className="space-y-4">
-              <div>
-                <label className="block text-xs text-slate-300 font-semibold mb-1">Amount in BDT (৳)</label>
-                <input
-                  type="number"
-                  min="100"
-                  value={addCreditAmount}
-                  onChange={(e) => setAddCreditAmount(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white font-mono font-bold"
-                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      showToast("Syncing Database... 🔄", "Fetching fresh orders from MongoDB...");
+                      const freshOrds = await apiFetchAllOrders();
+                      setAdminOrdersList(freshOrds || []);
+                      showToast("Database Synced 🔄", `Loaded ${freshOrds?.length || 0} orders from MongoDB.`);
+                    }}
+                    className="px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold text-xs rounded-xl flex items-center gap-2 transition-all"
+                  >
+                    <RefreshCw className="w-4 h-4 text-amber-400" />
+                    <span>Refresh Orders</span>
+                  </button>
+                </div>
               </div>
 
-              <button type="submit" className="w-full py-3 bg-cyan-500 text-slate-950 font-black text-xs rounded-xl shadow-md">
-                Proceed & Save Credit to Database ৳{addCreditAmount}
-              </button>
-            </form>
+              {/* Admin Order Status Metrics Bar */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-amber-500/20">
+                <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/20">
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Received</div>
+                  <div className="text-2xl font-black text-white mt-1">{adminOrdersList.length} Orders</div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30 shadow-lg shadow-amber-500/5">
+                  <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                    <span>Pending Approval</span>
+                  </div>
+                  <div className="text-2xl font-black text-amber-300 mt-1">
+                    {adminOrdersList.filter((o) => o.status === "Pending").length} Orders
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/30 shadow-lg shadow-emerald-500/5">
+                  <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Approved / Completed</div>
+                  <div className="text-2xl font-black text-emerald-400 mt-1">
+                    {adminOrdersList.filter((o) => o.status === "Completed").length} Approved
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-900/90 border border-rose-500/20">
+                  <div className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">Rejected</div>
+                  <div className="text-2xl font-black text-rose-400 mt-1">
+                    {adminOrdersList.filter((o) => o.status === "Rejected").length} Rejected
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Filter Tabs & Search Controls */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-panel p-4 rounded-2xl border border-slate-800">
+              <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+                <button
+                  onClick={() => setAdminOrderFilter("all")}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                    adminOrderFilter === "all"
+                      ? "bg-amber-500 text-slate-950 font-black shadow-md"
+                      : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                  }`}
+                >
+                  All Orders ({adminOrdersList.length})
+                </button>
+
+                <button
+                  onClick={() => setAdminOrderFilter("pending")}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                    adminOrderFilter === "pending"
+                      ? "bg-amber-500 text-slate-950 font-black shadow-md"
+                      : "bg-amber-500/10 text-amber-300 border border-amber-500/30"
+                  }`}
+                >
+                  ⏳ Pending ({adminOrdersList.filter((o) => o.status === "Pending").length})
+                </button>
+
+                <button
+                  onClick={() => setAdminOrderFilter("completed")}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                    adminOrderFilter === "completed"
+                      ? "bg-emerald-500 text-slate-950 font-black shadow-md"
+                      : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                  }`}
+                >
+                  ✅ Approved ({adminOrdersList.filter((o) => o.status === "Completed").length})
+                </button>
+
+                <button
+                  onClick={() => setAdminOrderFilter("rejected")}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                    adminOrderFilter === "rejected"
+                      ? "bg-rose-500 text-white font-black shadow-md"
+                      : "bg-rose-500/10 text-rose-400 border border-rose-500/30"
+                  }`}
+                >
+                  ❌ Rejected ({adminOrdersList.filter((o) => o.status === "Rejected").length})
+                </button>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Search Order ID, Email or TrxID..."
+                value={adminSearchQuery}
+                onChange={(e) => setAdminSearchQuery(e.target.value)}
+                className="w-full sm:w-64 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            {/* ADMIN ORDERS APPROVAL TABLE */}
+            <div className="glass-panel rounded-3xl border border-amber-500/30 overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-slate-900/90 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                    <tr>
+                      <th className="p-4">Order ID & Date</th>
+                      <th className="p-4">Customer Email</th>
+                      <th className="p-4">Product Purchased</th>
+                      <th className="p-4">Payment Method & TrxID</th>
+                      <th className="p-4">Total (BDT)</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-center">Admin Approval Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {filteredOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400">
+                          No orders found matching the filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredOrders.map((ord) => (
+                        <tr key={ord.orderId} className="hover:bg-slate-900/60 transition-colors">
+                          <td className="p-4">
+                            <div className="font-mono font-black text-amber-400 text-sm">{ord.orderId}</div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              {new Date(ord.createdAt || Date.now()).toLocaleString()}
+                            </div>
+                          </td>
+
+                          <td className="p-4">
+                            <div className="font-bold text-white">{ord.userEmail || ord.customerEmail}</div>
+                          </td>
+
+                          <td className="p-4">
+                            <div className="font-semibold text-cyan-300">
+                              {ord.items && ord.items.length > 0 ? ord.items[0].title : "Digital Service Item"}
+                            </div>
+                          </td>
+
+                          <td className="p-4 font-mono">
+                            <div className="text-white font-bold">{ord.paymentMethod || "bKash / Nagad"}</div>
+                            <div className="text-cyan-400 text-[11px] font-bold">{ord.trxId || "TRX-N/A"}</div>
+                          </td>
+
+                          <td className="p-4 font-black text-amber-300 text-sm">৳{ord.totalAmount}</td>
+
+                          <td className="p-4">
+                            <span
+                              className={`px-3 py-1 text-[10px] font-black uppercase rounded-full border flex items-center gap-1.5 w-max ${
+                                ord.status === "Completed"
+                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                                  : ord.status === "Rejected"
+                                  ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
+                                  : "bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse"
+                              }`}
+                            >
+                              {ord.status === "Completed" && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
+                              {ord.status === "Rejected" && <X className="w-3 h-3 text-rose-400" />}
+                              {ord.status === "Pending" && <Clock className="w-3 h-3 text-amber-400" />}
+                              <span>{ord.status === "Completed" ? "APPROVED" : ord.status || "PENDING"}</span>
+                            </span>
+                          </td>
+
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              {ord.status !== "Completed" && (
+                                <button
+                                  onClick={() => handleApproveOrder(ord.orderId)}
+                                  className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-xs rounded-xl shadow-md hover:opacity-90 flex items-center gap-1 transition-all"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
+                                  <span>Approve</span>
+                                </button>
+                              )}
+
+                              {ord.status !== "Rejected" && (
+                                <button
+                                  onClick={() => handleRejectOrder(ord.orderId)}
+                                  className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 border border-rose-500/30 font-bold text-xs rounded-xl transition-all"
+                                >
+                                  Reject
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => handleDeleteOrder(ord.orderId)}
+                                className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors"
+                                title="Delete Order"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </main>
 
       <Footer />
       <Toast toast={toast} onClose={() => setToast(null)} />

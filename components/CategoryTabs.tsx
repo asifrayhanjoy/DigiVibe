@@ -7,7 +7,10 @@ import {
   Sparkles,
   Globe,
   TrendingUp,
-  Mail
+  Mail,
+  Send,
+  Server,
+  FileText
 } from "lucide-react";
 import { CATEGORIES } from "@/data/services";
 import { CategoryId } from "@/types";
@@ -21,6 +24,9 @@ const ICON_MAP: Record<string, any> = {
   Globe: Globe,
   TrendingUp: TrendingUp,
   Mail: Mail,
+  Send: Send,
+  Server: Server,
+  FileText: FileText,
 };
 
 interface CategoryTabsProps {

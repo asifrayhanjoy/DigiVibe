@@ -17,7 +17,7 @@ export const DICTIONARIES = {
     },
     hero: {
       badge: "No.1 Trusted Digital Store in Bangladesh 🇧🇩",
-      subBadge: "100% Instant Delivery via bKash & CellFin",
+      subBadge: "100% Delivery within 5 minutes via bKash, CellFin & Rocket (Send Money)",
       headlinePrefix: "All Your",
       headlineHighlight: "Digital Needs",
       headlineSuffix: "in One Place",
@@ -25,14 +25,14 @@ export const DICTIONARIES = {
       searchBtn: "Search",
       popular: "Popular:",
       stats: {
-        delivery: "Instant Delivery",
-        deliverySub: "Auto credentials in 30 minutes",
+        delivery: "Delivery in 5 Mins",
+        deliverySub: "Auto credentials within 5 minutes",
         security: "100% Secure",
         securitySub: "Full warranty replacement",
         rating: "4.9/5 Rating",
         ratingSub: "12,400+ satisfied clients",
         payments: "bKash & CellFin",
-        paymentsSub: "Instant Local & Crypto Pay"
+        paymentsSub: "Send Money Only (bKash/CellFin/Rocket)"
       }
     },
     categories: {
@@ -90,7 +90,7 @@ export const DICTIONARIES = {
     },
     hero: {
       badge: "বাংলাদেশের ১ নম্বর বিশ্বস্ত ডিজিটাল স্টোর 🇧🇩",
-      subBadge: "বিকাশ ও সেলফিনে ১০০% ইনস্ট্যান্ট ডেলিভারি",
+      subBadge: "বিকাশ, সেলফিন ও রকেটে ৫ মিনিটের ভেতর নিশ্চিত ডেলিভারি (সেন্ড মানি)",
       headlinePrefix: "সকল",
       headlineHighlight: "ডিজিটাল সার্ভিস",
       headlineSuffix: "এক ছাদের নিচে",
@@ -98,14 +98,14 @@ export const DICTIONARIES = {
       searchBtn: "সার্চ",
       popular: "জনপ্রিয়:",
       stats: {
-        delivery: "ইনস্ট্যান্ট ডেলিভারি",
-        deliverySub: "৩০ মিনিটের মধ্যে আইডি ডেলিভারি",
+        delivery: "৫ মিনিটে ডেলিভারি",
+        deliverySub: "৫ মিনিটের ভেতর অটো ডেলিভারি",
         security: "১০০% নিরাপদ",
         securitySub: "ফুল ওয়ারেন্টি রিপ্লেসমেন্ট",
         rating: "৪.৯/৫ রেটিং",
         ratingSub: "১২,৪০০+ সন্তুষ্ট কাস্টমার",
         payments: "বিকাশ ও সেলফিন",
-        paymentsSub: "সহজ লোকাল ও ক্রিপ্টো পেমেন্ট"
+        paymentsSub: "শুধুমাত্র সেন্ড মানি (Send Money)"
       }
     },
     categories: {

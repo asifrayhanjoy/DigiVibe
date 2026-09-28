@@ -93,8 +93,6 @@ export default function SearchModal({
                     </h4>
                     <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
                       <span className="uppercase text-cyan-400 font-semibold">{item.category}</span>
-                      <span>•</span>
-                      <span>Validity: {item.validity}</span>
                     </div>
                   </div>
                 </div>

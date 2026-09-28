@@ -31,11 +31,11 @@ export default function SupportPage() {
   const FAQS = [
     {
       q: "How fast is order delivery after payment?",
-      a: "All orders are processed instantly through our automated microservices engine. You will receive your license key, VPN slot credentials, or SIM drive pack confirmation within 30 minutes after submitting your payment TRX ID."
+      a: "All orders are processed through our automated engine. You will receive your license key, VPN slot credentials, or SIM drive pack confirmation within 5 minutes after submitting your payment TRX ID."
     },
     {
       q: "How do I pay using bKash, CellFin, Rocket, Bank, or Binance Pay?",
-      a: "Select your preferred payment method during checkout. You will be provided with our official payment account/merchant details along with step-by-step instructions. Enter your Transaction ID (TRX ID) or Reference on the checkout modal to confirm your order instantly. (Note: Bank Transfer and Binance Pay / Crypto services are currently under processing and will be activated soon. Please use bKash, CellFin, or Rocket for fast automated checkout.)"
+      a: "Select your preferred payment method during checkout (bKash, CellFin, Rocket). You will be provided with our official payment account details along with step-by-step instructions. Send Money (সেন্ড মানি) only to our provided number and enter your Transaction ID (TRX ID) or Reference on the checkout modal to confirm your order. Delivery is completed within 5 minutes. (Note: Cash Out is strictly NOT accepted. Please use Send Money exclusively.)"
     },
     {
       q: "What if my verification OTP email is delayed?",

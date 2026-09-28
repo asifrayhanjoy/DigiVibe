@@ -13,26 +13,27 @@ import {
 } from "lucide-react";
 import { CartItem, PaymentMethodInfo, OrderResponse } from "@/types";
 import { apiProcessOrder } from "@/lib/api/services";
+import { useAuth } from "@/context/AuthContext";
 
 const PAYMENT_METHODS: PaymentMethodInfo[] = [
   {
     id: "bkash",
     name: "bKash (বিকাশ)",
-    type: "Send Money / Cash Out",
+    type: "Send Money",
     number: "01302271472",
     accountType: "Personal",
     color: "from-pink-500 to-rose-600",
-    badge: "Most Popular 🇧🇩",
+    badge: "Send Money Only 🇧🇩",
     status: "active"
   },
   {
     id: "cellfin",
     name: "CellFin (সেলফিন)",
-    type: "Send Money / Wallet",
+    type: "Send Money",
     number: "01302271472",
     accountType: "IBBL CellFin",
     color: "from-emerald-500 to-teal-600",
-    badge: "Instant ⚡",
+    badge: "Send Money Only ⚡",
     status: "active"
   },
   {
@@ -42,7 +43,7 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
     number: "01990800188",
     accountType: "Personal",
     color: "from-purple-600 to-indigo-600",
-    badge: "Fast ⚡",
+    badge: "Send Money Only ⚡",
     status: "active"
   },
   {
@@ -84,6 +85,7 @@ export default function CheckoutModal({
   totalAmount,
   onOrderSuccess
 }: CheckoutModalProps) {
+  const { user } = useAuth();
   const [selectedPayment, setSelectedPayment] = useState<string>("bkash");
   const [customerPhone, setCustomerPhone] = useState<string>("");
   const [customerEmail, setCustomerEmail] = useState<string>("");
@@ -116,14 +118,14 @@ export default function CheckoutModal({
     setIsSubmitting(true);
 
     try {
-      // Call Node.js Order Microservice & Python Automation Service
+      const emailToUse = customerEmail || user?.email || "mdasifrayhanjoy2@gmail.com";
       const res = await apiProcessOrder({
         items: itemsToBuy,
         totalAmount,
         paymentMethod: currentPaymentInfo?.name || selectedPayment,
         trxId,
         customerPhone,
-        customerEmail
+        customerEmail: emailToUse
       });
 
       setIsSubmitting(false);
@@ -168,7 +170,7 @@ export default function CheckoutModal({
                 Order #{orderComplete.orderId}
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                আপনার অর্ডারটি রিসিভ করা হয়েছে। অটোমেটেড প্রসেসিং এর মাধ্যমে {orderComplete.estimatedFulfillmentTime} এর মধ্যে সার্ভিস এক্টিভেট করে দেওয়া হবে।
+                আপনার অর্ডারটি রিসিভ করা হয়েছে। ৫ মিনিটের ভেতর (Within 5 Minutes) অটোমেটেড প্রসেসিং এর মাধ্যমে সার্ভিস এক্টিভেট করে দেওয়া হবে।
               </p>
             </div>
 
@@ -277,22 +279,20 @@ export default function CheckoutModal({
                           }
                           setSelectedPayment(pm.id);
                         }}
-                        className={`p-3 rounded-2xl text-left border transition-all duration-200 flex flex-col justify-between ${
-                          pm.disabled
+                        className={`p-3 rounded-2xl text-left border transition-all duration-200 flex flex-col justify-between ${pm.disabled
                             ? "bg-slate-950/40 border-slate-800/60 opacity-60 cursor-not-allowed"
                             : isSelected
-                            ? "bg-slate-900 border-cyan-500 shadow-md shadow-cyan-500/10"
-                            : "bg-slate-900/40 border-slate-800 hover:bg-slate-900/80 cursor-pointer"
-                        }`}
+                              ? "bg-slate-900 border-cyan-500 shadow-md shadow-cyan-500/10"
+                              : "bg-slate-900/40 border-slate-800 hover:bg-slate-900/80 cursor-pointer"
+                          }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-white">{pm.name}</span>
                           <span
-                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                              isSelected
+                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected
                                 ? "border-cyan-400 bg-cyan-400"
                                 : "border-slate-600"
-                            }`}
+                              }`}
                           >
                             {isSelected && <Check className="w-3 h-3 text-slate-950 stroke-[3]" />}
                           </span>
@@ -337,8 +337,8 @@ export default function CheckoutModal({
                     </button>
                   </div>
 
-                  <p className="text-[11px] text-slate-400 leading-relaxed">
-                    💡 <strong>নির্দেশনা:</strong> ওপরের নম্বরে ঠিক <strong className="text-white">৳{totalAmount}</strong> টাকা {currentPaymentInfo.type} করার পর নিচের বক্সে পেমেন্ট Transaction ID (TrxID) দিয়ে অর্ডার কনফার্ম করুন।
+                  <p className="text-[11px] text-slate-300 leading-relaxed bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl">
+                    💡 <strong>নির্দেশনা:</strong> ওপরের নম্বরে ঠিক <strong className="text-white">৳{totalAmount}</strong> টাকা <strong className="text-cyan-400 font-extrabold">Send Money (সেন্ড মানি)</strong> করার পর নিচের বক্সে পেমেন্ট Transaction ID (TrxID) দিয়ে অর্ডার কনফার্ম করুন। <span className="text-rose-400 font-bold">(ক্যাশআউট গ্রহণযোগ্য নয় ❌)</span>
                   </p>
                 </div>
               )}

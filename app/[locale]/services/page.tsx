@@ -1,31 +1,32 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import ServiceCard from "@/components/ServiceCard";
 import CategoryTabs from "@/components/CategoryTabs";
-import CartDrawer from "@/components/CartDrawer";
 import CheckoutModal from "@/components/CheckoutModal";
 import SearchModal from "@/components/SearchModal";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
 import { SERVICES } from "@/data/services";
 import { CategoryId, CartItem, ServiceItem } from "@/types";
-import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { SlidersHorizontal, ArrowUpDown, Sparkles, Info, Server, Headphones } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 
 import VPNProductGrid from "@/components/VPNProductGrid";
 import SimOfferGrid from "@/components/SimOfferGrid";
 
 export default function ServicesPage() {
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
+  const [proxySubFilter, setProxySubFilter] = useState<"all" | "gb" | "ip">("all");
+  const [smmSubFilter, setSmmSubFilter] = useState<"all" | "lifetime" | "30day" | "norefill">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<"featured" | "price-low" | "price-high" | "popular" | "newest">("featured");
-  
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
@@ -33,12 +34,22 @@ export default function ServicesPage() {
 
   const { locale, dict } = useLanguage();
   const { isAuthenticated, isLoading, requireAuth } = useAuth();
+  const { cart, addToCart, openCart: contextOpenCart, clearCart } = useCart();
   const router = useRouter();
 
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const showToast = (title: string, message: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ title, message });
-    setTimeout(() => setToast(null), 3500);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3500);
   };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   // Filter & Sort
   const processedServices = useMemo(() => {
@@ -74,16 +85,63 @@ export default function ServicesPage() {
     return list;
   }, [activeCategory, searchQuery, sortBy]);
 
-  const handleAddToCart = (service: ServiceItem) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === service.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === service.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
+  // Helper to determine if a service is an IP plan/piece product
+  const isIpPlanProduct = (service: ServiceItem) => {
+    const id = (service.id || "").toLowerCase();
+    const title = (service.title || "").toLowerCase();
+    const unit = (service.unit || "").toLowerCase();
+    const badge = (service.badge || "").toLowerCase();
+
+    return (
+      id.includes("100pcs") ||
+      id.includes("iprocket") ||
+      title.includes("100 pcs ip") ||
+      title.includes("ip rocket") ||
+      unit.includes("pcs ip") ||
+      unit.includes("min: 2") ||
+      badge.includes("pcs ip")
+    );
+  };
+
+  // Sub-filter for IP & Proxy Category and SMM Category
+  const displayedServices = useMemo(() => {
+    if (activeCategory === "ip") {
+      if (proxySubFilter === "gb") {
+        return processedServices.filter((s) => !isIpPlanProduct(s));
       }
-      return [...prev, { ...service, quantity: 1 }];
-    });
+      if (proxySubFilter === "ip") {
+        return processedServices.filter((s) => isIpPlanProduct(s));
+      }
+      return processedServices;
+    }
+
+    if (activeCategory === "smm") {
+      if (smmSubFilter === "lifetime") {
+        return processedServices.filter((s) => {
+          const text = (s.title + " " + ((s as any).subtitle || "") + " " + (s.badge || "") + " " + (s.features || []).join(" ")).toLowerCase();
+          return text.includes("lifetime");
+        });
+      }
+      if (smmSubFilter === "30day") {
+        return processedServices.filter((s) => {
+          const text = (s.title + " " + ((s as any).subtitle || "") + " " + (s.badge || "") + " " + (s.features || []).join(" ")).toLowerCase();
+          return text.includes("30 day") || text.includes("30day") || text.includes("1 year") || text.includes("365d") || text.includes("365 day") || text.includes("90 day");
+        });
+      }
+      if (smmSubFilter === "norefill") {
+        return processedServices.filter((s) => {
+          const text = (s.title + " " + ((s as any).subtitle || "") + " " + (s.badge || "") + " " + (s.features || []).join(" ")).toLowerCase();
+          return text.includes("no refill") || text.includes("non refill");
+        });
+      }
+      return processedServices;
+    }
+
+    return processedServices;
+  }, [processedServices, activeCategory, proxySubFilter, smmSubFilter]);
+
+  const handleAddToCart = (service: ServiceItem) => {
+    addToCart(service);
     showToast("Added to Cart 🛒", `${service.title} added to cart.`);
   };
 
@@ -94,16 +152,17 @@ export default function ServicesPage() {
     }, `/${locale}/services`);
   };
 
-  const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative">
       <Navbar
-        cartCount={totalCartCount}
-        onOpenCart={() => setIsCartOpen(true)}
+        onOpenCart={contextOpenCart}
         onOpenSearch={() => setIsSearchModalOpen(true)}
         activeCategory={activeCategory}
-        onSelectCategory={setActiveCategory}
+        onSelectCategory={(cat) => {
+          setActiveCategory(cat);
+          if (cat === "ip") setProxySubFilter("all");
+          if (cat === "smm") setSmmSubFilter("all");
+        }}
         currentLocale={locale}
       />
 
@@ -126,7 +185,11 @@ export default function ServicesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 w-full">
         <CategoryTabs
           activeCategory={activeCategory}
-          onSelectCategory={setActiveCategory}
+          onSelectCategory={(cat) => {
+            setActiveCategory(cat);
+            if (cat === "ip") setProxySubFilter("all");
+            if (cat === "smm") setSmmSubFilter("all");
+          }}
           getCategoryCount={(catId) =>
             catId === "all" ? SERVICES.length : SERVICES.filter((s) => s.category === catId).length
           }
@@ -137,7 +200,7 @@ export default function ServicesPage() {
           <div className="flex items-center gap-2.5 font-semibold text-xs sm:text-sm text-slate-300">
             <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-sm shadow-cyan-400/50" />
             <span>
-              Showing <span className="text-cyan-400 font-extrabold text-sm sm:text-base">{processedServices.length}</span> Products
+              Showing <span className="text-cyan-400 font-extrabold text-sm sm:text-base">{displayedServices.length}</span> Products
             </span>
           </div>
 
@@ -177,7 +240,174 @@ export default function ServicesPage() {
 
       {/* Grid List */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full flex-1">
-        {activeCategory === "vpn" ? (
+        {activeCategory === "ip" && (
+          <>
+            {/* Filter Buttons (All, GB, IP) */}
+            <div className="flex items-center gap-3 mb-6">
+              <button
+                type="button"
+                onClick={() => setProxySubFilter("all")}
+                className={`px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  proxySubFilter === "all"
+                    ? "bg-slate-900/90 text-amber-300 border border-amber-500 shadow-md shadow-amber-500/10"
+                    : "bg-slate-900/40 text-slate-400 border border-slate-700/60 hover:border-slate-600 hover:text-slate-200"
+                }`}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={() => setProxySubFilter("gb")}
+                className={`px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  proxySubFilter === "gb"
+                    ? "bg-slate-900/90 text-amber-300 border border-amber-500 shadow-md shadow-amber-500/10"
+                    : "bg-slate-900/40 text-slate-400 border border-slate-700/60 hover:border-slate-600 hover:text-slate-200"
+                }`}
+              >
+                GB
+              </button>
+              <button
+                type="button"
+                onClick={() => setProxySubFilter("ip")}
+                className={`px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  proxySubFilter === "ip"
+                    ? "bg-slate-900/90 text-amber-300 border border-amber-500 shadow-md shadow-amber-500/10"
+                    : "bg-slate-900/40 text-slate-400 border border-slate-700/60 hover:border-slate-600 hover:text-slate-200"
+                }`}
+              >
+                IP
+              </button>
+            </div>
+
+            {/* Headline Notice */}
+            <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-slate-900 border border-amber-500/30 flex items-center justify-between gap-4 shadow-lg shadow-amber-500/5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 p-2 flex items-center justify-center text-amber-400 shrink-0">
+                  <Sparkles className="w-5 h-5 fill-amber-400/20" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-amber-300 tracking-wide font-sans">
+                    আপনি কত GB নিবেন তার উপর নির্ভর করবে Price গুলো/ IP বা proxy কেনার আগে Admin সাথে আলোচনা করে নিতে হবে
+                  </h3>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">
+                    Prices depend on how many GB you choose on the product card./ IP or proxy should be discussed with the admin before purchasing
+                  </p>
+                </div>
+              </div>
+              <Link
+                href={`/${locale}/support`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-black bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 hover:text-white border border-amber-500/40 hover:border-amber-400 rounded-full uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
+              >
+                <span>📞 Contact Admin</span>
+              </Link>
+            </div>
+          </>
+        )}
+
+        {activeCategory === "smm" && (
+          <>
+            {/* Filter Buttons (Strictly matching image_a1ce5b.png) */}
+            <div className="flex items-center gap-3 mb-6 overflow-x-auto pb-2 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setSmmSubFilter("all")}
+                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  smmSubFilter === "all"
+                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-4 ring-sky-400/10 shadow-lg shadow-sky-500/10"
+                    : "bg-slate-900/40 text-slate-300 border border-slate-700/60 hover:border-slate-500 hover:text-white"
+                }`}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={() => setSmmSubFilter("lifetime")}
+                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  smmSubFilter === "lifetime"
+                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-4 ring-sky-400/10 shadow-lg shadow-sky-500/10"
+                    : "bg-slate-900/40 text-slate-300 border border-slate-700/60 hover:border-slate-500 hover:text-white"
+                }`}
+              >
+                Lifetime Refill
+              </button>
+              <button
+                type="button"
+                onClick={() => setSmmSubFilter("30day")}
+                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  smmSubFilter === "30day"
+                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-4 ring-sky-400/10 shadow-lg shadow-sky-500/10"
+                    : "bg-slate-900/40 text-slate-300 border border-slate-700/60 hover:border-slate-500 hover:text-white"
+                }`}
+              >
+                30 Days Refill
+              </button>
+              <button
+                type="button"
+                onClick={() => setSmmSubFilter("norefill")}
+                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  smmSubFilter === "norefill"
+                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-4 ring-sky-400/10 shadow-lg shadow-sky-500/10"
+                    : "bg-slate-900/40 text-slate-300 border border-slate-700/60 hover:border-slate-500 hover:text-white"
+                }`}
+              >
+                No Refill
+              </button>
+            </div>
+
+            {/* Headline Notice */}
+            <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-purple-500/15 via-amber-500/10 to-slate-900 border border-purple-500/30 flex items-center justify-between gap-4 shadow-lg shadow-purple-500/5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 p-2 flex items-center justify-center text-purple-400 shrink-0 mt-0.5">
+                  <Sparkles className="w-5 h-5 fill-purple-400/20" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-purple-200 tracking-wide font-sans leading-relaxed">
+                    এখানে যে প্রাইসগুলো দেওয়া হয়েছে তা নির্দিষ্ট পরিমাণের জন্য। আপনি কতগুলো ফলোয়ার, লাইক, ভিউ বা মেম্বার নিতে চান তার উপর ভিত্তি করে প্রাইস কম-বেশি হতে পারে। সর্বোচ্চ বা নিজের পছন্দমতো পরিমাণে অর্ডার করতে চাইলে অ্যাডমিনের সাথে আলোচনা সাপেক্ষ (Contact Admin) ফিক্স করে নিতে হবে।
+                  </h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">
+                    Prices shown are for default quantities. Custom quantities require contacting admin to fix final pricing.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href={`/${locale}/support`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-black bg-purple-500/20 hover:bg-purple-500/40 text-purple-300 hover:text-white border border-purple-500/40 hover:border-purple-400 rounded-full uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
+              >
+                <span>📞 Contact Admin</span>
+              </Link>
+            </div>
+          </>
+        )}
+
+
+
+        {activeCategory === "hosting" ? (
+          <div className="glass-panel p-8 sm:p-14 text-center rounded-3xl border border-slate-800/80 bg-gradient-to-b from-slate-900/90 via-slate-950/90 to-slate-950 my-8 shadow-2xl flex flex-col items-center justify-center max-w-3xl mx-auto animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6 shadow-lg shadow-amber-500/10">
+              <Server className="w-10 h-10" />
+            </div>
+
+            <span className="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/30 mb-4">
+              Hosting Service Announcement 🌐
+            </span>
+
+            <h2 className="text-xl sm:text-2xl font-black text-white max-w-xl leading-relaxed mb-3">
+              This service is currently unavailable. Please contact the admin directly for hosting inquiries.
+            </h2>
+
+            <p className="text-sm sm:text-base font-medium text-amber-300/90 max-w-lg mb-8 leading-relaxed font-sans">
+              এই পরিষেবাটি বর্তমানে অনুপলব্ধ। হোস্টিং সংক্রান্ত অনুসন্ধানের জন্য সরাসরি অ্যাডমিনের সাথে যোগাযোগ করুন।
+            </p>
+
+            <Link
+              href={`/${locale}/support`}
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-sm sm:text-base uppercase tracking-wide shadow-xl shadow-amber-500/20 hover:shadow-amber-500/30 hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <Headphones className="w-5 h-5 stroke-[2.5]" />
+              <span>Contact Admin / অ্যাডমিনের সাথে যোগাযোগ করুন</span>
+            </Link>
+          </div>
+        ) : activeCategory === "vpn" ? (
           <VPNProductGrid
             products={processedServices}
             onAddToCart={handleAddToCart}
@@ -189,7 +419,7 @@ export default function ServicesPage() {
             onAddToCart={handleAddToCart}
             onBuyNow={handleBuyNow}
           />
-        ) : processedServices.length === 0 ? (
+        ) : displayedServices.length === 0 ? (
           <div className="glass-panel p-12 text-center rounded-3xl border border-slate-800 my-8">
             <SlidersHorizontal className="w-12 h-12 text-slate-600 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-white">No products found</h3>
@@ -197,7 +427,7 @@ export default function ServicesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {processedServices.map((service) => (
+            {displayedServices.map((service) => (
               <ServiceCard
                 key={service.id}
                 service={service}
@@ -211,30 +441,12 @@ export default function ServicesPage() {
 
       <Footer onSelectCategory={(cat) => setActiveCategory(cat as CategoryId)} />
 
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cartItems={cart}
-        onUpdateQuantity={(id, qty) =>
-          setCart((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: qty } : i)))
-        }
-        onRemoveItem={(id) => setCart((prev) => prev.filter((i) => i.id !== id))}
-        onProceedToCheckout={() => {
-          requireAuth(() => {
-            setIsCartOpen(false);
-            setCheckoutItems(cart);
-            setIsCheckoutOpen(true);
-          }, `/${locale}/services`);
-        }}
-        onApplyPromo={() => {}}
-      />
-
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         itemsToBuy={checkoutItems}
         totalAmount={checkoutItems.reduce((acc, item) => acc + item.price * (item.quantity || 1), 0)}
-        onOrderSuccess={() => setCart([])}
+        onOrderSuccess={() => clearCart()}
       />
 
       <SearchModal

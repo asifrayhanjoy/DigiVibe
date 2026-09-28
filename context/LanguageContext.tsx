@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { Locale } from "@/types";
 import { DICTIONARIES, getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -32,15 +32,21 @@ export const LanguageProvider = ({
     }
   }, []);
 
-  const setLocale = (loc: Locale) => {
+  const setLocale = useCallback((loc: Locale) => {
     setLocaleState(loc);
     localStorage.setItem("digivibe_locale", loc);
-  };
+  }, []);
 
-  const dict = getDictionary(locale);
+  const dict = useMemo(() => getDictionary(locale), [locale]);
+
+  const value = useMemo(() => ({
+    locale,
+    setLocale,
+    dict,
+  }), [locale, setLocale, dict]);
 
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, dict }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

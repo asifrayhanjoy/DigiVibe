@@ -65,10 +65,17 @@ export default function Navbar({
   const displayCartCount = cartCount !== undefined && cartCount > 0 ? cartCount : contextCartCount;
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -92,24 +99,23 @@ export default function Navbar({
 
   const navLinks = isAuthenticated
     ? [
-        { name: "All Services", href: `/${locale}/services`, categoryId: "all" },
-        { name: "AI Tools", href: `/${locale}/services?cat=subscriptions`, categoryId: "subscriptions" },
-        { name: "Email Accounts", href: `/${locale}/services?cat=email`, categoryId: "email" },
-        { name: "About Us", href: `/${locale}/about` },
-      ]
+      { name: "All Services", href: `/${locale}/services`, categoryId: "all" },
+      { name: "AI Tools", href: `/${locale}/services?cat=subscriptions`, categoryId: "subscriptions" },
+      { name: "Email Accounts", href: `/${locale}/services?cat=email`, categoryId: "email" },
+      { name: "About Us", href: `/${locale}/about` },
+    ]
     : [
-        { name: "Home", href: `/${locale}` },
-        { name: "About Us", href: `/${locale}/about` },
-        { name: "Support", href: `/${locale}/support` },
-      ];
+      { name: "Home", href: `/${locale}` },
+      { name: "About Us", href: `/${locale}/about` },
+      { name: "Support", href: `/${locale}/support` },
+    ];
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled
           ? "bg-slate-950/85 backdrop-blur-xl border-b border-cyan-500/20 py-1 shadow-xl shadow-cyan-950/20"
           : "bg-transparent py-2 border-b border-white/5"
-      }`}
+        }`}
     >
       <div className="max-w-[1440px] mx-auto px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
         {/* LOGO */}
@@ -145,11 +151,10 @@ export default function Navbar({
                   }
                   router.push(link.href);
                 }}
-                className={`px-4 py-2 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${
-                  isActive
+                className={`px-4 py-2 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${isActive
                     ? "bg-slate-900 text-cyan-400 border border-cyan-500/30"
                     : "hover:bg-slate-900/60 hover:text-cyan-400 text-slate-300"
-                }`}
+                  }`}
               >
                 {link.name}
               </button>
@@ -177,156 +182,156 @@ export default function Navbar({
 
         {/* RIGHT ACTIONS */}
         <div className="flex items-center gap-3 shrink-0">
-            {/* Search icon (Mobile) */}
+          {/* Search icon (Mobile) */}
+          <button
+            onClick={handleSearch}
+            className="p-2.5 md:hidden text-slate-300 hover:text-cyan-400 bg-slate-900/80 border border-slate-800 rounded-xl"
+            aria-label="Search"
+          >
+            <Search className="w-4 h-4" />
+          </button>
+
+          {/* LANGUAGE SWITCHER DROPDOWN */}
+          <div className="relative">
             <button
-              onClick={handleSearch}
-              className="p-2.5 md:hidden text-slate-300 hover:text-cyan-400 bg-slate-900/80 border border-slate-800 rounded-xl"
-              aria-label="Search"
+              onClick={() => setLangMenuOpen(!langMenuOpen)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/30 rounded-xl text-xs font-bold text-slate-200 transition-all"
             >
-              <Search className="w-4 h-4" />
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="uppercase">{locale}</span>
             </button>
 
-            {/* LANGUAGE SWITCHER DROPDOWN */}
-            <div className="relative">
-              <button
-                onClick={() => setLangMenuOpen(!langMenuOpen)}
-                className="flex items-center gap-1.5 px-3 py-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/30 rounded-xl text-xs font-bold text-slate-200 transition-all"
-              >
-                <Globe className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="uppercase">{locale}</span>
-              </button>
-
-              {langMenuOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-slate-950 border border-slate-800 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in">
-                  <button
-                    onClick={() => {
-                      setLocale("en");
-                      setLangMenuOpen(false);
-                      if (pathname) {
-                        router.push(pathname.replace(/^\/(en|bn)/, "/en"));
-                      }
-                    }}
-                    className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center justify-between hover:bg-slate-900 ${
-                      locale === "en" ? "text-cyan-400 font-bold bg-cyan-950/40" : "text-slate-300"
-                    }`}
-                  >
-                    <span>English</span>
-                    <span>🇺🇸</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setLocale("bn");
-                      setLangMenuOpen(false);
-                      if (pathname) {
-                        router.push(pathname.replace(/^\/(en|bn)/, "/bn"));
-                      }
-                    }}
-                    className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center justify-between hover:bg-slate-900 ${
-                      locale === "bn" ? "text-cyan-400 font-bold bg-cyan-950/40" : "text-slate-300"
-                    }`}
-                  >
-                    <span>বাংলা</span>
-                    <span>🇧🇩</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* AUTH ACTION BUTTONS + CART BUTTON (ONLY VISIBLE WHEN LOGGED IN) */}
-            {isAuthenticated ? (
-              <div className="flex items-center gap-2.5">
-                {/* SHOPPING CART BUTTON */}
+            {langMenuOpen && (
+              <div className="absolute right-0 mt-2 w-32 bg-slate-950 border border-slate-800 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in">
                 <button
-                  onClick={handleCart}
-                  className="relative z-20 cursor-pointer pointer-events-auto flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-500/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => {
+                    setLocale("en");
+                    setLangMenuOpen(false);
+                    if (pathname) {
+                      router.push(pathname.replace(/^\/(en|bn)/, "/en"));
+                    }
+                  }}
+                  className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center justify-between hover:bg-slate-900 ${locale === "en" ? "text-cyan-400 font-bold bg-cyan-950/40" : "text-slate-300"
+                    }`}
                 >
-                  <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
-                  <span className="hidden sm:inline">{dict.nav.cart}</span>
-                  {displayCartCount > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 text-[10px] font-black bg-slate-950 text-cyan-400 rounded-full animate-bounce">
-                      {displayCartCount}
-                    </span>
-                  )}
+                  <span>English</span>
+                  <span>🇺🇸</span>
                 </button>
-
-                {/* USER PROFILE BADGE */}
-                <div className="relative shrink-0">
-                  <button
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 hover:border-cyan-500 transition-all text-xs font-bold text-slate-100 shadow-md group"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-cyan-500 text-slate-950 font-black text-xs flex items-center justify-center shrink-0">
-                      {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                    </div>
-                    <span className="max-w-[110px] sm:max-w-[140px] truncate">{user?.name || "Account"}</span>
-                  </button>
-
-                  {/* Dropdown Overlay - Strictly Right Aligned */}
-                  {userMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 max-w-[calc(100vw-2rem)] bg-slate-950/95 backdrop-blur-2xl border border-slate-800 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in space-y-1">
-                      <Link
-                        href={`/${locale}/profile`}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-slate-200 hover:bg-slate-900 hover:text-cyan-400 transition-colors rounded-xl"
-                      >
-                        <User className="w-4 h-4 text-cyan-400" />
-                        <span>My Account</span>
-                      </Link>
-
-                      <Link
-                        href={`/${locale}/profile?tab=settings`}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-slate-200 hover:bg-slate-900 hover:text-cyan-400 transition-colors rounded-xl"
-                      >
-                        <Settings className="w-4 h-4 text-cyan-400" />
-                        <span>Settings</span>
-                      </Link>
-
-                      <button
-                        onClick={() => {
-                          logout();
-                          setUserMenuOpen(false);
-                          router.push(`/${locale}`);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition-colors border-t border-slate-900 mt-1"
-                      >
-                        <LogOut className="w-4 h-4 text-rose-400" />
-                        <span>Log Out</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              /* PUBLIC VISITOR AUTH BUTTONS */
-              <div className="flex items-center gap-2 shrink-0">
-                <Link
-                  href={`/${locale}/auth/login`}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/40 text-slate-200 text-xs font-bold rounded-xl transition-colors"
+                <button
+                  onClick={() => {
+                    setLocale("bn");
+                    setLangMenuOpen(false);
+                    if (pathname) {
+                      router.push(pathname.replace(/^\/(en|bn)/, "/bn"));
+                    }
+                  }}
+                  className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center justify-between hover:bg-slate-900 ${locale === "bn" ? "text-cyan-400 font-bold bg-cyan-950/40" : "text-slate-300"
+                    }`}
                 >
-                  <LogIn className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>{dict.nav.login}</span>
-                </Link>
-                <Link
-                  href={`/${locale}/auth/signup`}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-cyan-500/20 to-sky-500/20 hover:from-cyan-500/30 hover:to-sky-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-bold rounded-xl transition-colors shadow-md shadow-cyan-500/10"
-                >
-                  <UserPlus className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>{dict.nav.signup}</span>
-                </Link>
+                  <span>বাংলা</span>
+                  <span>🇧🇩</span>
+                </button>
               </div>
             )}
-
-            {/* MOBILE MENU TOGGLE */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2.5 lg:hidden text-slate-300 hover:text-cyan-400 bg-slate-900 border border-slate-800 rounded-xl shrink-0"
-              aria-label="Toggle Navigation"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
+
+          {/* AUTH ACTION BUTTONS + CART BUTTON (ONLY VISIBLE WHEN LOGGED IN) */}
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2.5">
+              {/* SHOPPING CART BUTTON */}
+              <button
+                onClick={handleCart}
+                className="relative z-20 cursor-pointer pointer-events-auto flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-500/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
+                <span className="hidden sm:inline">{dict.nav.cart}</span>
+                {displayCartCount > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-black bg-slate-950 text-cyan-400 rounded-full animate-bounce">
+                    {displayCartCount}
+                  </span>
+                )}
+              </button>
+
+              {/* USER PROFILE BADGE */}
+              <div className="relative shrink-0">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 hover:border-cyan-500 transition-all text-xs font-bold text-slate-100 shadow-md group"
+                >
+                  <div className="w-6 h-6 rounded-full bg-cyan-500 text-slate-950 font-black text-xs flex items-center justify-center shrink-0">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <span className="max-w-[110px] sm:max-w-[140px] truncate">{user?.name || "Account"}</span>
+                </button>
+
+                {/* Dropdown Overlay - Strictly Right Aligned */}
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-48 max-w-[calc(100vw-2rem)] bg-slate-950/95 backdrop-blur-2xl border border-slate-800 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in space-y-1">
+                    <Link
+                      href={`/${locale}/profile`}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-slate-200 hover:bg-slate-900 hover:text-cyan-400 transition-colors rounded-xl"
+                    >
+                      <User className="w-4 h-4 text-cyan-400" />
+                      <span>My Account</span>
+                    </Link>
+
+
+
+                    <Link
+                      href={`/${locale}/profile?tab=settings`}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-slate-200 hover:bg-slate-900 hover:text-cyan-400 transition-colors rounded-xl"
+                    >
+                      <Settings className="w-4 h-4 text-cyan-400" />
+                      <span>Settings</span>
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        logout();
+                        setUserMenuOpen(false);
+                        router.push(`/${locale}`);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition-colors border-t border-slate-900 mt-1"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-400" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* PUBLIC VISITOR AUTH BUTTONS */
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href={`/${locale}/auth/login`}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/40 text-slate-200 text-xs font-bold rounded-xl transition-colors"
+              >
+                <LogIn className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{dict.nav.login}</span>
+              </Link>
+              <Link
+                href={`/${locale}/auth/signup`}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-cyan-500/20 to-sky-500/20 hover:from-cyan-500/30 hover:to-sky-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-bold rounded-xl transition-colors shadow-md shadow-cyan-500/10"
+              >
+                <UserPlus className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{dict.nav.signup}</span>
+              </Link>
+            </div>
+          )}
+
+          {/* MOBILE MENU TOGGLE */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2.5 lg:hidden text-slate-300 hover:text-cyan-400 bg-slate-900 border border-slate-800 rounded-xl shrink-0"
+            aria-label="Toggle Navigation"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
+      </div>
 
       {/* MOBILE MENU DROPDOWN */}
       {mobileMenuOpen && (
@@ -431,7 +436,7 @@ export default function Navbar({
           closeCart();
           router.push(`/${locale}/services`);
         }}
-        onApplyPromo={() => {}}
+        onApplyPromo={() => { }}
       />
     </header>
   );

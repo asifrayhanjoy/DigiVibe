@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
 import { Zap, Mail, Lock, LogIn, KeyRound, CheckCircle2, ArrowRight, RefreshCw } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 import { apiLogin, apiVerifyOtp, apiSendOtp } from "@/lib/api/services";
 
 export default function LoginPage() {
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const { locale, dict } = useLanguage();
+  const { login } = useAuth();
 
   // OTP Countdown timer
   useEffect(() => {
@@ -45,11 +47,21 @@ export default function LoginPage() {
       const res = await apiLogin(email, password);
       setIsSubmitting(false);
 
-      if (res.success && res.requiresOtp) {
-        setStep("otp");
-        setToast({ title: "Email OTP Sent 🔑", message: res.message });
+      if (res.success) {
+        if (res.user && res.token) {
+          login(res.user, res.token);
+        }
+        if (res.requiresOtp) {
+          setStep("otp");
+          setToast({ title: "Email OTP Sent 🔑", message: res.message });
+        } else {
+          setToast({ title: "Login Successful 🎉", message: res.message });
+          setTimeout(() => {
+            window.location.href = `/${locale}/services`;
+          }, 800);
+        }
       } else {
-        setToast({ title: "Login Failed", message: res.message || "Could not send OTP email." });
+        setToast({ title: "Login Failed", message: res.message || "Invalid credentials." });
       }
     } catch (err) {
       setIsSubmitting(false);
@@ -70,10 +82,13 @@ export default function LoginPage() {
       setIsSubmitting(false);
 
       if (res.success) {
-        setToast({ title: "Authentication Successful! 🎉", message: "Redirecting to your profile..." });
+        if (res.user && res.token) {
+          login(res.user, res.token);
+        }
+        setToast({ title: "Authentication Successful! 🎉", message: "Redirecting to All Services..." });
         setTimeout(() => {
-          window.location.href = `/${locale}/profile`;
-        }, 1200);
+          window.location.href = `/${locale}/services`;
+        }, 1000);
       } else {
         setToast({ title: "Verification Failed", message: res.message });
       }
@@ -229,14 +244,17 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:opacity-90 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/25 transition-all"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:opacity-90 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/25 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? (
-                      <span>Verifying...</span>
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-slate-950 stroke-[2.5]" />
+                        <span>Verifying & Redirecting...</span>
+                      </>
                     ) : (
                       <>
                         <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                        <span>Verify & Access Profile</span>
+                        <span>Verify & Access All Services</span>
                       </>
                     )}
                   </button>

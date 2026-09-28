@@ -6,8 +6,8 @@ export default function TrustBanner() {
   const USPs = [
     {
       icon: Zap,
-      title: "Instant Delivery (ইনস্ট্যান্ট ডেলিভারি)",
-      desc: "অটোমেটেড সিস্টেমের মাধ্যমে পেমেন্ট সম্পন্ন হওয়ার সাথে সাথেই ডেলিভারি।",
+      title: "Delivery Within 5 Mins (৫ মিনিটে ডেলিভারি)",
+      desc: "অটোমেটেড সিস্টেমের মাধ্যমে পেমেন্ট সম্পন্ন হওয়ার ৫ মিনিটের ভেতর ডেলিভারি নিশ্চিত।",
       color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20"
     },
     {
@@ -18,8 +18,8 @@ export default function TrustBanner() {
     },
     {
       icon: Wallet,
-      title: "bKash, CellFin & Crypto Pay",
-      desc: "বিকাশ, সেলফিন, রকেট এবং ক্রিপ্টো (USDT) দিয়ে অনায়াসে ও সহজে পেমেন্ট করার সুবিধা।",
+      title: "bKash, CellFin & Rocket (Send Money)",
+      desc: "বিকাশ, সেলফিন ও রকেটে শুধুমাত্র সেন্ড মানি (Send Money) করে সহজে পেমেন্ট করার সুবিধা। (ক্যাশআউট গ্রহণযোগ্য নয়)",
       color: "text-amber-400 bg-amber-500/10 border-amber-500/20"
     },
     {

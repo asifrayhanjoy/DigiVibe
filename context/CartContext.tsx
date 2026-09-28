@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { CartItem, ServiceItem } from "@/types";
 import { useAuth } from "./AuthContext";
 
@@ -27,7 +27,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated } = useAuth();
 
   // Dynamic Backend Cart Fetching
-  const fetchCartFromBackend = async () => {
+  const fetchCartFromBackend = useCallback(async () => {
     try {
       setIsLoading(true);
       const res = await fetch("/api/cart");
@@ -42,7 +42,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -50,10 +50,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } else {
       setCart([]);
     }
-  }, [isAuthenticated, user?.email]);
+  }, [isAuthenticated, user?.email, fetchCartFromBackend]);
 
-  const syncCartToBackend = async (newCart: CartItem[]) => {
-    setCart(newCart);
+  const syncCartToBackend = useCallback(async (newCart: CartItem[]) => {
     try {
       await fetch("/api/cart", {
         method: "POST",
@@ -63,9 +62,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Failed to sync cart to backend:", err);
     }
-  };
+  }, [user?.email]);
 
-  const addToCart = (service: ServiceItem) => {
+  const addToCart = useCallback((service: ServiceItem) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === service.id);
       let updated: CartItem[];
@@ -83,9 +82,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       syncCartToBackend(updated);
       return updated;
     });
-  };
+  }, [syncCartToBackend]);
 
-  const updateQuantity = (id: string, delta: number) => {
+  const updateQuantity = useCallback((id: string, delta: number) => {
     setCart((prev) => {
       const updated = prev
         .map((item) => {
@@ -99,39 +98,55 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       syncCartToBackend(updated);
       return updated;
     });
-  };
+  }, [syncCartToBackend]);
 
-  const removeFromCart = (id: string) => {
+  const removeFromCart = useCallback((id: string) => {
     setCart((prev) => {
       const updated = prev.filter((item) => item.id !== id);
       syncCartToBackend(updated);
       return updated;
     });
-  };
+  }, [syncCartToBackend]);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCart([]);
     syncCartToBackend([]);
-  };
+  }, [syncCartToBackend]);
 
-  const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const openCart = useCallback(() => setIsCartOpen(true), []);
+  const closeCart = useCallback(() => setIsCartOpen(false), []);
+
+  const cartCount = useMemo(() => {
+    return cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  }, [cart]);
+
+  const contextValue = useMemo(() => ({
+    cart,
+    cartCount,
+    isCartOpen,
+    setIsCartOpen,
+    openCart,
+    closeCart,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    isLoading,
+  }), [
+    cart,
+    cartCount,
+    isCartOpen,
+    openCart,
+    closeCart,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    isLoading,
+  ]);
 
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        cartCount,
-        isCartOpen,
-        setIsCartOpen,
-        openCart: () => setIsCartOpen(true),
-        closeCart: () => setIsCartOpen(false),
-        addToCart,
-        updateQuantity,
-        removeFromCart,
-        clearCart,
-        isLoading,
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

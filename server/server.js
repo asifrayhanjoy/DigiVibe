@@ -437,7 +437,7 @@ app.post('/api/orders/create', async (req, res) => {
       paymentMethod,
       trxId,
       customerPhone,
-      status: 'delivered'
+      status: 'Pending'
     });
 
     // Create Real Digital Assets in MongoDB Atlas for each item purchased!

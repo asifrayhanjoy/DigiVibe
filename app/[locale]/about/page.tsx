@@ -31,14 +31,14 @@ export default function AboutPage() {
   const STATS = [
     { label: "Active Happy Clients", value: "1500+", icon: Users, color: "text-cyan-400" },
     { label: "Auto-Fulfillment Rate", value: "99.9%", icon: Zap, color: "text-amber-400" },
-    { label: "Average Delivery Time", value: "< 30 minutes", icon: Clock, color: "text-emerald-400" },
+    { label: "Average Delivery Time", value: "Within 5 Mins", icon: Clock, color: "text-emerald-400" },
     { label: "Satisfaction & Warranty", value: "100%", icon: Award, color: "text-sky-400" },
   ];
 
   const PILLARS = [
     {
       title: "Fast & Automated Delivery ⚡",
-      desc: "No long waiting times. Our system processes orders rapidly and delivers your license keys, VPN access, or drive top-ups within 30 minutes.",
+      desc: "No long waiting times. Our automated system processes orders rapidly and delivers your license keys, VPN access, or drive top-ups within 5 minutes.",
       icon: Zap,
       gradient: "from-cyan-500/10 via-sky-500/5 to-transparent border-cyan-500/20"
     },
@@ -50,7 +50,7 @@ export default function AboutPage() {
     },
     {
       title: "Localized Bangladesh Gateways 🇧🇩",
-      desc: "Seamlessly pay using bKash, CellFin, and Rocket with zero transaction overhead. (Direct Bank Transfer & Binance Pay coming soon).",
+      desc: "Seamlessly pay using bKash, CellFin, and Rocket via Send Money (সেন্ড মানি) only. (Cash Out is strictly not accepted).",
       icon: Smartphone,
       gradient: "from-pink-500/10 via-purple-500/5 to-transparent border-pink-500/20"
     },

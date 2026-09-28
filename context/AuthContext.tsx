@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { User } from "@/types";
 
@@ -48,30 +48,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const login = (userData: User, authToken: string) => {
+  const login = useCallback((userData: User, authToken: string) => {
     setUser(userData);
     setToken(authToken);
     localStorage.setItem("digivibe_user", JSON.stringify(userData));
     localStorage.setItem("digivibe_token", authToken);
     document.cookie = `token=${authToken}; path=/; max-age=604800; SameSite=Lax`;
     document.cookie = `digivibe_token=${authToken}; path=/; max-age=604800; SameSite=Lax`;
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     setToken(null);
     localStorage.removeItem("digivibe_user");
     localStorage.removeItem("digivibe_token");
     document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie = "digivibe_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  };
+  }, []);
 
-  /**
-   * Helper function to guard protected actions/routes.
-   * Returns true if user is logged in.
-   * If user is NOT logged in, redirects immediately to login page.
-   */
-  const requireAuth = (onSuccess?: () => void, redirectPath?: string): boolean => {
+  const requireAuth = useCallback((onSuccess?: () => void, redirectPath?: string): boolean => {
     const isLogged = !!user || !!localStorage.getItem("digivibe_token");
 
     if (!isLogged) {
@@ -85,20 +80,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       onSuccess();
     }
     return true;
-  };
+  }, [user, pathname, router]);
+
+  const value = useMemo(() => ({
+    user,
+    token,
+    isAuthenticated: !!user || !!token,
+    isLoading,
+    login,
+    logout,
+    requireAuth,
+  }), [user, token, isLoading, login, logout, requireAuth]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isAuthenticated: !!user || !!token,
-        isLoading,
-        login,
-        logout,
-        requireAuth,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
