@@ -1,6 +1,18 @@
 "use client";
 
-import { Search, Zap, ShieldCheck, Star, CreditCard } from "lucide-react";
+import Link from "next/link";
+import {
+  Search,
+  Zap,
+  ShieldCheck,
+  Star,
+  CreditCard,
+  Handshake,
+  Sparkles,
+  PhoneCall,
+  ArrowRight,
+  CheckCircle2
+} from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -30,7 +42,7 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
   };
 
   return (
-    <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden">
+    <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden">
       {/* Background glow effects */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none animate-pulse-glow" />
       <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] bg-sky-600/15 rounded-full blur-[120px] pointer-events-none" />
@@ -46,6 +58,7 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        
         {/* Top Announcement Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30 shadow-lg shadow-cyan-500/10 mb-6 backdrop-blur-md">
           <span className="flex h-2 w-2 relative">
@@ -75,7 +88,7 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
         </p>
 
         {/* Hero Search Box */}
-        <div className="mt-8 max-w-2xl mx-auto">
+        <div className="mt-10 max-w-2xl mx-auto">
           <form
             onSubmit={handleHeroSearchSubmit}
             className="relative flex items-center p-2 bg-slate-900/90 border border-slate-700/80 focus-within:border-cyan-500/80 rounded-2xl shadow-2xl shadow-cyan-950/40 backdrop-blur-xl transition-all duration-300"

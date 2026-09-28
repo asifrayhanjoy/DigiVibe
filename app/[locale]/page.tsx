@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import TrustBanner from "@/components/TrustBanner";
+import PromotionalBanner from "@/components/PromotionalBanner";
 import Testimonials from "@/components/Testimonials";
 import FaqSection from "@/components/FaqSection";
 import Footer from "@/components/Footer";
@@ -229,6 +230,9 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* DEDICATED PARTNERSHIP CARD */}
+      <PromotionalBanner />
 
       {/* COMPREHENSIVE SERVICE OVERVIEW SECTIONS */}
       <section className="py-20 relative">
