@@ -1,15 +1,15 @@
 import { OrderPayload, OrderResponse, User } from "@/types";
 
-const NODE_AUTH_SERVICE = process.env.NEXT_PUBLIC_NODE_AUTH_URL || "http://localhost:5000/api/auth";
-const NODE_USER_SERVICE = process.env.NEXT_PUBLIC_NODE_USER_URL || "http://localhost:5000/api/user";
-const NODE_ORDER_SERVICE = process.env.NEXT_PUBLIC_NODE_ORDER_URL || "http://localhost:5000/api/orders";
+const NODE_AUTH_SERVICE = process.env.NEXT_PUBLIC_NODE_AUTH_URL || "";
+const NODE_USER_SERVICE = process.env.NEXT_PUBLIC_NODE_USER_URL || "";
+const NODE_ORDER_SERVICE = process.env.NEXT_PUBLIC_NODE_ORDER_URL || "";
 
 /**
  * Fetch Current User Profile directly from MongoDB Atlas (with local fallback)
  */
 export async function apiFetchProfile(email: string): Promise<User | null> {
   try {
-    const res = await fetch(`${NODE_AUTH_SERVICE}/me?email=${encodeURIComponent(email)}`);
+    const res = await fetch(`/api/auth/me?email=${encodeURIComponent(email)}`);
     if (res.ok) {
       const data = await res.json();
       if (data.user) {
@@ -18,6 +18,18 @@ export async function apiFetchProfile(email: string): Promise<User | null> {
       }
     }
   } catch (err) {
+    if (NODE_AUTH_SERVICE) {
+      try {
+        const res = await fetch(`${NODE_AUTH_SERVICE}/me?email=${encodeURIComponent(email)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            localStorage.setItem("digivibe_user", JSON.stringify(data.user));
+            return data.user;
+          }
+        }
+      } catch (e) {}
+    }
     // Graceful offline/local fallback
     if (typeof window !== "undefined") {
       const cached = localStorage.getItem("digivibe_user");
@@ -36,10 +48,12 @@ export async function apiFetchProfile(email: string): Promise<User | null> {
  */
 export async function apiFetchUserAssets(email: string): Promise<any[]> {
   try {
-    const res = await fetch(`${NODE_USER_SERVICE}/assets?email=${encodeURIComponent(email)}`);
-    if (res.ok) {
-      const data = await res.json();
-      return data.assets || [];
+    if (NODE_USER_SERVICE) {
+      const res = await fetch(`${NODE_USER_SERVICE}/assets?email=${encodeURIComponent(email)}`);
+      if (res.ok) {
+        const data = await res.json();
+        return data.assets || [];
+      }
     }
   } catch (err) {
     if (typeof window !== "undefined") {
@@ -89,7 +103,8 @@ export async function apiUpdateProfile(profileData: {
   avatar?: string;
 }): Promise<{ success: boolean; message: string; user?: User }> {
   try {
-    const res = await fetch(`${NODE_AUTH_SERVICE}/profile`, {
+    const authUrl = NODE_AUTH_SERVICE || "/api/auth";
+    const res = await fetch(`${authUrl}/profile`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(profileData),
@@ -103,11 +118,10 @@ export async function apiUpdateProfile(profileData: {
       return data;
     }
     return { success: false, message: data.message || "Failed to update profile." };
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error persisting profile update to MongoDB Atlas:", err);
+    return { success: false, message: `Could not save profile updates: ${err?.message || "Server error"}` };
   }
-
-  return { success: false, message: "Could not save profile updates to database." };
 }
 
 /**
@@ -115,7 +129,8 @@ export async function apiUpdateProfile(profileData: {
  */
 export async function apiAddWalletCredit(email: string, amount: number): Promise<{ success: boolean; message: string; walletBalance?: number; user?: User }> {
   try {
-    const res = await fetch(`${NODE_AUTH_SERVICE}/wallet/add`, {
+    const authUrl = NODE_AUTH_SERVICE || "/api/auth";
+    const res = await fetch(`${authUrl}/wallet/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, amount }),
@@ -144,23 +159,33 @@ export async function apiAddWalletCredit(email: string, amount: number): Promise
  * Send Email OTP Request via Nodemailer & MongoDB Atlas
  */
 export async function apiSendOtp(email: string, purpose: "login" | "signup", userData?: any): Promise<{ success: boolean; message: string; demoOtp?: string }> {
-
   try {
-    const res = await fetch(`${NODE_AUTH_SERVICE}/send-otp`, {
+    const res = await fetch("/api/auth/send-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, purpose, userData }),
     });
-    if (res.ok) {
-      return await res.json();
+    const data = await res.json();
+    if (data && (res.ok || data.message)) {
+      return data;
     }
-  } catch (err) {
-    console.error("Error calling send-otp microservice:", err);
+  } catch (err: any) {
+    console.error("Error sending OTP via API route:", err);
+    if (NODE_AUTH_SERVICE) {
+      try {
+        const res = await fetch(`${NODE_AUTH_SERVICE}/send-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, purpose, userData }),
+        });
+        if (res.ok) return await res.json();
+      } catch (e) {}
+    }
   }
 
   return {
     success: false,
-    message: "Failed to send OTP code. Please try again.",
+    message: "Failed to send OTP code. Please check your network or database connection.",
   };
 }
 
@@ -169,7 +194,7 @@ export async function apiSendOtp(email: string, purpose: "login" | "signup", use
  */
 export async function apiVerifyOtp(email: string, otp: string): Promise<{ success: boolean; message: string; user?: User; token?: string }> {
   try {
-    const res = await fetch(`${NODE_AUTH_SERVICE}/verify-otp`, {
+    const res = await fetch("/api/auth/verify-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, otp }),
@@ -186,12 +211,24 @@ export async function apiVerifyOtp(email: string, otp: string): Promise<{ succes
       }
       return data;
     }
-    return { success: false, message: data.message || "Invalid OTP code." };
-  } catch (err) {
+    if (data && data.message) {
+      return { success: false, message: data.message };
+    }
+  } catch (err: any) {
     console.error("Error verifying OTP against database:", err);
+    if (NODE_AUTH_SERVICE) {
+      try {
+        const res = await fetch(`${NODE_AUTH_SERVICE}/verify-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp }),
+        });
+        if (res.ok) return await res.json();
+      } catch (e) {}
+    }
   }
 
-  return { success: false, message: "Invalid OTP or backend unavailable." };
+  return { success: false, message: "Invalid OTP or authentication server error." };
 }
 
 export async function apiLogin(email: string, pass: string): Promise<{ success: boolean; requiresOtp: boolean; message: string; user?: User; token?: string; demoOtp?: string }> {
@@ -226,18 +263,24 @@ export async function apiLogin(email: string, pass: string): Promise<{ success: 
   }
 
   try {
-    const res = await fetch(`${NODE_AUTH_SERVICE}/login`, {
+    const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: normalizedEmail, password: pass }),
     });
-    if (res.ok) {
-      return await res.json();
+    const data = await res.json();
+    if (data && (res.ok || data.message)) {
+      if (data.user && data.token) {
+        localStorage.setItem("digivibe_user", JSON.stringify(data.user));
+        localStorage.setItem("digivibe_token", data.token);
+        localStorage.setItem("digivibe_user_email", normalizedEmail);
+        document.cookie = `token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `digivibe_token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
+      }
+      return data;
     }
-    const errData = await res.json();
-    return { success: false, requiresOtp: false, message: errData.message || "Login failed." };
-  } catch (err) {
-    console.error("Error calling login microservice:", err);
+  } catch (err: any) {
+    console.error("Error calling login API route:", err);
   }
 
   // Fallback regular user login if backend offline
@@ -268,24 +311,34 @@ export async function apiLogin(email: string, pass: string): Promise<{ success: 
  */
 export async function apiSignup(name: string, email: string, pass: string, phone: string): Promise<{ success: boolean; requiresOtp: boolean; message: string; demoOtp?: string }> {
   try {
-    const res = await fetch(`${NODE_AUTH_SERVICE}/register`, {
+    const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password: pass, phone }),
     });
-    if (res.ok) {
-      return await res.json();
+    const data = await res.json();
+    if (data && (res.ok || data.message)) {
+      return data;
     }
-    const errData = await res.json();
-    return { success: false, requiresOtp: false, message: errData.message || "Signup failed." };
-  } catch (err) {
-    console.error("Error calling signup microservice:", err);
+  } catch (err: any) {
+    console.error("Error calling signup API route:", err);
+    if (NODE_AUTH_SERVICE) {
+      try {
+        const res = await fetch(`${NODE_AUTH_SERVICE}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password: pass, phone }),
+        });
+        const errData = await res.json();
+        return errData;
+      } catch (e) {}
+    }
   }
 
   return {
     success: false,
     requiresOtp: false,
-    message: "Signup service offline.",
+    message: "Registration server error. Please verify your internet connection and database setup.",
   };
 }
 

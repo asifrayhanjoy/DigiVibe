@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
-const MONGO_URI = process.env.MONGO_URI || process.env.DATABASE_URL;
+const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.DATABASE_URL;
 
 if (!MONGO_URI) {
-  console.warn("⚠️ MONGO_URI is missing in environment variables.");
+  console.warn("⚠️ MONGODB_URI / MONGO_URI / DATABASE_URL is missing in environment variables.");
 }
 
 interface MongooseCache {
@@ -30,7 +30,7 @@ export async function connectDB() {
   if (!cached.promise) {
     const connUri = MONGO_URI;
     if (!connUri) {
-      throw new Error("Neither MONGO_URI nor DATABASE_URL is set in environment.");
+      throw new Error("Missing MongoDB connection string. Please set MONGODB_URI, MONGO_URI, or DATABASE_URL in environment variables.");
     }
 
     const opts = {
