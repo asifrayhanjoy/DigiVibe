@@ -119,22 +119,22 @@ export default function Navbar({
         }`}
     >
       <AnnouncementBanner />
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 h-16">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-4 h-16">
         {/* LOGO */}
-        <Link href={`/${locale}`} className="flex items-center gap-3 group shrink-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-sky-500 to-indigo-600 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform duration-300">
-            <Zap className="w-6 h-6 fill-slate-950 stroke-slate-950" />
+        <Link href={`/${locale}`} className="flex items-center gap-2 sm:gap-3 group shrink-0 min-w-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-sky-500 to-indigo-600 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform duration-300 shrink-0">
+            <Zap className="w-4.5 h-4.5 sm:w-6 sm:h-6 fill-slate-950 stroke-slate-950" />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-black tracking-tight text-white font-sans">
+          <div className="flex flex-col min-w-0 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <span className="text-base sm:text-2xl font-black tracking-tight text-white font-sans whitespace-nowrap">
                 Digi<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400">Vibe</span>
               </span>
-              <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full animate-pulse">
+              <span className="px-1.5 py-0.2 sm:px-2 sm:py-0.5 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full animate-pulse shrink-0">
                 PRO
               </span>
             </div>
-            <span className="text-[10px] text-slate-400 font-medium tracking-wide">
+            <span className="text-[8px] sm:text-[10px] text-slate-400 font-medium tracking-wide whitespace-nowrap truncate max-w-[100px] sm:max-w-none">
               Digital Shop 🇧🇩
             </span>
           </div>
@@ -183,24 +183,24 @@ export default function Navbar({
         </div>
 
         {/* RIGHT ACTIONS */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Search icon (Mobile) */}
           <button
             onClick={handleSearch}
-            className="p-2.5 md:hidden text-slate-300 hover:text-cyan-400 bg-slate-900/80 border border-slate-800 rounded-xl"
+            className="p-2 sm:p-2.5 md:hidden text-slate-300 hover:text-cyan-400 bg-slate-900/80 border border-slate-800 rounded-xl"
             aria-label="Search"
           >
-            <Search className="w-4 h-4" />
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
           {/* LANGUAGE SWITCHER DROPDOWN */}
           <div className="relative">
             <button
               onClick={() => setLangMenuOpen(!langMenuOpen)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/30 rounded-xl text-xs font-bold text-slate-200 transition-all"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/30 rounded-xl text-xs font-bold text-slate-200 transition-all"
             >
               <Globe className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="uppercase">{locale}</span>
+              <span className="uppercase text-[11px] sm:text-xs">{locale}</span>
             </button>
 
             {langMenuOpen && (
