@@ -122,44 +122,44 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
         </div>
 
         {/* Quick Stats Badges */}
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          <div className="glass-panel p-4 rounded-2xl flex items-center gap-3 border border-slate-800/80 hover:border-cyan-500/30 transition-all">
-            <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 shrink-0">
-              <Zap className="w-5 h-5" />
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 max-w-4xl mx-auto">
+          <div className="glass-panel p-3 sm:p-4 rounded-2xl flex items-center gap-2 sm:gap-3 border border-slate-800/80 hover:border-cyan-500/30 transition-all min-w-0 overflow-hidden">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 shrink-0">
+              <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div className="text-left">
-              <div className="text-sm font-bold text-white">{dict.hero.stats.delivery}</div>
-              <div className="text-xs text-slate-400">{dict.hero.stats.deliverySub}</div>
-            </div>
-          </div>
-
-          <div className="glass-panel p-4 rounded-2xl flex items-center gap-3 border border-slate-800/80 hover:border-cyan-500/30 transition-all">
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div className="text-left">
-              <div className="text-sm font-bold text-white">{dict.hero.stats.security}</div>
-              <div className="text-xs text-slate-400">{dict.hero.stats.securitySub}</div>
+            <div className="text-left min-w-0 flex-1 overflow-hidden">
+              <div className="text-xs sm:text-sm font-bold text-white leading-tight truncate">{dict.hero.stats.delivery}</div>
+              <div className="text-[10px] sm:text-xs text-slate-400 leading-tight mt-0.5 line-clamp-2 sm:line-clamp-none break-words">{dict.hero.stats.deliverySub}</div>
             </div>
           </div>
 
-          <div className="glass-panel p-4 rounded-2xl flex items-center gap-3 border border-slate-800/80 hover:border-cyan-500/30 transition-all">
-            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 shrink-0">
-              <Star className="w-5 h-5 fill-amber-400" />
+          <div className="glass-panel p-3 sm:p-4 rounded-2xl flex items-center gap-2 sm:gap-3 border border-slate-800/80 hover:border-cyan-500/30 transition-all min-w-0 overflow-hidden">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0">
+              <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div className="text-left">
-              <div className="text-sm font-bold text-white">{dict.hero.stats.rating}</div>
-              <div className="text-xs text-slate-400">{dict.hero.stats.ratingSub}</div>
+            <div className="text-left min-w-0 flex-1 overflow-hidden">
+              <div className="text-xs sm:text-sm font-bold text-white leading-tight truncate">{dict.hero.stats.security}</div>
+              <div className="text-[10px] sm:text-xs text-slate-400 leading-tight mt-0.5 line-clamp-2 sm:line-clamp-none break-words">{dict.hero.stats.securitySub}</div>
             </div>
           </div>
 
-          <div className="glass-panel p-4 rounded-2xl flex items-center gap-3 border border-slate-800/80 hover:border-cyan-500/30 transition-all">
-            <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 shrink-0">
-              <CreditCard className="w-5 h-5" />
+          <div className="glass-panel p-3 sm:p-4 rounded-2xl flex items-center gap-2 sm:gap-3 border border-slate-800/80 hover:border-cyan-500/30 transition-all min-w-0 overflow-hidden">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-400 shrink-0">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-400" />
             </div>
-            <div className="text-left">
-              <div className="text-sm font-bold text-white">{dict.hero.stats.payments}</div>
-              <div className="text-xs text-slate-400">{dict.hero.stats.paymentsSub}</div>
+            <div className="text-left min-w-0 flex-1 overflow-hidden">
+              <div className="text-xs sm:text-sm font-bold text-white leading-tight truncate">{dict.hero.stats.rating}</div>
+              <div className="text-[10px] sm:text-xs text-slate-400 leading-tight mt-0.5 line-clamp-2 sm:line-clamp-none break-words">{dict.hero.stats.ratingSub}</div>
+            </div>
+          </div>
+
+          <div className="glass-panel p-3 sm:p-4 rounded-2xl flex items-center gap-2 sm:gap-3 border border-slate-800/80 hover:border-cyan-500/30 transition-all min-w-0 overflow-hidden">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-400 shrink-0">
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
+            <div className="text-left min-w-0 flex-1 overflow-hidden">
+              <div className="text-xs sm:text-sm font-bold text-white leading-tight truncate">{dict.hero.stats.payments}</div>
+              <div className="text-[10px] sm:text-xs text-slate-400 leading-tight mt-0.5 line-clamp-2 sm:line-clamp-none break-words">{dict.hero.stats.paymentsSub}</div>
             </div>
           </div>
         </div>

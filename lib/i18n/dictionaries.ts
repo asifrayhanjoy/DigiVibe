@@ -32,7 +32,7 @@ export const DICTIONARIES = {
         rating: "4.9/5 Rating",
         ratingSub: "12,400+ satisfied clients",
         payments: "bKash & CellFin",
-        paymentsSub: "Send Money Only (bKash/CellFin/Rocket)"
+        paymentsSub: "Send Money Only (bKash/Rocket)"
       }
     },
     categories: {

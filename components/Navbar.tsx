@@ -24,6 +24,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { Locale } from "@/types";
 
 interface NavbarProps {
@@ -113,11 +114,12 @@ export default function Navbar({
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled
-          ? "bg-slate-950/85 backdrop-blur-xl border-b border-cyan-500/20 py-1 shadow-xl shadow-cyan-950/20"
-          : "bg-transparent py-2 border-b border-white/5"
+          ? "bg-slate-950/95 backdrop-blur-xl border-b border-cyan-500/20 py-0 shadow-xl shadow-cyan-950/20"
+          : "bg-slate-950/70 backdrop-blur-md py-0 border-b border-white/5"
         }`}
     >
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
+      <AnnouncementBanner />
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 h-16">
         {/* LOGO */}
         <Link href={`/${locale}`} className="flex items-center gap-3 group shrink-0">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-sky-500 to-indigo-600 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform duration-300">
