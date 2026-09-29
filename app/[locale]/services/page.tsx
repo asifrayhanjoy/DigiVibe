@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import ServiceCard from "@/components/ServiceCard";
@@ -20,12 +20,13 @@ import { useCart } from "@/context/CartContext";
 import VPNProductGrid from "@/components/VPNProductGrid";
 import SimOfferGrid from "@/components/SimOfferGrid";
 
-export default function ServicesPage() {
+function ServicesContent() {
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const [proxySubFilter, setProxySubFilter] = useState<"all" | "gb" | "ip">("all");
   const [smmSubFilter, setSmmSubFilter] = useState<"all" | "lifetime" | "30day" | "norefill">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<"featured" | "price-low" | "price-high" | "popular" | "newest">("featured");
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
@@ -36,6 +37,7 @@ export default function ServicesPage() {
   const { isAuthenticated, isLoading, requireAuth } = useAuth();
   const { cart, addToCart, openCart: contextOpenCart, clearCart } = useCart();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -50,6 +52,43 @@ export default function ServicesPage() {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
+
+  // Handle incoming search query parameters & product ID scroll targeting
+  useEffect(() => {
+    if (!searchParams) return;
+    const urlQuery = searchParams.get("query") || searchParams.get("q") || searchParams.get("search");
+    const urlId = searchParams.get("id") || searchParams.get("product");
+    const urlCat = searchParams.get("cat") || searchParams.get("category");
+
+    if (urlCat) {
+      setActiveCategory(urlCat as CategoryId);
+    }
+
+    if (urlId) {
+      setHighlightedId(urlId);
+      const matched = SERVICES.find((s) => s.id === urlId);
+      if (matched) {
+        setSearchQuery(matched.title);
+        if (matched.category) {
+          setActiveCategory(matched.category as CategoryId);
+        }
+      }
+      setTimeout(() => {
+        const el = document.getElementById(`product-${urlId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 400);
+    } else if (urlQuery) {
+      setSearchQuery(urlQuery);
+      setTimeout(() => {
+        const el = document.getElementById("catalog-grid");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 400);
+    }
+  }, [searchParams]);
 
   // Filter & Sort
   const processedServices = useMemo(() => {
@@ -426,13 +465,14 @@ export default function ServicesPage() {
             <p className="text-xs text-slate-400 mt-1">Try resetting your category or search filter.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div id="catalog-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {displayedServices.map((service) => (
               <ServiceCard
                 key={service.id}
                 service={service}
                 onAddToCart={handleAddToCart}
                 onBuyNow={handleBuyNow}
+                isHighlighted={highlightedId === service.id || (!!searchQuery && searchQuery.trim().length >= 2 && service.title.toLowerCase().includes(searchQuery.toLowerCase()))}
               />
             ))}
           </div>
@@ -455,10 +495,39 @@ export default function ServicesPage() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         searchResults={processedServices}
-        onSelectService={handleBuyNow}
+        onSelectService={(service) => {
+          setSearchQuery(service.title);
+          setHighlightedId(service.id);
+          if (service.category) {
+            setActiveCategory(service.category as CategoryId);
+          }
+          setTimeout(() => {
+            const el = document.getElementById(`product-${service.id}`);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 200);
+        }}
+        onSearchSubmit={(q) => {
+          setSearchQuery(q);
+          setTimeout(() => {
+            const el = document.getElementById("catalog-grid");
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }, 200);
+        }}
       />
 
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
+  );
+}
+
+export default function ServicesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-8 text-center font-bold text-cyan-400">Loading catalog...</div>}>
+      <ServicesContent />
+    </Suspense>
   );
 }

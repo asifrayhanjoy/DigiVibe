@@ -258,13 +258,13 @@ export const SERVICES = [
   // --- IP & PROXY PRODUCTS (EXACT SCREENSHOT DATA +10 BDT PRICING & CLEAN CARD LAYOUT) ---
   {
     id: "ip-owl-proxy-200mb",
-    title: "🦉 Owl Proxy 200 MB",
+    title: "🦉 Owl Proxy80 MB",
     category: "ip",
     subtitle: "100% working & 100% 200 MB 🔥",
     badge: "100% working 🔥",
     rating: 5.0,
     reviews: 4,
-    price: 18,
+    price: 8,
     originalPrice: 40,
     usdPrice: "$0.18",
     delivery: "Instant Code Activation",

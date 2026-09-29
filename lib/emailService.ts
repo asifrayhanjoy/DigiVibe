@@ -1,60 +1,71 @@
-const nodemailer = require('nodemailer');
+import nodemailer from "nodemailer";
 
-const emailUser = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
-const emailPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').replace(/\s+/g, '');
-const emailService = process.env.EMAIL_SERVICE || 'gmail';
-
-// Configure Gmail / SMTP Transporter
-const transporter = nodemailer.createTransport(
-  emailService === 'gmail' || !process.env.SMTP_HOST
-    ? {
-        service: 'gmail',
-        auth: {
-          user: emailUser,
-          pass: emailPass,
-        },
-      }
-    : {
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587', 10),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: emailUser,
-          pass: emailPass,
-        },
-      }
-);
+interface SendOtpOptions {
+  toEmail: string;
+  otp: string;
+  purpose?: string;
+}
 
 /**
  * ----------------------------------------------------------------------------------
  * DEVELOPER GUIDE: 100% INBOX EMAIL DELIVERABILITY (SPF / DKIM / DMARC CHECKLIST)
  * ----------------------------------------------------------------------------------
+ * To ensure 100% Inbox delivery on Gmail, Outlook & Yahoo for custom domains:
+ *
  * 1. SPF Record (TXT Record on DNS Provider):
- *    Host: @  Value: v=spf1 include:_spf.google.com ~all
+ *    Host: @  Value: v=spf1 include:_spf.google.com ~all (or your SMTP provider SPF)
  *
  * 2. DKIM Record (TXT Record on DNS Provider):
+ *    Generate DKIM key in Google Admin Console / cPanel / SendGrid and add:
  *    Host: google._domainkey  Value: v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8...
  *
  * 3. DMARC Record (TXT Record on DNS Provider):
  *    Host: _dmarc  Value: v=DMARC1; p=none; sp=none; rua=mailto:dmarc-reports@digivibe.com
+ *
+ * 4. Gmail App Password / OAuth2:
+ *    Use standard 16-character Gmail App Passwords without spaces from Google Account > Security.
  * ----------------------------------------------------------------------------------
  */
-const sendOtpEmail = async (toEmail, otp, purpose = 'Verification') => {
-  const cleanEmail = toEmail.toLowerCase().trim();
-  const senderDomain = emailUser.includes('@') ? emailUser.split('@')[1] : 'digivibe.com';
 
-  // Clean transactional subject line
+export async function sendDeliverableOtpEmail({ toEmail, otp, purpose = "Verification" }: SendOtpOptions) {
+  const emailUser = (process.env.EMAIL_USER || process.env.SMTP_USER || "").trim();
+  const emailPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || "").replace(/\s+/g, "");
+
+  if (!emailUser || !emailPass || emailUser.includes("your_real_email")) {
+    console.log(`ℹ️ [Mailer Demo Mode] EMAIL_USER not configured. OTP for ${toEmail} is ${otp}`);
+    return { success: false, demo: true, message: "EMAIL_USER not configured in environment." };
+  }
+
+  const cleanToEmail = toEmail.toLowerCase().trim();
+  const senderDomain = emailUser.includes("@") ? emailUser.split("@")[1] : "digivibe.com";
+
+  // 1. Create Nodemailer Transporter
+  const transporter = nodemailer.createTransport(
+    process.env.EMAIL_SERVICE === "gmail" || !process.env.SMTP_HOST
+      ? {
+          service: "gmail",
+          auth: { user: emailUser, pass: emailPass },
+        }
+      : {
+          host: process.env.SMTP_HOST || "smtp.gmail.com",
+          port: parseInt(process.env.SMTP_PORT || "587", 10),
+          secure: process.env.SMTP_SECURE === "true",
+          auth: { user: emailUser, pass: emailPass },
+        }
+  );
+
+  // 2. High-Trust Transactional Subject Line (Strictly avoids spam trigger terms like "URGENT" or "FREE")
   const subject = `DigiVibe verification code: ${otp}`;
 
-  // Clean plain-text alternative (MANDATORY for Gmail/Yahoo Spam Filter Trust Score)
-  const plainText = `Your DigiVibe verification code is: ${otp}\n\n` +
-    `Enter this code to complete your ${purpose.toLowerCase()} process. This single-use code will expire in 5 minutes.\n\n` +
-    `For your security, never share this verification code with anyone.\n\n` +
+  // 3. Clean Plain-Text Alternative Payload (MANDATORY for Gmail/Yahoo Spam Filter Trust Score)
+  const textContent = `Your DigiVibe verification code is: ${otp}\n\n` +
+    `Enter this code to complete your ${purpose.toLowerCase()} process. This single-use code is valid for 5 minutes.\n\n` +
+    `For your security, never share this code with anyone.\n\n` +
     `---\n` +
     `DigiVibe Security Services\n` +
     `https://digivibe.com`;
 
-  // Standard high-deliverability HTML layout
+  // 4. Professional Clean Transactional HTML Layout
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,39 +119,33 @@ const sendOtpEmail = async (toEmail, otp, purpose = 'Verification') => {
 
   const uniqueMsgId = `<otp-${Date.now()}-${Math.floor(100000 + Math.random() * 900000)}@${senderDomain}>`;
 
+  // 5. Build Spam-Filter Bypass Headers (First-Class Transactional Mailer Package)
   const mailOptions = {
-    from: `"DigiVibe Security" <${emailUser || 'no-reply@digivibe.com'}>`,
-    to: cleanEmail,
-    replyTo: `"DigiVibe Support" <${emailUser || 'support@digivibe.com'}>`,
+    from: `"DigiVibe Security" <${emailUser}>`,
+    to: cleanToEmail,
+    replyTo: `"DigiVibe Support" <${emailUser}>`,
     subject: subject,
-    text: plainText,
+    text: textContent,
     html: htmlContent,
     headers: {
-      'Message-ID': uniqueMsgId,
-      'X-Priority': '1',
-      'Priority': 'urgent',
-      'Importance': 'High',
-      'X-Mailer': 'DigiVibe Security Mailer v2.5',
-      'Auto-Submitted': 'auto-generated',
-      'X-Auto-Response-Suppress': 'OOF, AutoReply',
-      'Precedence': 'first-class',
-      'Feedback-ID': 'otp:digivibe:security:1',
+      "Message-ID": uniqueMsgId,
+      "X-Priority": "1",
+      "Priority": "urgent",
+      "Importance": "high",
+      "X-Mailer": "DigiVibe Security Mailer v2.5",
+      "Auto-Submitted": "auto-generated",
+      "X-Auto-Response-Suppress": "OOF, AutoReply",
+      "Precedence": "first-class",
+      "Feedback-ID": "otp:digivibe:security:1",
     },
   };
 
   try {
-    if (!emailUser || emailUser.includes('your_real_email')) {
-      console.error(`❌ [NODEMAILER ERROR] EMAIL_USER is missing or placeholder in .env.`);
-      return { success: false, error: 'EMAIL_USER is not configured in .env' };
-    }
-
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✉️ [SMTP HIGH-DELIVERABILITY SUCCESS] Real Email OTP sent to ${cleanEmail}! MessageID: ${info.messageId}`);
+    console.log(`✉️ [High-Deliverability SMTP] OTP Email sent successfully to ${cleanToEmail}. MessageID: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error(`❌ [SMTP ERROR] Failed to send email to ${cleanEmail}: ${error.message}`);
-    return { success: false, error: error.message };
+  } catch (err: any) {
+    console.error(`❌ [SMTP Dispatch Error] Failed to deliver OTP email to ${cleanToEmail}:`, err?.message);
+    return { success: false, error: err?.message };
   }
-};
-
-module.exports = { sendOtpEmail };
+}

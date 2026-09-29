@@ -66,6 +66,7 @@ export interface PaymentMethodInfo {
   name: string;
   type: string;
   number: string;
+  optionalNumber?: string;
   accountType: string;
   color: string;
   badge: string;

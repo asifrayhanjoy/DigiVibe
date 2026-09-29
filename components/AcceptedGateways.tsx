@@ -3,6 +3,7 @@ import React from "react";
 export const AcceptedGateways = () => {
   const gateways = [
     { name: "bKash (বিকাশ)", status: "active", color: "border-pink-500/30 bg-pink-500/10 text-pink-400" },
+    { name: "Nagad (নগদ)", status: "active", color: "border-orange-500/30 bg-orange-500/10 text-orange-400" },
     { name: "CellFin (সেলফিন)", status: "active", color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" },
     { name: "Rocket (রকেট)", status: "active", color: "border-purple-500/30 bg-purple-500/10 text-purple-400" },
     { name: "Bank Transfer (ব্যাংক)", status: "processing", color: "border-amber-500/30 bg-amber-500/10 text-amber-400" },

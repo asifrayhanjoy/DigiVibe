@@ -404,9 +404,12 @@ export default function HomePage() {
         onClose={() => setIsSearchModalOpen(false)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        searchResults={SERVICES.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()))}
-        onSelectService={() => {
-          handleProtectedNavigate(`/${locale}/services`);
+        searchResults={SERVICES.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.category.toLowerCase().includes(searchQuery.toLowerCase()))}
+        onSelectService={(service) => {
+          handleProtectedNavigate(`/${locale}/services?id=${service.id}&query=${encodeURIComponent(service.title)}#product-${service.id}`);
+        }}
+        onSearchSubmit={(q) => {
+          handleProtectedNavigate(`/${locale}/services?query=${encodeURIComponent(q)}#catalog-grid`);
         }}
       />
     </div>

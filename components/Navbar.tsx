@@ -25,6 +25,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import AdminNotificationBell from "@/components/AdminNotificationBell";
+import UserNotificationBell from "@/components/UserNotificationBell";
 import { Locale } from "@/types";
 
 interface NavbarProps {
@@ -64,6 +66,7 @@ export default function Navbar({
   const pathname = usePathname();
 
   const displayCartCount = cartCount !== undefined && cartCount > 0 ? cartCount : contextCartCount;
+  const isAdmin = user?.role === "admin" || (user?.email || "").toLowerCase() === "mdasifrayhanjoy2@gmail.com";
 
   useEffect(() => {
     let ticking = false;
@@ -240,6 +243,12 @@ export default function Navbar({
           {/* AUTH ACTION BUTTONS + CART BUTTON (ONLY VISIBLE WHEN LOGGED IN) */}
           {isAuthenticated ? (
             <div className="flex items-center gap-2.5">
+              {/* USER ORDER NOTIFICATION BELL */}
+              <UserNotificationBell locale={locale} />
+
+              {/* ADMIN NOTIFICATION BELL (VISIBLE ONLY TO ADMIN) */}
+              {isAdmin && <AdminNotificationBell locale={locale} />}
+
               {/* SHOPPING CART BUTTON */}
               <button
                 onClick={handleCart}

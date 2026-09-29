@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   ShieldCheck,
@@ -9,7 +9,8 @@ import {
   Check,
   Smartphone,
   Lock,
-  Phone
+  Phone,
+  Mail
 } from "lucide-react";
 import { CartItem, PaymentMethodInfo, OrderResponse } from "@/types";
 import { apiProcessOrder } from "@/lib/api/services";
@@ -20,10 +21,22 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
     id: "bkash",
     name: "bKash (বিকাশ)",
     type: "Send Money",
-    number: "01302271472",
+    number: "01990800188",
+    optionalNumber: "01302271472",
     accountType: "Personal",
     color: "from-pink-500 to-rose-600",
     badge: "Send Money Only 🇧🇩",
+    status: "active"
+  },
+  {
+    id: "nagad",
+    name: "Nagad (নগদ)",
+    type: "Send Money",
+    number: "01516602381",
+    optionalNumber: "01302271472",
+    accountType: "Personal",
+    color: "from-orange-500 to-amber-600",
+    badge: "Send Money Only ⚡",
     status: "active"
   },
   {
@@ -90,27 +103,41 @@ export default function CheckoutModal({
   const [customerPhone, setCustomerPhone] = useState<string>("");
   const [customerEmail, setCustomerEmail] = useState<string>("");
   const [trxId, setTrxId] = useState<string>("");
-  const [copied, setCopied] = useState<boolean>(false);
+  const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [orderComplete, setOrderComplete] = useState<OrderResponse | null>(null);
+
+  useEffect(() => {
+    if (user?.email && !customerEmail) {
+      setCustomerEmail(user.email);
+    }
+    if (user?.phone && !customerPhone) {
+      setCustomerPhone(user.phone);
+    }
+  }, [user]);
 
   if (!isOpen) return null;
 
   const currentPaymentInfo = PAYMENT_METHODS.find((p) => p.id === selectedPayment);
 
   const handleCopyNumber = (num: string) => {
+    if (!num || num === "Under Processing") return;
     navigator.clipboard.writeText(num);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedNumber(num);
+    setTimeout(() => setCopiedNumber(null), 2000);
   };
 
   const handleCompleteOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerPhone) {
+    if (!customerPhone || !customerPhone.trim()) {
       alert("Please enter your Phone or WhatsApp number for delivery!");
       return;
     }
-    if (!trxId) {
+    if (!customerEmail || !customerEmail.trim()) {
+      alert("Please enter your valid Gmail / Email address for service delivery!");
+      return;
+    }
+    if (!trxId || !trxId.trim()) {
       alert("Please enter your Payment Transaction ID (TrxID) or Reference Number!");
       return;
     }
@@ -118,13 +145,13 @@ export default function CheckoutModal({
     setIsSubmitting(true);
 
     try {
-      const emailToUse = customerEmail || user?.email || "mdasifrayhanjoy2@gmail.com";
+      const emailToUse = customerEmail.trim();
       const res = await apiProcessOrder({
         items: itemsToBuy,
         totalAmount,
         paymentMethod: currentPaymentInfo?.name || selectedPayment,
-        trxId,
-        customerPhone,
+        trxId: trxId.trim(),
+        customerPhone: customerPhone.trim(),
         customerEmail: emailToUse
       });
 
@@ -265,7 +292,7 @@ export default function CheckoutModal({
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                   Select Payment Method (পেমেন্ট মাধ্যম বেছে নিন)
                 </label>
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {PAYMENT_METHODS.map((pm) => {
                     const isSelected = selectedPayment === pm.id;
                     return (
@@ -274,7 +301,7 @@ export default function CheckoutModal({
                         type="button"
                         onClick={() => {
                           if (pm.disabled) {
-                            alert(`${pm.name} is currently under processing and will be activated soon. Please choose bKash, CellFin, or Rocket for fast checkout.`);
+                            alert(`${pm.name} is currently under processing and will be activated soon. Please choose bKash, Nagad, CellFin, or Rocket for fast checkout.`);
                             return;
                           }
                           setSelectedPayment(pm.id);
@@ -289,7 +316,7 @@ export default function CheckoutModal({
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-white">{pm.name}</span>
                           <span
-                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected
+                            className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ml-1 ${isSelected
                               ? "border-cyan-400 bg-cyan-400"
                               : "border-slate-600"
                               }`}
@@ -306,36 +333,79 @@ export default function CheckoutModal({
 
               {/* Payment Instructions & Number */}
               {currentPaymentInfo && (
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-cyan-950/30 border border-cyan-500/30 space-y-3">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/30 border border-cyan-500/30 space-y-3 shadow-lg">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-300 font-semibold">
-                      {currentPaymentInfo.name} Number ({currentPaymentInfo.accountType}):
+                    <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                      {currentPaymentInfo.name} ({currentPaymentInfo.accountType}):
                     </span>
-                    <span className="text-xs font-bold text-cyan-400">
-                      {currentPaymentInfo.type}
+                    <span className="text-xs font-black text-cyan-400 px-2.5 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20">
+                      ⚡ {currentPaymentInfo.type}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-sm text-cyan-300 font-bold">
-                    <span>{currentPaymentInfo.number}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleCopyNumber(currentPaymentInfo.number)}
-                      className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
+                  {/* Main Number Row */}
+                  <div className="space-y-1">
+                    {currentPaymentInfo.optionalNumber && (
+                      <div className="flex items-center justify-between text-[11px] font-bold text-cyan-400 uppercase tracking-wider px-1">
+                        <span>Main Number (প্রধান নম্বর)</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-base text-cyan-300 font-bold shadow-inner">
+                      <span className="tracking-wider">{currentPaymentInfo.number}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyNumber(currentPaymentInfo.number)}
+                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-semibold transition-all active:scale-95 border border-cyan-500/30"
+                      >
+                        {copiedNumber === currentPaymentInfo.number ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-emerald-400 font-bold">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copy Main</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Optional / Alternative Number Row (If present) */}
+                  {currentPaymentInfo.optionalNumber && (
+                    <div className="pt-1 space-y-1">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                        <span>Optional / Alternative Number (বিকল্প নম্বর)</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 font-mono text-sm text-slate-300 font-medium">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-sans font-extrabold uppercase border border-amber-500/30">
+                            Optional
+                          </span>
+                          <span className="tracking-wide text-slate-200 font-bold">{currentPaymentInfo.optionalNumber}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyNumber(currentPaymentInfo.optionalNumber!)}
+                          className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition-all active:scale-95 border border-slate-700"
+                        >
+                          {copiedNumber === currentPaymentInfo.optionalNumber ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="text-emerald-400 font-bold">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5 text-slate-400" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   <p className="text-[11px] text-slate-300 leading-relaxed bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl">
                     💡 <strong>নির্দেশনা:</strong> ওপরের নম্বরে ঠিক <strong className="text-white">৳{totalAmount}</strong> টাকা <strong className="text-cyan-400 font-extrabold">Send Money (সেন্ড মানি)</strong> করার পর নিচের বক্সে পেমেন্ট Transaction ID (TrxID) দিয়ে অর্ডার কনফার্ম করুন। <span className="text-rose-400 font-bold">(ক্যাশআউট গ্রহণযোগ্য নয় ❌)</span>
@@ -357,6 +427,23 @@ export default function CheckoutModal({
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       placeholder="e.g. 01712345678"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Gmail / Email Address (আপনার জিমেইল অ্যাড্রেস) <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                    <input
+                      type="email"
+                      required
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      placeholder="e.g. yourname@gmail.com"
                       className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                     />
                   </div>

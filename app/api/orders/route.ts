@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import Asset from "@/lib/models/Asset";
+import { sendAdminWhatsAppNotification } from "@/lib/whatsappNotification";
 
 // 1. POST /api/orders - Create a new order with "Pending" status in MongoDB
 export async function POST(request: Request) {
@@ -28,6 +29,23 @@ export async function POST(request: Request) {
 
     console.log(`📦 [MongoDB Atlas] Direct Order Saved: #${newOrder.orderId} for ${emailToUse} (Status: Pending)`);
 
+    // Trigger Automated WhatsApp Notification to Admin
+    let waNotificationData = null;
+    try {
+      waNotificationData = await sendAdminWhatsAppNotification({
+        orderId: newOrder.orderId,
+        customerEmail: emailToUse,
+        customerPhone: customerPhone || "",
+        items: items || [],
+        totalAmount: Number(totalAmount) || 0,
+        paymentMethod: paymentMethod || "bKash",
+        trxId: trxId || "",
+        status: "Pending"
+      });
+    } catch (waErr) {
+      console.error("⚠️ Error triggering WhatsApp admin notification:", waErr);
+    }
+
     return NextResponse.json({
       success: true,
       orderId: newOrder.orderId,
@@ -35,6 +53,7 @@ export async function POST(request: Request) {
       estimatedFulfillmentTime: "Within 5 Minutes",
       message: "Order placed successfully! Waiting for admin approval.",
       order: newOrder,
+      whatsappNotification: waNotificationData
     });
   } catch (error: any) {
     console.error("❌ Error creating order in MongoDB:", error);
@@ -80,12 +99,39 @@ export async function GET(request: Request) {
   }
 }
 
-// 3. PUT / PATCH /api/orders - Update order status (Approve / Reject) in MongoDB
+// 3. PUT / PATCH /api/orders - Update order status, deliverable assets & database notification read states
 export async function PUT(request: Request) {
   try {
     await connectDB();
     const body = await request.json();
-    const { orderId, status } = body;
+    const { action, orderId, status, deliveryNotes, deliveryFiles, customCredentials } = body;
+
+    // Handle database notification read states
+    if (action === "markRead" && orderId) {
+      const updatedOrder = await (Order as any).findOneAndUpdate(
+        { orderId },
+        { $set: { isReadByAdmin: true, readAt: new Date() } },
+        { new: true }
+      );
+      console.log(`📌 [MongoDB Atlas] Notification for Order #${orderId} marked READ in database.`);
+      return NextResponse.json({
+        success: true,
+        message: `Notification for #${orderId} marked read in database.`,
+        order: updatedOrder,
+      });
+    }
+
+    if (action === "markAllRead") {
+      await (Order as any).updateMany(
+        { status: "Pending", isReadByAdmin: { $ne: true } },
+        { $set: { isReadByAdmin: true, readAt: new Date() } }
+      );
+      console.log(`📌 [MongoDB Atlas] All pending notifications marked READ in database.`);
+      return NextResponse.json({
+        success: true,
+        message: "All notifications marked read in database.",
+      });
+    }
 
     if (!orderId || !status) {
       return NextResponse.json(
@@ -94,9 +140,14 @@ export async function PUT(request: Request) {
       );
     }
 
+    const updateFields: any = { status };
+    if (deliveryNotes !== undefined) updateFields.deliveryNotes = deliveryNotes;
+    if (deliveryFiles !== undefined) updateFields.deliveryFiles = deliveryFiles;
+    if (customCredentials !== undefined) updateFields.customCredentials = customCredentials;
+
     const updatedOrder: any = await (Order as any).findOneAndUpdate(
       { orderId: orderId },
-      { $set: { status: status } },
+      { $set: updateFields },
       { new: true }
     );
 
@@ -107,7 +158,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    // If order approved (Completed), create active digital assets in MongoDB if items exist
+    // If order approved (Completed), create/update active digital assets in MongoDB if items exist
     if (status === "Completed" && updatedOrder.items && updatedOrder.items.length > 0) {
       for (const item of updatedOrder.items) {
         const title = item.title || "Digital Service";
@@ -116,14 +167,24 @@ export async function PUT(request: Request) {
           100 + Math.random() * 900
         )}@digivibe.com | Pass: DV#${Math.floor(1000 + Math.random() * 9000)}!`;
 
-        await (Asset as any).create({
-          orderId: updatedOrder.orderId,
-          userEmail: updatedOrder.userEmail,
-          title,
-          category,
-          credentials: generatedCreds,
-          status: "Active",
-        });
+        const credsToUse = customCredentials || deliveryNotes || generatedCreds;
+
+        await (Asset as any).findOneAndUpdate(
+          { orderId: updatedOrder.orderId, title: title },
+          {
+            $set: {
+              orderId: updatedOrder.orderId,
+              userEmail: updatedOrder.userEmail,
+              title,
+              category,
+              credentials: credsToUse,
+              deliveryNotes: deliveryNotes || "",
+              deliveryFiles: deliveryFiles || [],
+              status: "Active",
+            }
+          },
+          { upsert: true, new: true }
+        );
       }
     }
 

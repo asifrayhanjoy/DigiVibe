@@ -5,6 +5,9 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
+import OrderApprovalModal from "@/components/OrderApprovalModal";
+import FilePreviewModal from "@/components/FilePreviewModal";
+import { Download, Paperclip, Eye } from "lucide-react";
 import {
   User,
   ShieldCheck,
@@ -96,22 +99,23 @@ export default function ProfilePage() {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Order Approval System Handlers
-  const handleApproveOrder = async (orderId: string) => {
-    showToast("Approving Order... 🚀", `Updating order #${orderId} in MongoDB...`);
-    const res = await apiUpdateOrderStatus(orderId, "Completed");
-    if (res.success) {
-      setAdminOrdersList((prev) =>
-        prev.map((o) => (o.orderId === orderId ? { ...o, status: "Completed" } : o))
-      );
-      showToast("Order Approved! 🚀", `Order #${orderId} approved & activated.`);
-      const userEmail = authUser?.email || localStorage.getItem("digivibe_user_email") || profile.email;
-      if (userEmail) {
-        apiFetchUserOrders(userEmail).then((ords) => setDbOrders(ords || []));
-        apiFetchUserAssets(userEmail).then((asts) => setDbAssets(asts || []));
-      }
-    } else {
-      showToast("Approval Failed ❌", res.message);
+  const [approvingModalOrder, setApprovingModalOrder] = useState<any | null>(null);
+  const [previewFile, setPreviewFile] = useState<any | null>(null);
+
+  // Trigger Interactive Approval Modal when clicking Approve button
+  const handleOpenApproveModal = (order: any) => {
+    setApprovingModalOrder(order);
+  };
+
+  const handleModalApprovedComplete = (updatedOrder: any) => {
+    setAdminOrdersList((prev) =>
+      prev.map((o) => (o.orderId === updatedOrder.orderId ? { ...o, ...updatedOrder, status: "Completed" } : o))
+    );
+    showToast("Order Approved & Delivered! 🚀", `Order #${updatedOrder.orderId} instructions & files saved to MongoDB.`);
+    const userEmail = authUser?.email || localStorage.getItem("digivibe_user_email") || profile.email;
+    if (userEmail) {
+      apiFetchUserOrders(userEmail).then((ords) => setDbOrders(ords || []));
+      apiFetchUserAssets(userEmail).then((asts) => setDbAssets(asts || []));
     }
   };
 
@@ -598,18 +602,116 @@ export default function ProfilePage() {
                       </span>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-400 font-semibold">Access Credentials:</span>
-                        <button
-                          onClick={() => handleCopy(asset.credentials, asset._id || asset.id)}
-                          className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold"
-                        >
-                          {copiedId === (asset._id || asset.id) ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                          <span>{copiedId === (asset._id || asset.id) ? "Copied!" : "Copy"}</span>
-                        </button>
+                        {asset.credentials && (
+                          <button
+                            onClick={() => handleCopy(asset.credentials, asset._id || asset.id)}
+                            className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-colors"
+                          >
+                            {copiedId === (asset._id || asset.id) ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedId === (asset._id || asset.id) ? "Copied!" : "Copy"}</span>
+                          </button>
+                        )}
                       </div>
-                      <div className="text-cyan-300 font-mono text-xs font-bold break-all">{asset.credentials}</div>
+                      <div className="text-cyan-300 font-mono text-xs font-bold break-all bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/60">
+                        {asset.credentials || "Standard Digital License / Access Granted"}
+                      </div>
+
+                      {/* Delivery Notes / Instructions */}
+                      {asset.deliveryNotes && (
+                        <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                              <FileText className="w-3.5 h-3.5 text-amber-400" />
+                              <span>Delivered Instructions / Details:</span>
+                            </span>
+                            <button
+                              onClick={() => handleCopy(asset.deliveryNotes, (asset._id || asset.id) + "_notes")}
+                              className="flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold hover:bg-amber-500/30 transition-colors"
+                            >
+                              {copiedId === (asset._id || asset.id) + "_notes" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                              <span>{copiedId === (asset._id || asset.id) + "_notes" ? "Copied!" : "Copy Notes"}</span>
+                            </button>
+                          </div>
+                          <div className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 font-sans">
+                            {asset.deliveryNotes}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Delivery File Attachments */}
+                      {asset.deliveryFiles && asset.deliveryFiles.length > 0 && (
+                        <div className="pt-2 border-t border-slate-800/80 space-y-2">
+                          <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <Paperclip className="w-3.5 h-3.5 text-cyan-400" />
+                            <span>Attached Files, Images & Software ({asset.deliveryFiles.length}):</span>
+                          </span>
+                          <div className="space-y-2">
+                            {asset.deliveryFiles.map((file: any, fIdx: number) => {
+                              const ext = (file.name || "").split(".").pop()?.toUpperCase() || "FILE";
+                              const isImg = (file.data && file.data.startsWith("data:image/")) || ["PNG", "JPG", "JPEG", "WEBP", "GIF", "SVG"].includes(ext);
+                              const formattedSize = file.size ? (file.size < 1024 * 1024 ? `${(file.size / 1024).toFixed(1)} KB` : `${(file.size / (1024 * 1024)).toFixed(1)} MB`) : "";
+
+                              return (
+                                <div
+                                  key={fIdx}
+                                  className="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 transition-all space-y-2"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2.5 truncate min-w-0 flex-1">
+                                      {isImg ? (
+                                        <div
+                                          onClick={() => setPreviewFile(file)}
+                                          className="w-10 h-10 rounded-lg overflow-hidden border border-cyan-500/40 bg-slate-950 flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                                        >
+                                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                                          <img src={file.data} alt={file.name} className="w-full h-full object-cover" />
+                                        </div>
+                                      ) : (
+                                        <div className="p-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 flex-shrink-0">
+                                          <FileText className="w-4 h-4" />
+                                        </div>
+                                      )}
+
+                                      <div className="truncate min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-slate-200 font-bold text-xs truncate">{file.name}</span>
+                                          <span className="px-1.5 py-0.2 text-[9px] font-mono font-black uppercase bg-cyan-500/20 text-cyan-300 rounded border border-cyan-500/30 flex-shrink-0">
+                                            {ext}
+                                          </span>
+                                        </div>
+                                        {formattedSize && <span className="text-[10px] text-slate-400 font-mono">{formattedSize}</span>}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                      <button
+                                        onClick={() => setPreviewFile(file)}
+                                        className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[10px] rounded-lg flex items-center gap-1 transition-all"
+                                        title="Preview / View File Contents"
+                                      >
+                                        <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                                        <span>View</span>
+                                      </button>
+
+                                      <a
+                                        href={file.data}
+                                        download={file.name || `attachment_${fIdx}`}
+                                        className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:opacity-90 text-slate-950 font-black text-[10px] rounded-lg flex items-center gap-1 shadow-md shadow-cyan-500/20 transition-all active:scale-95"
+                                      >
+                                        <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+                                        <span>Download</span>
+                                      </a>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -784,16 +886,41 @@ export default function ProfilePage() {
                     <tbody className="divide-y divide-slate-800/60">
                       {dbOrders.map((ord) => (
                         <tr key={ord._id || ord.orderId} className="hover:bg-slate-900/40">
-                          <td className="p-4 font-mono font-bold text-cyan-400">{ord.orderId}</td>
+                          <td className="p-4 font-mono font-bold text-cyan-400">
+                            <div>{ord.orderId}</div>
+                            {ord.deliveryFiles && ord.deliveryFiles.length > 0 && (
+                              <div className="text-[10px] text-emerald-400 font-sans font-semibold flex items-center gap-1 mt-0.5">
+                                <Paperclip className="w-3 h-3" />
+                                <span>{ord.deliveryFiles.length} Attached File(s)</span>
+                              </div>
+                            )}
+                          </td>
                           <td className="p-4 font-bold text-white">{ord.items?.length || 1} Item(s)</td>
                           <td className="p-4 text-slate-400">{new Date(ord.createdAt || Date.now()).toLocaleDateString()}</td>
                           <td className="p-4">{ord.paymentMethod}</td>
                           <td className="p-4 font-mono text-cyan-300">{ord.trxId}</td>
                           <td className="p-4 font-black text-cyan-300">৳{ord.totalAmount}</td>
                           <td className="p-4">
-                            <span className="px-2.5 py-0.5 text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
-                              {ord.status || "Delivered"}
-                            </span>
+                            <div className="space-y-1">
+                              <span className="px-2.5 py-0.5 text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full inline-block">
+                                {ord.status || "Delivered"}
+                              </span>
+                              {ord.deliveryFiles && ord.deliveryFiles.length > 0 && (
+                                <div className="flex flex-col gap-1 mt-1">
+                                  {ord.deliveryFiles.map((file: any, fIdx: number) => (
+                                    <a
+                                      key={fIdx}
+                                      href={file.data}
+                                      download={file.name}
+                                      className="inline-flex items-center gap-1 text-[10px] text-cyan-300 font-bold hover:underline"
+                                    >
+                                      <Download className="w-3 h-3" />
+                                      <span>{file.name}</span>
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1179,7 +1306,7 @@ export default function ProfilePage() {
                             <div className="flex items-center justify-center gap-2">
                               {ord.status !== "Completed" && (
                                 <button
-                                  onClick={() => handleApproveOrder(ord.orderId)}
+                                  onClick={() => handleOpenApproveModal(ord)}
                                   className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-xs rounded-xl shadow-md hover:opacity-90 flex items-center gap-1 transition-all"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
@@ -1218,6 +1345,17 @@ export default function ProfilePage() {
 
       <Footer />
       <Toast toast={toast} onClose={() => setToast(null)} />
+      <OrderApprovalModal
+        isOpen={!!approvingModalOrder}
+        onClose={() => setApprovingModalOrder(null)}
+        order={approvingModalOrder}
+        onApproved={handleModalApprovedComplete}
+      />
+      <FilePreviewModal
+        isOpen={!!previewFile}
+        onClose={() => setPreviewFile(null)}
+        file={previewFile}
+      />
     </div>
   );
 }

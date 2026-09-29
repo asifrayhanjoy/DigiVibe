@@ -16,6 +16,7 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { SERVICES } from "@/data/services";
 
 interface HeroProps {
   searchQuery: string;
@@ -33,12 +34,31 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
     if (onSearchSubmit) {
       onSearchSubmit();
     }
-    router.push(`/${locale}/services`);
+    const q = searchQuery.trim();
+    if (!q) {
+      router.push(`/${locale}/services`);
+      return;
+    }
+    const exactMatch = SERVICES.find(
+      (s) => s.title.toLowerCase() === q.toLowerCase() || s.id.toLowerCase() === q.toLowerCase()
+    );
+    if (exactMatch) {
+      router.push(`/${locale}/services?id=${exactMatch.id}&query=${encodeURIComponent(exactMatch.title)}#product-${exactMatch.id}`);
+    } else {
+      router.push(`/${locale}/services?query=${encodeURIComponent(q)}#catalog-grid`);
+    }
   };
 
   const handleTagClick = (tag: string) => {
     setSearchQuery(tag);
-    router.push(`/${locale}/services`);
+    const exactMatch = SERVICES.find(
+      (s) => s.title.toLowerCase().includes(tag.toLowerCase()) || s.category.toLowerCase().includes(tag.toLowerCase())
+    );
+    if (exactMatch) {
+      router.push(`/${locale}/services?id=${exactMatch.id}&query=${encodeURIComponent(tag)}#product-${exactMatch.id}`);
+    } else {
+      router.push(`/${locale}/services?query=${encodeURIComponent(tag)}#catalog-grid`);
+    }
   };
 
   return (

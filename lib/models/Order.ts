@@ -43,6 +43,26 @@ const OrderSchema = new Schema(
       enum: ["Pending", "Completed", "Rejected", "processing", "delivered", "failed", "refunded"],
       default: "Pending",
     },
+    isReadByAdmin: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    readAt: {
+      type: Date,
+    },
+    deliveryNotes: {
+      type: String,
+      default: "",
+    },
+    deliveryFiles: {
+      type: Array,
+      default: [],
+    },
+    customCredentials: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

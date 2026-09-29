@@ -34,6 +34,14 @@ const AssetSchema = new Schema(
       type: String,
       default: "#",
     },
+    deliveryNotes: {
+      type: String,
+      default: "",
+    },
+    deliveryFiles: {
+      type: Array,
+      default: [],
+    },
   },
   {
     timestamps: true,

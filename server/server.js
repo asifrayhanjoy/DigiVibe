@@ -455,6 +455,7 @@ app.post('/api/orders/create', async (req, res) => {
     }
 
     console.log(`📦 [MONGODB ATLAS] Saved Order ${orderId} & Generated Assets for ${cleanEmail}!`);
+    console.log(`📲 [WHATSAPP ADMIN ALERT] Order #${orderId} details ready for WhatsApp dispatch: Phone ${customerPhone || 'N/A'}, Amount ৳${totalAmount}, TrxID ${trxId}`);
 
     return res.status(200).json({
       success: true,

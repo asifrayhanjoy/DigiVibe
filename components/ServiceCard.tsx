@@ -31,8 +31,7 @@ import {
   ShoppingCart,
   ArrowRight,
   Heart,
-  Cpu,
-  Flame
+  Cpu
 } from "lucide-react";
 import { ServiceItem } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
@@ -439,9 +438,10 @@ interface ServiceCardProps {
   product?: ServiceItem & { title_bn?: string; description_bn?: string; logoType?: string; usdPrice?: string; subtitle?: string };
   onAddToCart?: (service: ServiceItem) => void;
   onBuyNow?: (service: ServiceItem) => void;
+  isHighlighted?: boolean;
 }
 
-export default function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow }: ServiceCardProps) {
+export default function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, isHighlighted }: ServiceCardProps) {
   const service = inputService || product;
   const { locale } = useLanguage();
   const isBn = locale === "bn";
@@ -525,21 +525,20 @@ export default function ServiceCard({ service: inputService, product, onAddToCar
   };
 
   return (
-    <div className="group relative glass-panel glass-panel-hover rounded-[28px] p-5 flex flex-col justify-between overflow-hidden border border-slate-800/80 hover:border-cyan-500/40 transition-all duration-300 min-h-[520px]">
-      {/* 0. PROMINENT PROMOTIONAL CORNER BADGE ("সীমিত সময়ের অফার") */}
-      <div className="absolute top-0 left-0 z-20 pointer-events-none">
-        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-tl-[26px] rounded-br-2xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white text-[11px] sm:text-xs font-black tracking-wide shadow-lg shadow-rose-600/35 border-b border-r border-rose-400/50">
-          <Flame className="w-3.5 h-3.5 fill-amber-300 text-amber-300 animate-pulse" />
-          <span>{isBn ? "সীমিত সময়ের অফার" : "সীমিত সময়ের অফার"}</span>
-        </span>
-      </div>
-
+    <div
+      id={`product-${service.id}`}
+      className={`group relative glass-panel glass-panel-hover rounded-[28px] p-5 flex flex-col justify-between overflow-hidden border transition-all duration-500 min-h-[520px] ${
+        isHighlighted
+          ? "border-cyan-400 ring-4 ring-cyan-400/40 shadow-2xl shadow-cyan-500/30 scale-[1.02] bg-slate-900/90"
+          : "border-slate-800/80 hover:border-cyan-500/40"
+      }`}
+    >
       {/* Radial Hover Glow Accent */}
       <div className="absolute top-0 right-0 w-36 h-36 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-all duration-500 pointer-events-none" />
 
       <div>
         {/* 1. TOP BANNER IMAGE / LOGO CONTAINER (Strictly matching image_a1c63a.png) */}
-        <div className="relative w-full h-44 sm:h-48 rounded-2xl bg-slate-900/80 border border-slate-800/80 p-2 mb-4 group-hover:border-cyan-500/30 transition-all pt-7 sm:pt-6">
+        <div className="relative w-full h-44 sm:h-48 rounded-2xl bg-slate-900/80 border border-slate-800/80 p-2 mb-4 group-hover:border-cyan-500/30 transition-all">
           <div className="w-full h-full rounded-xl bg-white p-3 flex items-center justify-center shadow-inner relative overflow-hidden">
             {hasSvgLogo ? (
               <BrandLogoSvg logoType={service.logoType} title={service.title} />

@@ -48,6 +48,18 @@ export async function apiFetchProfile(email: string): Promise<User | null> {
  */
 export async function apiFetchUserAssets(email: string): Promise<any[]> {
   try {
+    const res = await fetch(`/api/assets?email=${encodeURIComponent(email)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.assets && Array.isArray(data.assets)) {
+        return data.assets;
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching assets from /api/assets:", err);
+  }
+
+  try {
     if (NODE_USER_SERVICE) {
       const res = await fetch(`${NODE_USER_SERVICE}/assets?email=${encodeURIComponent(email)}`);
       if (res.ok) {
@@ -55,16 +67,8 @@ export async function apiFetchUserAssets(email: string): Promise<any[]> {
         return data.assets || [];
       }
     }
-  } catch (err) {
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("digivibe_user_assets");
-      if (cached) {
-        try {
-          return JSON.parse(cached);
-        } catch (e) {}
-      }
-    }
-  }
+  } catch (err) {}
+
   return [];
 }
 
@@ -405,21 +409,24 @@ export async function apiFetchAllOrders(): Promise<any[]> {
 }
 
 /**
- * Admin Order Status Update (Approve / Reject Order)
+ * Admin Order Status Update (Approve / Reject Order with Custom Instructions & Files)
  */
 export async function apiUpdateOrderStatus(
   orderId: string,
-  status: "Completed" | "Pending" | "Rejected"
-): Promise<{ success: boolean; message: string }> {
+  status: "Completed" | "Pending" | "Rejected",
+  deliveryNotes?: string,
+  deliveryFiles?: any[],
+  customCredentials?: string
+): Promise<{ success: boolean; message: string; order?: any }> {
   try {
     const res = await fetch("/api/orders", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderId, status }),
+      body: JSON.stringify({ orderId, status, deliveryNotes, deliveryFiles, customCredentials }),
     });
     if (res.ok) {
       const data = await res.json();
-      return { success: true, message: data.message || `Order ${orderId} updated to ${status}.` };
+      return { success: true, message: data.message || `Order ${orderId} updated to ${status}.`, order: data.order };
     }
   } catch (err) {
     console.error("Error updating order status in MongoDB Atlas:", err);
@@ -445,6 +452,44 @@ export async function apiDeleteOrder(orderId: string): Promise<{ success: boolea
   }
 
   return { success: false, message: `Failed to delete order ${orderId}.` };
+}
+
+/**
+ * Mark notification as read in MongoDB Atlas
+ */
+export async function apiMarkNotificationRead(orderId: string): Promise<{ success: boolean }> {
+  try {
+    const res = await fetch("/api/orders", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "markRead", orderId }),
+    });
+    if (res.ok) {
+      return { success: true };
+    }
+  } catch (err) {
+    console.error("Error marking notification read in MongoDB Atlas:", err);
+  }
+  return { success: false };
+}
+
+/**
+ * Mark all pending notifications as read in MongoDB Atlas
+ */
+export async function apiMarkAllNotificationsRead(): Promise<{ success: boolean }> {
+  try {
+    const res = await fetch("/api/orders", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "markAllRead" }),
+    });
+    if (res.ok) {
+      return { success: true };
+    }
+  } catch (err) {
+    console.error("Error marking all notifications read in MongoDB Atlas:", err);
+  }
+  return { success: false };
 }
 
 

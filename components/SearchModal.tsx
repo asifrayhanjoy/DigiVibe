@@ -11,6 +11,7 @@ interface SearchModalProps {
   setSearchQuery: (query: string) => void;
   searchResults: ServiceItem[];
   onSelectService: (service: ServiceItem) => void;
+  onSearchSubmit?: (query: string) => void;
 }
 
 export default function SearchModal({
@@ -19,7 +20,8 @@ export default function SearchModal({
   searchQuery,
   setSearchQuery,
   searchResults,
-  onSelectService
+  onSelectService,
+  onSearchSubmit
 }: SearchModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -39,6 +41,14 @@ export default function SearchModal({
 
   if (!isOpen) return null;
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim() && onSearchSubmit) {
+      onSearchSubmit(searchQuery.trim());
+      onClose();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6 md:p-20 flex justify-center">
       {/* Backdrop */}
@@ -48,8 +58,8 @@ export default function SearchModal({
       />
 
       <div className="relative w-full max-w-2xl bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-10 self-start">
-        {/* Search Header */}
-        <div className="p-4 border-b border-slate-800 flex items-center gap-3 bg-slate-900/60">
+        {/* Search Header Form */}
+        <form onSubmit={handleFormSubmit} className="p-4 border-b border-slate-800 flex items-center gap-3 bg-slate-900/60">
           <Search className="w-5 h-5 text-cyan-400 ml-2" />
           <input
             type="text"
@@ -60,12 +70,13 @@ export default function SearchModal({
             className="w-full bg-transparent text-slate-100 placeholder-slate-500 text-sm focus:outline-none"
           />
           <button
+            type="button"
             onClick={onClose}
             className="p-1 text-slate-400 hover:text-white rounded-lg"
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
+        </form>
 
         {/* Results List */}
         <div className="max-h-96 overflow-y-auto p-4 space-y-2">
