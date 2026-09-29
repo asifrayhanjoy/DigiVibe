@@ -123,3 +123,38 @@ html, body {
   animation-play-state: paused;
 }
 
+/* Mobile Performance & Touch Responsiveness Optimizations */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 768px) {
+  /* Reduce GPU compositor load on mobile screens */
+  .backdrop-blur-2xl,
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+
+  /* Off-screen rendering optimization for product catalog lists */
+  .grid > [id^="product-"] {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 520px;
+  }
+
+  /* Hardware accelerate fixed header on mobile touch devices */
+  header {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Disable heavy box shadows on small mobile screens for smooth 60fps touch scroll */
+  .shadow-2xl,
+  .shadow-xl {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+

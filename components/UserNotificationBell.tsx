@@ -140,7 +140,10 @@ export default function UserNotificationBell({ locale = "en" }: UserNotification
         });
 
         isFirstFetchRef.current = false;
-        setNotifications(notifList);
+        setNotifications((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(notifList)) return prev;
+          return notifList;
+        });
       }
     } catch (err) {
       console.error("Error fetching user notifications:", err);

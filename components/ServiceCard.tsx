@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   Shield,
   ShieldAlert,
@@ -65,7 +65,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 // High-resolution SVGs for Brand Logos
-function BrandLogoSvg({ logoType, title }: { logoType?: string; title: string }) {
+const BrandLogoSvg = memo(function BrandLogoSvg({ logoType, title }: { logoType?: string; title: string }) {
   const type = (logoType || title).toLowerCase();
 
   if (type.includes("youtube")) {
@@ -431,7 +431,7 @@ function BrandLogoSvg({ logoType, title }: { logoType?: string; title: string })
   }
 
   return null;
-}
+});
 
 interface ServiceCardProps {
   service?: ServiceItem & { title_bn?: string; description_bn?: string; logoType?: string; usdPrice?: string; subtitle?: string };
@@ -441,7 +441,7 @@ interface ServiceCardProps {
   isHighlighted?: boolean;
 }
 
-export default function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, isHighlighted }: ServiceCardProps) {
+function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, isHighlighted }: ServiceCardProps) {
   const service = inputService || product;
   const { locale } = useLanguage();
   const isBn = locale === "bn";
@@ -689,6 +689,8 @@ export default function ServiceCard({ service: inputService, product, onAddToCar
     </div>
   );
 }
+
+export default memo(ServiceCard);
 
 
 

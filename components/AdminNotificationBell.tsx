@@ -88,7 +88,10 @@ export default function AdminNotificationBell({ locale = "en" }: AdminNotificati
     try {
       const data = await apiFetchAllOrders();
       if (Array.isArray(data)) {
-        setOrders(data);
+        setOrders((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+          return data;
+        });
 
         // Detect newly arrived pending orders to trigger audio chime alert
         const currentPending = data.filter((o: any) => o.status === "Pending");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef, Suspense } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -179,17 +179,17 @@ function ServicesContent() {
     return processedServices;
   }, [processedServices, activeCategory, proxySubFilter, smmSubFilter]);
 
-  const handleAddToCart = (service: ServiceItem) => {
+  const handleAddToCart = useCallback((service: ServiceItem) => {
     addToCart(service);
     showToast("Added to Cart 🛒", `${service.title} added to cart.`);
-  };
+  }, [addToCart]);
 
-  const handleBuyNow = (service: ServiceItem) => {
+  const handleBuyNow = useCallback((service: ServiceItem) => {
     requireAuth(() => {
       setCheckoutItems([{ ...service, quantity: 1 }]);
       setIsCheckoutOpen(true);
     }, `/${locale}/services`);
-  };
+  }, [requireAuth, locale]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative">
