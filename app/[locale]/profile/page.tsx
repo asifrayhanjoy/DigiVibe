@@ -41,7 +41,8 @@ import {
   BarChart3,
   RefreshCw,
   Sliders,
-  PlusCircle
+  PlusCircle,
+  Sparkles
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
@@ -54,6 +55,18 @@ import {
   apiUpdateOrderStatus,
   apiDeleteOrder
 } from "@/lib/api/services";
+
+export function getNormalizedStatus(status?: string): "Pending" | "Completed" | "Rejected" {
+  if (!status) return "Pending";
+  const s = String(status).trim().toLowerCase();
+  if (["completed", "approved", "delivered", "paid", "success"].includes(s)) {
+    return "Completed";
+  }
+  if (["rejected", "failed", "cancelled", "canceled", "refunded"].includes(s)) {
+    return "Rejected";
+  }
+  return "Pending";
+}
 
 type TabId = "assets" | "edit-profile" | "orders" | "security" | "support" | "admin";
 
@@ -175,14 +188,14 @@ export default function ProfilePage() {
             setEditForm(updated);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
 
       // 2. Fetch User Assets from MongoDB Atlas
       apiFetchUserAssets(userEmail)
         .then((assets) => {
           setDbAssets(assets || []);
         })
-        .catch(() => {});
+        .catch(() => { });
 
       // 3. Fetch User Orders from MongoDB Atlas
       apiFetchUserOrders(userEmail)
@@ -198,12 +211,41 @@ export default function ProfilePage() {
     }
 
     // Load ALL Orders directly from MongoDB Atlas for Admin Panel
-    apiFetchAllOrders().then((adminOrds) => {
-      if (adminOrds) {
-        setAdminOrdersList(adminOrds);
+    if (isAdmin) {
+      apiFetchAllOrders().then((adminOrds) => {
+        if (adminOrds) {
+          setAdminOrdersList(adminOrds);
+        }
+      });
+    }
+  }, [authUser, isAdmin]);
+
+  // Real-time Auto Sync for Admin Orders Table (Polling + Event Listener)
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchAdminOrders = async () => {
+      const fresh = await apiFetchAllOrders();
+      if (fresh && Array.isArray(fresh)) {
+        setAdminOrdersList(fresh);
       }
-    });
-  }, [authUser]);
+    };
+
+    // 5-second polling interval
+    const interval = setInterval(fetchAdminOrders, 5000);
+
+    // Custom order creation event listener
+    const handleOrderCreated = () => {
+      fetchAdminOrders();
+    };
+
+    window.addEventListener("digivibe_order_created", handleOrderCreated);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("digivibe_order_created", handleOrderCreated);
+    };
+  }, [isAdmin]);
 
   const showToast = (title: string, message: string) => {
     setToast({ title, message });
@@ -350,11 +392,12 @@ export default function ProfilePage() {
 
   // Filtered Orders for Admin Approval System
   const filteredOrders = adminOrdersList.filter((ord) => {
+    const normStatus = getNormalizedStatus(ord.status);
     const matchesFilter =
       adminOrderFilter === "all" ||
-      (adminOrderFilter === "pending" && ord.status === "Pending") ||
-      (adminOrderFilter === "completed" && ord.status === "Completed") ||
-      (adminOrderFilter === "rejected" && ord.status === "Rejected");
+      (adminOrderFilter === "pending" && normStatus === "Pending") ||
+      (adminOrderFilter === "completed" && normStatus === "Completed") ||
+      (adminOrderFilter === "rejected" && normStatus === "Rejected");
 
     const query = adminSearchQuery.trim().toLowerCase();
     const matchesSearch =
@@ -416,7 +459,7 @@ export default function ProfilePage() {
                   <h1 className="text-xl sm:text-2xl font-black text-white">{profile.name}</h1>
                   <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                    MongoDB Verified
+                    Verified
                   </span>
                 </div>
 
@@ -1130,7 +1173,15 @@ export default function ProfilePage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Link
+                    href={`/${locale}/updates`}
+                    className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 transition-all shadow-md shadow-amber-500/20"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Manage Today's Updates</span>
+                  </Link>
+
                   <button
                     onClick={async () => {
                       showToast("Syncing Database... 🔄", "Fetching fresh orders from MongoDB...");
@@ -1159,21 +1210,21 @@ export default function ProfilePage() {
                     <span>Pending Approval</span>
                   </div>
                   <div className="text-2xl font-black text-amber-300 mt-1">
-                    {adminOrdersList.filter((o) => o.status === "Pending").length} Orders
+                    {adminOrdersList.filter((o) => getNormalizedStatus(o.status) === "Pending").length} Orders
                   </div>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/30 shadow-lg shadow-emerald-500/5">
                   <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Approved / Completed</div>
                   <div className="text-2xl font-black text-emerald-400 mt-1">
-                    {adminOrdersList.filter((o) => o.status === "Completed").length} Approved
+                    {adminOrdersList.filter((o) => getNormalizedStatus(o.status) === "Completed").length} Approved
                   </div>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-900/90 border border-rose-500/20">
                   <div className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">Rejected</div>
                   <div className="text-2xl font-black text-rose-400 mt-1">
-                    {adminOrdersList.filter((o) => o.status === "Rejected").length} Rejected
+                    {adminOrdersList.filter((o) => getNormalizedStatus(o.status) === "Rejected").length} Rejected
                   </div>
                 </div>
               </div>
@@ -1184,46 +1235,42 @@ export default function ProfilePage() {
               <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
                 <button
                   onClick={() => setAdminOrderFilter("all")}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                    adminOrderFilter === "all"
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${adminOrderFilter === "all"
                       ? "bg-amber-500 text-slate-950 font-black shadow-md"
                       : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
-                  }`}
+                    }`}
                 >
                   All Orders ({adminOrdersList.length})
                 </button>
 
                 <button
                   onClick={() => setAdminOrderFilter("pending")}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                    adminOrderFilter === "pending"
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${adminOrderFilter === "pending"
                       ? "bg-amber-500 text-slate-950 font-black shadow-md"
                       : "bg-amber-500/10 text-amber-300 border border-amber-500/30"
-                  }`}
+                    }`}
                 >
-                  ⏳ Pending ({adminOrdersList.filter((o) => o.status === "Pending").length})
+                  ⏳ Pending ({adminOrdersList.filter((o) => getNormalizedStatus(o.status) === "Pending").length})
                 </button>
 
                 <button
                   onClick={() => setAdminOrderFilter("completed")}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                    adminOrderFilter === "completed"
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${adminOrderFilter === "completed"
                       ? "bg-emerald-500 text-slate-950 font-black shadow-md"
                       : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                  }`}
+                    }`}
                 >
-                  ✅ Approved ({adminOrdersList.filter((o) => o.status === "Completed").length})
+                  ✅ Approved ({adminOrdersList.filter((o) => getNormalizedStatus(o.status) === "Completed").length})
                 </button>
 
                 <button
                   onClick={() => setAdminOrderFilter("rejected")}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                    adminOrderFilter === "rejected"
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${adminOrderFilter === "rejected"
                       ? "bg-rose-500 text-white font-black shadow-md"
                       : "bg-rose-500/10 text-rose-400 border border-rose-500/30"
-                  }`}
+                    }`}
                 >
-                  ❌ Rejected ({adminOrdersList.filter((o) => o.status === "Rejected").length})
+                  ❌ Rejected ({adminOrdersList.filter((o) => getNormalizedStatus(o.status) === "Rejected").length})
                 </button>
               </div>
 
@@ -1259,81 +1306,75 @@ export default function ProfilePage() {
                         </td>
                       </tr>
                     ) : (
-                      filteredOrders.map((ord) => (
-                        <tr key={ord.orderId} className="hover:bg-slate-900/60 transition-colors">
-                          <td className="p-4">
-                            <div className="font-mono font-black text-amber-400 text-sm">{ord.orderId}</div>
-                            <div className="text-[10px] text-slate-500 mt-0.5">
-                              {new Date(ord.createdAt || Date.now()).toLocaleString()}
-                            </div>
-                          </td>
+                      filteredOrders.map((ord) => {
+                        const normStatus = getNormalizedStatus(ord.status);
+                        return (
+                          <tr key={ord.orderId} className="hover:bg-slate-900/60 transition-colors">
+                            <td className="p-4">
+                              <div className="font-mono font-black text-amber-400 text-sm">{ord.orderId}</div>
+                              <div className="text-[10px] text-slate-500 mt-0.5">
+                                {new Date(ord.createdAt || Date.now()).toLocaleString()}
+                              </div>
+                            </td>
 
-                          <td className="p-4">
-                            <div className="font-bold text-white">{ord.userEmail || ord.customerEmail}</div>
-                          </td>
+                            <td className="p-4">
+                              <div className="font-bold text-white">{ord.userEmail || ord.customerEmail}</div>
+                            </td>
 
-                          <td className="p-4">
-                            <div className="font-semibold text-cyan-300">
-                              {ord.items && ord.items.length > 0 ? ord.items[0].title : "Digital Service Item"}
-                            </div>
-                          </td>
+                            <td className="p-4">
+                              <div className="font-semibold text-cyan-300">
+                                {ord.items && ord.items.length > 0 ? ord.items[0].title : "Digital Service Item"}
+                              </div>
+                            </td>
 
-                          <td className="p-4 font-mono">
-                            <div className="text-white font-bold">{ord.paymentMethod || "bKash / Nagad"}</div>
-                            <div className="text-cyan-400 text-[11px] font-bold">{ord.trxId || "TRX-N/A"}</div>
-                          </td>
+                            <td className="p-4 font-mono">
+                              <div className="text-white font-bold">{ord.paymentMethod || "bKash / Nagad"}</div>
+                              <div className="text-cyan-400 text-[11px] font-bold">{ord.trxId || "TRX-N/A"}</div>
+                            </td>
 
-                          <td className="p-4 font-black text-amber-300 text-sm">৳{ord.totalAmount}</td>
+                            <td className="p-4 font-black text-amber-300 text-sm">৳{ord.totalAmount}</td>
 
-                          <td className="p-4">
-                            <span
-                              className={`px-3 py-1 text-[10px] font-black uppercase rounded-full border flex items-center gap-1.5 w-max ${
-                                ord.status === "Completed"
-                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                                  : ord.status === "Rejected"
-                                  ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
-                                  : "bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse"
-                              }`}
-                            >
-                              {ord.status === "Completed" && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
-                              {ord.status === "Rejected" && <X className="w-3 h-3 text-rose-400" />}
-                              {ord.status === "Pending" && <Clock className="w-3 h-3 text-amber-400" />}
-                              <span>{ord.status === "Completed" ? "APPROVED" : ord.status || "PENDING"}</span>
-                            </span>
-                          </td>
-
-                          <td className="p-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              {ord.status !== "Completed" && (
-                                <button
-                                  onClick={() => handleOpenApproveModal(ord)}
-                                  className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-xs rounded-xl shadow-md hover:opacity-90 flex items-center gap-1 transition-all"
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
-                                  <span>Approve</span>
-                                </button>
-                              )}
-
-                              {ord.status !== "Rejected" && (
-                                <button
-                                  onClick={() => handleRejectOrder(ord.orderId)}
-                                  className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 border border-rose-500/30 font-bold text-xs rounded-xl transition-all"
-                                >
-                                  Reject
-                                </button>
-                              )}
-
-                              <button
-                                onClick={() => handleDeleteOrder(ord.orderId)}
-                                className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors"
-                                title="Delete Order"
+                            <td className="p-4">
+                              <span
+                                className={`px-3 py-1 text-[10px] font-black uppercase rounded-full border flex items-center gap-1.5 w-max ${normStatus === "Completed"
+                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                                    : normStatus === "Rejected"
+                                      ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
+                                      : "bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse"
+                                  }`}
                               >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                                {normStatus === "Completed" && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
+                                {normStatus === "Rejected" && <X className="w-3 h-3 text-rose-400" />}
+                                {normStatus === "Pending" && <Clock className="w-3 h-3 text-amber-400" />}
+                                <span>{normStatus === "Completed" ? "APPROVED" : normStatus === "Rejected" ? "REJECTED" : "PENDING"}</span>
+                              </span>
+                            </td>
+
+                            <td className="p-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                {normStatus !== "Completed" && (
+                                  <button
+                                    onClick={() => handleOpenApproveModal(ord)}
+                                    className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-xs rounded-xl shadow-md hover:opacity-90 flex items-center gap-1 transition-all"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
+                                    <span>Approve</span>
+                                  </button>
+                                )}
+
+                                {normStatus !== "Rejected" && (
+                                  <button
+                                    onClick={() => handleRejectOrder(ord.orderId)}
+                                    className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 border border-rose-500/30 font-bold text-xs rounded-xl transition-all"
+                                  >
+                                    Reject
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

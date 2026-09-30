@@ -41,8 +41,8 @@ export default function Footer({ onSelectCategory }: FooterProps) {
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-sky-600 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/30">
-                <Zap className="w-6 h-6 fill-slate-950 stroke-slate-950" />
+              <div className="w-10 h-10 rounded-xl bg-slate-900 border border-cyan-500/40 p-0.5 overflow-hidden flex items-center justify-center shadow-lg shadow-cyan-500/25 shrink-0">
+                <img src="/logo.png" alt="DigiVibe Logo" className="w-full h-full object-cover rounded-lg" />
               </div>
               <span className="text-2xl font-black text-white">
                 Digi<span className="text-cyan-400">Vibe</span>

@@ -15,7 +15,7 @@ import {
   Sparkles,
   Paperclip
 } from "lucide-react";
-import { apiUpdateOrderStatus } from "@/lib/api/services";
+import { apiUpdateOrderStatus, apiUploadToCloudinary } from "@/lib/api/services";
 
 export interface OrderApprovalModalProps {
   isOpen: boolean;
@@ -31,7 +31,7 @@ export default function OrderApprovalModal({
   onApproved
 }: OrderApprovalModalProps) {
   const [deliveryNotes, setDeliveryNotes] = useState<string>("");
-  const [attachedFiles, setAttachedFiles] = useState<Array<{ name: string; size: number; type: string; data: string }>>([]);
+  const [attachedFiles, setAttachedFiles] = useState<Array<{ name: string; size: number; type: string; data: string; url?: string }>>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string>("");
 
@@ -58,11 +58,6 @@ export default function OrderApprovalModal({
       const filesArray = Array.from(e.target.files);
       const filePromises = filesArray.map((file) => {
         return new Promise<{ name: string; size: number; type: string; data: string }>((resolve, reject) => {
-          // Limit file size to 10MB per file for base64 storage
-          if (file.size > 10 * 1024 * 1024) {
-            reject(new Error(`File "${file.name}" exceeds 10MB limit.`));
-            return;
-          }
           const reader = new FileReader();
           reader.onload = (event) => {
             resolve({
@@ -94,20 +89,41 @@ export default function OrderApprovalModal({
   const handleConfirmApproval = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setUploadError("");
 
     try {
+      // 1. Upload all binary files/zips/APKs to Cloudinary
+      const uploadedCloudinaryFiles = await Promise.all(
+        attachedFiles.map(async (file) => {
+          if (file.data && file.data.startsWith("data:")) {
+            const cloudRes = await apiUploadToCloudinary(file.data, file.name, "digivibe_deliveries");
+            if (cloudRes.success && cloudRes.url) {
+              return {
+                name: file.name,
+                size: file.size,
+                type: file.type || "application/octet-stream",
+                data: cloudRes.url,
+                url: cloudRes.url,
+              };
+            }
+          }
+          return file;
+        })
+      );
+
+      // 2. Persist metadata & Cloudinary URLs to MongoDB Atlas
       const res = await apiUpdateOrderStatus(
         order.orderId,
         "Completed",
         deliveryNotes,
-        attachedFiles,
+        uploadedCloudinaryFiles,
         deliveryNotes
       );
 
       setIsSubmitting(false);
 
       if (res.success) {
-        onApproved(res.order || { ...order, status: "Completed", deliveryNotes, deliveryFiles: attachedFiles });
+        onApproved(res.order || { ...order, status: "Completed", deliveryNotes, deliveryFiles: uploadedCloudinaryFiles });
         onClose();
       } else {
         alert(`Approval Error: ${res.message}`);

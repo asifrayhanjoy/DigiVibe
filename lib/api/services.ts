@@ -370,6 +370,9 @@ export async function apiProcessOrder(payload: OrderPayload): Promise<OrderRespo
 
     if (orderRes.ok) {
       const data = await orderRes.json();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("digivibe_order_created", { detail: data.order }));
+      }
       return {
         success: data.success ?? true,
         orderId: data.orderId || "DV-000000",
@@ -490,6 +493,97 @@ export async function apiMarkAllNotificationsRead(): Promise<{ success: boolean 
     console.error("Error marking all notifications read in MongoDB Atlas:", err);
   }
   return { success: false };
+}
+
+/**
+ * Fetch All Today's Updates from MongoDB Atlas
+ */
+export async function apiFetchUpdates(): Promise<any[]> {
+  try {
+    const res = await fetch("/api/updates");
+    if (res.ok) {
+      const data = await res.json();
+      return data.updates || [];
+    }
+  } catch (err) {
+    console.error("Error fetching updates from MongoDB Atlas:", err);
+  }
+  return [];
+}
+
+/**
+ * Create New Today's Update in MongoDB Atlas (Admin)
+ */
+export async function apiCreateUpdate(payload: {
+  title: string;
+  description: string;
+  category?: string;
+  bannerImage?: string;
+  badgeText?: string;
+  cards?: any[];
+  files?: any[];
+  isPinned?: boolean;
+  author?: string;
+}): Promise<{ success: boolean; message: string; update?: any }> {
+  try {
+    const res = await fetch("/api/updates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return { success: true, message: data.message || "Update published successfully!", update: data.update };
+    }
+    return { success: false, message: data.message || "Failed to create update." };
+  } catch (err: any) {
+    console.error("Error publishing update to MongoDB Atlas:", err);
+    return { success: false, message: err.message || "Failed to publish update." };
+  }
+}
+
+/**
+ * Delete Today's Update Entry from MongoDB Atlas (Admin)
+ */
+export async function apiDeleteUpdate(id: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch(`/api/updates?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return { success: true, message: data.message || "Update entry deleted." };
+    }
+    return { success: false, message: data.message || "Failed to delete update." };
+  } catch (err: any) {
+    console.error("Error deleting update entry from MongoDB Atlas:", err);
+    return { success: false, message: err.message || "Failed to delete update entry." };
+  }
+}
+
+/**
+ * Upload binary file, image or archive (.zip, .apk, .pdf, .ovpn) directly to Cloudinary
+ */
+export async function apiUploadToCloudinary(
+  fileDataUrl: string,
+  filename?: string,
+  folder: string = "digivibe_assets"
+): Promise<{ success: boolean; url?: string; public_id?: string; message?: string }> {
+  try {
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file: fileDataUrl, filename, folder }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return { success: true, url: data.url, public_id: data.public_id, message: data.message };
+    }
+    return { success: false, message: data.message || "Cloudinary upload failed." };
+  } catch (err: any) {
+    console.error("Error uploading to Cloudinary:", err);
+    return { success: false, message: err.message || "Cloudinary upload error." };
+  }
 }
 
 

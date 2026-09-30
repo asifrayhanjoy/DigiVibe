@@ -6,6 +6,14 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "DigiVibe - All-in-One Enterprise Digital Services Platform 🇧🇩",
   description: "Buy VPNs, SIM Offers, Premium Subscriptions (YouTube, Netflix, ChatGPT), IP Proxies, SMM & Verified Emails instantly with bKash, CellFin, Rocket & Crypto!",
+  icons: {
+    icon: [
+      { url: "/logo.png" },
+      { url: "/favicon.ico" }
+    ],
+    shortcut: "/logo.png",
+    apple: "/logo.png"
+  }
 };
 
 export default function RootLayout({
