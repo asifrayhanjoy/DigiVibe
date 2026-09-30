@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -35,9 +35,21 @@ import { SERVICES } from "@/data/services";
 export default function HomePage() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [servicesList, setServicesList] = useState(SERVICES);
   const { locale, dict } = useLanguage();
   const { requireAuth } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.products) && data.products.length > 0) {
+          setServicesList(data.products);
+        }
+      })
+      .catch((err) => console.error("Error loading home page products:", err));
+  }, []);
 
   const handleProtectedNavigate = (targetPath: string) => {
     requireAuth(() => {
@@ -45,7 +57,7 @@ export default function HomePage() {
     }, targetPath);
   };
 
-  const popularServices = SERVICES.filter((s) => s.popular);
+  const popularServices = servicesList.filter((s) => s.popular);
 
   const SERVICES_OVERVIEW = [
     {
@@ -404,7 +416,7 @@ export default function HomePage() {
         onClose={() => setIsSearchModalOpen(false)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        searchResults={SERVICES.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.category.toLowerCase().includes(searchQuery.toLowerCase()))}
+        searchResults={servicesList.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.category.toLowerCase().includes(searchQuery.toLowerCase()))}
         onSelectService={(service) => {
           handleProtectedNavigate(`/${locale}/services?id=${service.id}&query=${encodeURIComponent(service.title)}#product-${service.id}`);
         }}

@@ -46,12 +46,14 @@ export interface SimOfferGridProps {
   simOffers: any[];
   onAddToCart?: (offer: any) => void;
   onBuyNow?: (offer: any) => void;
+  onEditOffer?: (offer: any) => void;
 }
 
 export const SimOfferGrid = ({
   simOffers,
   onAddToCart,
-  onBuyNow
+  onBuyNow,
+  onEditOffer
 }: SimOfferGridProps) => {
   const [selectedOperator, setSelectedOperator] = useState('All');
 
@@ -109,6 +111,7 @@ export const SimOfferGrid = ({
               service={offer}
               onAddToCart={onAddToCart || (() => {})}
               onBuyNow={onBuyNow || (() => {})}
+              onEdit={onEditOffer}
             />
           ))}
         </div>

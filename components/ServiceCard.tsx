@@ -31,10 +31,12 @@ import {
   ShoppingCart,
   ArrowRight,
   Heart,
-  Cpu
+  Cpu,
+  Pencil
 } from "lucide-react";
 import { ServiceItem } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 
 const ICON_MAP: Record<string, any> = {
   Shield,
@@ -438,13 +440,16 @@ interface ServiceCardProps {
   product?: ServiceItem & { title_bn?: string; description_bn?: string; logoType?: string; usdPrice?: string; subtitle?: string };
   onAddToCart?: (service: ServiceItem) => void;
   onBuyNow?: (service: ServiceItem) => void;
+  onEdit?: (service: ServiceItem) => void;
   isHighlighted?: boolean;
 }
 
-function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, isHighlighted }: ServiceCardProps) {
+function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, onEdit, isHighlighted }: ServiceCardProps) {
   const service = inputService || product;
   const { locale } = useLanguage();
+  const { user } = useAuth();
   const isBn = locale === "bn";
+  const isAdmin = user?.role === "admin" || (user?.email || "").toLowerCase() === "mdasifrayhanjoy2@gmail.com";
 
   if (!service) return null;
 
@@ -540,6 +545,22 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, is
         {/* 1. TOP BANNER IMAGE / LOGO CONTAINER (Strictly matching image_a1c63a.png) */}
         <div className="relative w-full h-44 sm:h-48 rounded-2xl bg-slate-900/80 border border-slate-800/80 p-2 mb-4 group-hover:border-cyan-500/30 transition-all">
           <div className="w-full h-full rounded-xl bg-white p-3 flex items-center justify-center shadow-inner relative overflow-hidden">
+            {/* ADMIN EDIT BUTTON */}
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onEdit) onEdit(service);
+                }}
+                className="absolute top-2.5 left-2.5 px-3 py-1 text-xs font-black bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 rounded-full shadow-lg flex items-center gap-1.5 z-20 transition-all hover:scale-105 active:scale-95 cursor-pointer border border-amber-300/60"
+                title="Edit Card (Admin Only)"
+              >
+                <Pencil className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Edit</span>
+              </button>
+            )}
+
             {hasSvgLogo ? (
               <BrandLogoSvg logoType={service.logoType} title={service.title} />
             ) : !imgError ? (

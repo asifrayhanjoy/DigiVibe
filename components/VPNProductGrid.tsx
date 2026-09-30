@@ -6,11 +6,13 @@ import ProductCard from './ProductCard';
 export const VPNProductGrid = ({
   products,
   onAddToCart,
-  onBuyNow
+  onBuyNow,
+  onEditProduct
 }: {
   products: any[];
   onAddToCart?: (product: any) => void;
   onBuyNow?: (product: any) => void;
+  onEditProduct?: (product: any) => void;
 }) => {
   const [activeTab, setActiveTab] = useState('All');
 
@@ -61,6 +63,7 @@ export const VPNProductGrid = ({
             product={product}
             onAddToCart={onAddToCart}
             onBuyNow={onBuyNow}
+            onEdit={onEditProduct}
           />
         ))}
       </div>

@@ -8,11 +8,12 @@ import ServiceCard from "@/components/ServiceCard";
 import CategoryTabs from "@/components/CategoryTabs";
 import CheckoutModal from "@/components/CheckoutModal";
 import SearchModal from "@/components/SearchModal";
+import AdminProductModal from "@/components/AdminProductModal";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
 import { SERVICES } from "@/data/services";
 import { CategoryId, CartItem, ServiceItem } from "@/types";
-import { SlidersHorizontal, ArrowUpDown, Sparkles, Info, Server, Headphones } from "lucide-react";
+import { SlidersHorizontal, ArrowUpDown, Sparkles, Info, Server, Headphones, Plus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -28,16 +29,26 @@ function ServicesContent() {
   const [sortBy, setSortBy] = useState<"featured" | "price-low" | "price-high" | "popular" | "newest">("featured");
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
+  const [servicesList, setServicesList] = useState<ServiceItem[]>(SERVICES);
+  const [isLoadingServices, setIsLoadingServices] = useState<boolean>(true);
+
+  // Admin Modal States
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
+  const [adminModalMode, setAdminModalMode] = useState<"add" | "edit">("add");
+  const [selectedProductToEdit, setSelectedProductToEdit] = useState<ServiceItem | null>(null);
+
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const { locale, dict } = useLanguage();
-  const { isAuthenticated, isLoading, requireAuth } = useAuth();
+  const { user, isAuthenticated, isLoading, requireAuth } = useAuth();
   const { cart, addToCart, openCart: contextOpenCart, clearCart } = useCart();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const isAdmin = user?.role === "admin" || (user?.email || "").toLowerCase() === "mdasifrayhanjoy2@gmail.com";
 
   const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -53,6 +64,47 @@ function ServicesContent() {
     };
   }, []);
 
+  // Fetch Database-driven Product Cards
+  const fetchServicesFromDB = useCallback(async () => {
+    try {
+      setIsLoadingServices(true);
+      const res = await fetch("/api/products");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.products) && data.products.length > 0) {
+        setServicesList(data.products);
+      }
+    } catch (err) {
+      console.error("Failed to fetch database products:", err);
+    } finally {
+      setIsLoadingServices(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchServicesFromDB();
+  }, [fetchServicesFromDB]);
+
+  // Admin Add / Edit Modal Handlers
+  const handleOpenAddModal = () => {
+    setSelectedProductToEdit(null);
+    setAdminModalMode("add");
+    setIsAdminModalOpen(true);
+  };
+
+  const handleOpenEditModal = (service: ServiceItem) => {
+    setSelectedProductToEdit(service);
+    setAdminModalMode("edit");
+    setIsAdminModalOpen(true);
+  };
+
+  const handleSaveSuccess = (savedProduct: ServiceItem) => {
+    showToast(
+      adminModalMode === "edit" ? "Card Updated! ✨" : "Card Created! 🎉",
+      `"${savedProduct.title}" has been saved to the database.`
+    );
+    fetchServicesFromDB();
+  };
+
   // Handle incoming search query parameters & product ID scroll targeting
   useEffect(() => {
     if (!searchParams) return;
@@ -66,7 +118,7 @@ function ServicesContent() {
 
     if (urlId) {
       setHighlightedId(urlId);
-      const matched = SERVICES.find((s) => s.id === urlId);
+      const matched = servicesList.find((s) => s.id === urlId);
       if (matched) {
         setSearchQuery(matched.title);
         if (matched.category) {
@@ -88,11 +140,11 @@ function ServicesContent() {
         }
       }, 400);
     }
-  }, [searchParams]);
+  }, [searchParams, servicesList]);
 
   // Filter & Sort
   const processedServices = useMemo(() => {
-    let list = SERVICES.filter((service) => {
+    let list = servicesList.filter((service) => {
       const matchesCategory = activeCategory === "all" || service.category === activeCategory;
       const matchesSearch =
         searchQuery.trim() === "" ||
@@ -122,7 +174,7 @@ function ServicesContent() {
     }
 
     return list;
-  }, [activeCategory, searchQuery, sortBy]);
+  }, [servicesList, activeCategory, searchQuery, sortBy]);
 
   // Helper to determine if a service is an IP plan/piece product
   const isIpPlanProduct = (service: ServiceItem) => {
@@ -230,17 +282,30 @@ function ServicesContent() {
             if (cat === "smm") setSmmSubFilter("all");
           }}
           getCategoryCount={(catId) =>
-            catId === "all" ? SERVICES.length : SERVICES.filter((s) => s.category === catId).length
+            catId === "all" ? servicesList.length : servicesList.filter((s) => s.category === catId).length
           }
         />
 
         <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 my-6 p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
-          {/* Total Product Count */}
-          <div className="flex items-center gap-2.5 font-semibold text-xs sm:text-sm text-slate-300">
-            <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-sm shadow-cyan-400/50" />
-            <span>
-              Showing <span className="text-cyan-400 font-extrabold text-sm sm:text-base">{displayedServices.length}</span> Products
-            </span>
+          {/* Total Product Count & Admin Add Button */}
+          <div className="flex flex-wrap items-center gap-3 font-semibold text-xs sm:text-sm text-slate-300">
+            <div className="flex items-center gap-2.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-sm shadow-cyan-400/50" />
+              <span>
+                Showing <span className="text-cyan-400 font-extrabold text-sm sm:text-base">{displayedServices.length}</span> Products
+              </span>
+            </div>
+
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={handleOpenAddModal}
+                className="ml-auto sm:ml-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer border border-amber-300"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>Add New Service Card</span>
+              </button>
+            )}
           </div>
 
           {/* Sort Selector */}
@@ -345,7 +410,7 @@ function ServicesContent() {
 
         {activeCategory === "smm" && (
           <>
-            {/* Filter Buttons (Strictly matching image_a1ce5b.png) */}
+            {/* Filter Buttons */}
             <div className="flex items-center gap-3 mb-6 overflow-x-auto pb-2 scrollbar-none">
               <button
                 type="button"
@@ -418,8 +483,6 @@ function ServicesContent() {
           </>
         )}
 
-
-
         {activeCategory === "hosting" ? (
           <div className="glass-panel p-8 sm:p-14 text-center rounded-3xl border border-slate-800/80 bg-gradient-to-b from-slate-900/90 via-slate-950/90 to-slate-950 my-8 shadow-2xl flex flex-col items-center justify-center max-w-3xl mx-auto animate-in fade-in zoom-in-95 duration-300">
             <div className="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6 shadow-lg shadow-amber-500/10">
@@ -451,14 +514,16 @@ function ServicesContent() {
             products={processedServices}
             onAddToCart={handleAddToCart}
             onBuyNow={handleBuyNow}
+            onEditProduct={handleOpenEditModal}
           />
         ) : activeCategory === "sim" ? (
           <SimOfferGrid
             simOffers={processedServices}
             onAddToCart={handleAddToCart}
             onBuyNow={handleBuyNow}
+            onEditOffer={handleOpenEditModal}
           />
-        ) : displayedServices.length === 0 ? (
+        ) : displayedServices.length === 0 && !isAdmin ? (
           <div className="glass-panel p-12 text-center rounded-3xl border border-slate-800 my-8">
             <SlidersHorizontal className="w-12 h-12 text-slate-600 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-white">No products found</h3>
@@ -466,12 +531,34 @@ function ServicesContent() {
           </div>
         ) : (
           <div id="catalog-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Dedicated Admin Add New Card Placeholder Card */}
+            {isAdmin && (
+              <div
+                onClick={handleOpenAddModal}
+                className="group rounded-[28px] p-6 border-2 border-dashed border-amber-500/40 hover:border-amber-400 bg-amber-500/5 hover:bg-amber-500/10 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 min-h-[520px] shadow-lg shadow-amber-500/5 hover:scale-[1.02]"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/50 text-amber-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                  <Plus className="w-8 h-8 stroke-[3]" />
+                </div>
+                <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full mb-2">
+                  Admin Control
+                </span>
+                <h3 className="text-xl font-black text-amber-300 group-hover:text-amber-200">
+                  + Add New Service Card
+                </h3>
+                <p className="text-xs text-slate-400 mt-2 max-w-xs leading-relaxed">
+                  Click here to create a new database-driven card with full title, images, badges, price, and features.
+                </p>
+              </div>
+            )}
+
             {displayedServices.map((service) => (
               <ServiceCard
                 key={service.id}
                 service={service}
                 onAddToCart={handleAddToCart}
                 onBuyNow={handleBuyNow}
+                onEdit={handleOpenEditModal}
                 isHighlighted={highlightedId === service.id || (!!searchQuery && searchQuery.trim().length >= 2 && service.title.toLowerCase().includes(searchQuery.toLowerCase()))}
               />
             ))}
@@ -517,6 +604,15 @@ function ServicesContent() {
             }
           }, 200);
         }}
+      />
+
+      {/* Admin Add & Edit Service Card Modal */}
+      <AdminProductModal
+        isOpen={isAdminModalOpen}
+        onClose={() => setIsAdminModalOpen(false)}
+        mode={adminModalMode}
+        initialData={selectedProductToEdit}
+        onSaveSuccess={handleSaveSuccess}
       />
 
       <Toast toast={toast} onClose={() => setToast(null)} />
