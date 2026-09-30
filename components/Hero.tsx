@@ -78,22 +78,6 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        
-        {/* Top Announcement Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30 shadow-lg shadow-cyan-500/10 mb-6 backdrop-blur-md">
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-          </span>
-          <span className="text-xs font-semibold text-cyan-300">
-            {dict.hero.badge}
-          </span>
-          <span className="hidden sm:inline-block text-xs font-bold text-slate-500">|</span>
-          <span className="hidden sm:inline-block text-xs text-slate-400 font-medium">
-            {dict.hero.subBadge}
-          </span>
-        </div>
-
         {/* Main Headline */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white max-w-4xl mx-auto leading-[1.15]">
           {dict.hero.headlinePrefix}{" "}

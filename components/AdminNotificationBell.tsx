@@ -83,8 +83,8 @@ export default function AdminNotificationBell({ locale = "en" }: AdminNotificati
     }
   }, []);
 
-  const fetchAdminOrders = async () => {
-    setIsLoading(true);
+  const fetchAdminOrders = async (isManualRefresh: boolean = false) => {
+    if (isManualRefresh) setIsLoading(true);
     try {
       const data = await apiFetchAllOrders();
       if (Array.isArray(data)) {
@@ -111,14 +111,14 @@ export default function AdminNotificationBell({ locale = "en" }: AdminNotificati
     } catch (err) {
       console.error("Error fetching admin notifications:", err);
     } finally {
-      setIsLoading(false);
+      if (isManualRefresh) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAdminOrders();
+    fetchAdminOrders(true);
     // Real-time polling every 5 seconds for instant notification updates
-    const interval = setInterval(fetchAdminOrders, 5000);
+    const interval = setInterval(() => fetchAdminOrders(false), 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -277,7 +277,7 @@ export default function AdminNotificationBell({ locale = "en" }: AdminNotificati
                 </span>
               )}
               <button
-                onClick={fetchAdminOrders}
+                onClick={() => fetchAdminOrders(true)}
                 disabled={isLoading}
                 className="p-1 rounded text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors"
                 title="Refresh Orders"

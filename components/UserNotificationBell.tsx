@@ -103,6 +103,8 @@ export default function UserNotificationBell({ locale = "en" }: UserNotification
 
           const itemTitle = ord.items && ord.items.length > 0 ? ord.items[0].title : "Digital Service";
 
+          const ordDate = ord.updatedAt || ord.createdAt || "2026-01-01T00:00:00.000Z";
+
           if (currentStatus === "Completed") {
             notifList.push({
               id: `${ord.orderId}_completed`,
@@ -110,7 +112,7 @@ export default function UserNotificationBell({ locale = "en" }: UserNotification
               title: `🎉 Order Approved & Delivered!`,
               message: `Your order #${ord.orderId} (${itemTitle}) is completed. Access credentials & files are ready!`,
               type: "approved",
-              date: ord.updatedAt || ord.createdAt || new Date(),
+              date: ordDate,
               hasFiles: ord.deliveryFiles && ord.deliveryFiles.length > 0,
               fileCount: ord.deliveryFiles ? ord.deliveryFiles.length : 0
             });
@@ -121,7 +123,7 @@ export default function UserNotificationBell({ locale = "en" }: UserNotification
               title: `❌ Order Rejected`,
               message: `Order #${ord.orderId} (${itemTitle}) was rejected. Contact support if needed.`,
               type: "rejected",
-              date: ord.updatedAt || ord.createdAt || new Date(),
+              date: ordDate,
               hasFiles: false,
               fileCount: 0
             });
@@ -132,7 +134,7 @@ export default function UserNotificationBell({ locale = "en" }: UserNotification
               title: `⏳ Order Pending Approval`,
               message: `Order #${ord.orderId} (${itemTitle}) is under admin review. Delivery within 5 minutes.`,
               type: "pending",
-              date: ord.createdAt || new Date(),
+              date: ordDate,
               hasFiles: false,
               fileCount: 0
             });

@@ -135,8 +135,23 @@ button, a, input, select, textarea {
   .backdrop-blur-xl,
   .backdrop-blur-lg,
   .backdrop-blur-md {
-    backdrop-filter: blur(6px) !important;
-    -webkit-backdrop-filter: blur(6px) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+
+  /* Optimize heavy element blurs on small screens to prevent scroll stutter */
+  [class*="blur-[1"],
+  [class*="blur-[2"],
+  .blur-3xl,
+  .blur-2xl {
+    filter: blur(10px) !important;
+    -webkit-filter: blur(10px) !important;
+  }
+
+  /* Reduce non-essential infinite background animations on mobile for smooth FPS */
+  .animate-pulse-glow,
+  .animate-float {
+    animation-duration: 8s !important;
   }
 
   /* Off-screen rendering optimization for product catalog lists */

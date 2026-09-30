@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Trash2, ShoppingBag, Plus, Minus, ArrowRight, Tag, CheckCircle2 } from "lucide-react";
 import { CartItem } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
@@ -27,9 +28,14 @@ export default function CartDrawer({
   onApplyPromo
 }: CartDrawerProps) {
   const [promoInput, setPromoInput] = useState("");
+  const [mounted, setMounted] = useState(false);
   const { dict } = useLanguage();
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const discountAmount = appliedPromo ? Math.round(subtotal * 0.1) : 0;
@@ -46,16 +52,15 @@ export default function CartDrawer({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] overflow-hidden flex justify-end">
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity animate-in fade-in duration-300"
+        className="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-slate-950 border-l border-slate-800 shadow-2xl flex flex-col justify-between">
+      <div className="relative w-full max-w-md bg-slate-950 border-l border-slate-800 shadow-2xl h-full flex flex-col justify-between z-50 animate-in slide-in-from-right duration-300">
           {/* Header */}
           <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
             <div className="flex items-center gap-3">
@@ -204,7 +209,7 @@ export default function CartDrawer({
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </div>,
+    document.body
   );
 }
