@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
-import { apiFetchUpdates, apiCreateUpdate, apiDeleteUpdate, apiUploadToCloudinary } from "@/lib/api/services";
+import { apiFetchUpdates, apiCreateUpdate, apiDeleteUpdate, apiPurgeAllUpdates, apiUploadToCloudinary } from "@/lib/api/services";
 
 export default function UpdatesPage() {
   const { user } = useAuth();
@@ -219,13 +219,32 @@ export default function UpdatesPage() {
   const handleDeleteUpdate = async (id: string, title: string) => {
     if (!confirm(`Are you sure you want to delete "${title}" from the database?`)) return;
 
+    // Optimistically update React state immediately for instant feedback
+    setUpdates((prev) => prev.filter((u) => (u._id || u.id) !== id && u.title !== title));
     showToast("Deleting Update...", "Removing entry from database...");
-    const res = await apiDeleteUpdate(id);
+
+    const res = await apiDeleteUpdate(id, title);
     if (res.success) {
-      setUpdates((prev) => prev.filter((u) => u._id !== id));
       showToast("Entry Deleted 🗑️", `"${title}" has been deleted.`);
     } else {
-      showToast("Delete Failed ❌", res.message);
+      showToast("Delete Failed ❌", res.message || "Could not delete entry.");
+      loadUpdates();
+    }
+  };
+
+  // Delete ALL Update Records from MongoDB Atlas (Admin Purge Action)
+  const handlePurgeAllUpdates = async () => {
+    if (!confirm("Are you sure you want to permanently delete ALL entries in Today's Updates from MongoDB? This action cannot be undone.")) return;
+
+    setUpdates([]);
+    showToast("Purging All Updates...", "Deleting all update records from database...");
+
+    const res = await apiPurgeAllUpdates();
+    if (res.success) {
+      showToast("All Entries Purged 🗑️", res.message);
+    } else {
+      showToast("Purge Failed ❌", res.message);
+      loadUpdates();
     }
   };
 
@@ -275,15 +294,28 @@ export default function UpdatesPage() {
               </p>
             </div>
 
-            {/* Admin Create Action Button */}
+            {/* Admin Action Buttons */}
             {isAdmin && (
-              <button
-                onClick={() => setIsCreating(true)}
-                className="px-5 py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-cyan-500/20 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 shrink-0"
-              >
-                <Plus className="w-5 h-5 stroke-[3]" />
-                <span>Publish New Update</span>
-              </button>
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                <button
+                  onClick={() => setIsCreating(true)}
+                  className="px-5 py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-cyan-500/20 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <Plus className="w-5 h-5 stroke-[3]" />
+                  <span>Publish New Update</span>
+                </button>
+
+                {updates.length > 0 && (
+                  <button
+                    onClick={handlePurgeAllUpdates}
+                    className="px-4 py-3.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 border border-rose-500/30 font-bold text-xs sm:text-sm rounded-2xl transition-all flex items-center gap-1.5 cursor-pointer"
+                    title="Purge all updates permanently from MongoDB"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Clear All</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
 

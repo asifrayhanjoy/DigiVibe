@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import Update from "@/lib/models/Update";
 
@@ -88,35 +89,24 @@ const CHATGPT_PLUS_OFFER_SEED = {
   ]
 };
 
-// 1. GET /api/updates - Fetch all daily updates sorted by pinned & createdAt
+// 1. GET /api/updates - Fetch all daily updates sorted by pinned & createdAt (No auto-seeding)
 export async function GET() {
   try {
     await connectDB();
 
-    // Check if Gemini Promo offer exists, auto-upsert if missing
-    const existingPromo = await (Update as any).findOne({
-      title: "মাত্র ১৫০ টাকায় ১৮ মাসের Gemini Pro / Google AI Pro Subscription! 🚀"
-    });
-    if (!existingPromo) {
-      console.log("Seeding Gemini Pro 18 Months Promotional Offer to MongoDB Atlas...");
-      await (Update as any).create(PROMO_OFFER_SEED);
-    }
+    const updates = await (Update as any).find({}).sort({ isPinned: -1, createdAt: -1 }).lean();
 
-    // Check if ChatGPT Plus offer exists, auto-upsert if missing
-    const existingChatGPT = await (Update as any).findOne({
-      title: "🌸 ChatGPT Plus সাবস্ক্রিপশন অফার! 🌸"
-    });
-    if (!existingChatGPT) {
-      console.log("Seeding ChatGPT Plus Subscription Offer to MongoDB Atlas...");
-      await (Update as any).create(CHATGPT_PLUS_OFFER_SEED);
-    }
-
-    const updates = await (Update as any).find({}).sort({ isPinned: -1, createdAt: -1 });
-
-    return NextResponse.json({
-      success: true,
-      updates: updates || [],
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        updates: updates || [],
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("❌ Error fetching updates from MongoDB:", error);
     return NextResponse.json(
@@ -241,35 +231,73 @@ export async function PUT(request: Request) {
   }
 }
 
-// 4. DELETE /api/updates?id=... - Delete obsolete update entry
+// 4. DELETE /api/updates?id=...&title=... - Delete update entry permanently (or purge all)
 export async function DELETE(request: Request) {
   try {
     await connectDB();
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    let id = searchParams.get("id");
+    let title = searchParams.get("title");
+    const purgeAll = searchParams.get("all") === "true" || searchParams.get("purge") === "true" || id === "all";
+
+    if (purgeAll) {
+      const result = await (Update as any).deleteMany({});
+      console.log(`🗑️ [MongoDB Atlas] Purged ALL Today's Updates (${result.deletedCount} documents removed)`);
+      return NextResponse.json({
+        success: true,
+        message: `All update entries permanently deleted from database (${result.deletedCount} removed)!`,
+        deletedCount: result.deletedCount,
+      });
+    }
 
     if (!id) {
+      try {
+        const body = await request.json();
+        id = body.id || body._id;
+        title = title || body.title;
+      } catch (e) {}
+    }
+
+    if (!id && !title) {
       return NextResponse.json(
-        { success: false, message: "Update ID is required for deletion." },
+        { success: false, message: "Update ID or Title is required for deletion." },
         { status: 400 }
       );
     }
 
-    const deleted = await (Update as any).findByIdAndDelete(id);
+    const filterConditions: any[] = [];
 
-    if (!deleted) {
+    if (id) {
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        filterConditions.push({ _id: new mongoose.Types.ObjectId(id) });
+        filterConditions.push({ _id: id });
+      } else {
+        filterConditions.push({ title: id });
+      }
+    }
+
+    if (title) {
+      filterConditions.push({ title: title.trim() });
+    }
+
+    const filter = filterConditions.length > 1 ? { $or: filterConditions } : filterConditions[0];
+
+    // Use deleteMany to clean up any duplicate entries in MongoDB Atlas
+    const deleteResult = await (Update as any).deleteMany(filter);
+
+    if (!deleteResult || deleteResult.deletedCount === 0) {
       return NextResponse.json(
-        { success: false, message: "Update record not found." },
+        { success: false, message: "Update record not found in database." },
         { status: 404 }
       );
     }
 
-    console.log(`🗑️ [MongoDB Atlas] Deleted Today's Update ID: ${id}`);
+    console.log(`🗑️ [MongoDB Atlas] Permanently deleted ${deleteResult.deletedCount} update document(s) matching filter:`, filter);
 
     return NextResponse.json({
       success: true,
-      message: "Daily update entry deleted successfully from database!",
-      deletedId: id,
+      message: `Daily update entry deleted permanently (${deleteResult.deletedCount} removed)!`,
+      deletedCount: deleteResult.deletedCount,
     });
   } catch (error: any) {
     console.error("❌ Error deleting update from MongoDB:", error);

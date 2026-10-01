@@ -46,9 +46,15 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
   const { user, requireAuth } = useAuth();
   const { addToCart, openCart } = useCart();
 
-  const [service, setService] = useState<ServiceItem | null>(null);
+  // Instant static fallback initialization for 0ms loading lag
+  const initialService = useMemo(() => {
+    if (!serviceId) return null;
+    return SERVICES.find((s) => s.id === serviceId) || null;
+  }, [serviceId]);
+
+  const [service, setService] = useState<ServiceItem | null>(initialService);
   const [allProducts, setAllProducts] = useState<ServiceItem[]>(SERVICES);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(!initialService);
   const [quantity, setQuantity] = useState<number>(1);
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
@@ -65,35 +71,36 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
     setTimeout(() => setToast(null), 3500);
   };
 
-  // Fetch product from API
+  // Parallel Background Data Synchronization
   const fetchProductDetail = useCallback(async () => {
     if (!serviceId) return;
     try {
-      setIsLoading(true);
-      const res = await fetch(`/api/products/${encodeURIComponent(serviceId)}`, { cache: "no-store" });
-      const data = await res.json();
-      if (data.success && data.product) {
-        setService(data.product);
-      } else {
-        // Fallback search in static list
-        const staticMatch = SERVICES.find((s) => s.id === serviceId);
-        if (staticMatch) setService(staticMatch);
+      if (!service) setIsLoading(true);
+
+      const [res, allRes] = await Promise.all([
+        fetch(`/api/products/${encodeURIComponent(serviceId)}`, { cache: "no-store" }),
+        fetch("/api/products", { cache: "no-store" })
+      ]);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.product) {
+          setService(data.product);
+        }
       }
 
-      // Fetch all products for recommended grid
-      const allRes = await fetch("/api/products", { cache: "no-store" });
-      const allData = await allRes.json();
-      if (allData.success && Array.isArray(allData.products) && allData.products.length > 0) {
-        setAllProducts(allData.products);
+      if (allRes.ok) {
+        const allData = await allRes.json();
+        if (allData.success && Array.isArray(allData.products) && allData.products.length > 0) {
+          setAllProducts(allData.products);
+        }
       }
     } catch (err) {
       console.error("Error fetching product detail:", err);
-      const staticMatch = SERVICES.find((s) => s.id === serviceId);
-      if (staticMatch) setService(staticMatch);
     } finally {
       setIsLoading(false);
     }
-  }, [serviceId]);
+  }, [serviceId, service]);
 
   useEffect(() => {
     fetchProductDetail();

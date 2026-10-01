@@ -50,50 +50,54 @@ export async function GET(req: Request) {
   try {
     await connectDB();
 
-    // Auto-seed or sync static SERVICES cards if DB is empty or missing promo items
-    const seedOperations = (SERVICES as any[]).map((item) => ({
-      updateOne: {
-        filter: { productId: item.id },
-        update: {
-          $setOnInsert: {
-            productId: item.id,
-            title: item.title,
-            category: item.category,
-            subtitle: item.subtitle || item.badge || "",
-            operator: item.operator || "",
-            price: item.price,
-            originalPrice: item.originalPrice || Math.round(item.price * 1.2),
-            duration: item.validity || item.duration || "7 Days",
-            rating: item.rating || 4.8,
-            reviews: item.reviews || 120,
-            tag: item.badge || item.tag || "",
-            badge: item.badge || item.subtitle || "",
-            badgeColor: item.badgeColor || "",
-            logo: item.logo || item.image || "",
-            image: item.image || item.logo || "",
-            logoType: item.logoType || "",
-            icon: item.icon || "Sparkles",
-            inStock: item.inStock !== false && item.stock !== "Stock Out" && item.stock !== "Out of Stock",
-            stock: item.stock || (item.inStock === false ? "Out of Stock" : "In Stock"),
-            features: item.features || [],
-            popular: !!item.popular,
-            usdPrice: item.usdPrice || "",
-            unit: item.unit || "",
-            delivery: item.delivery || "Instant Auto-Delivery",
-            description: item.description || "",
-            overview: item.overview || "",
-            minQuantity: item.minQuantity,
-            maxQuantity: item.maxQuantity,
-            terms: item.terms || "",
-            priceNote: item.priceNote || "",
+    // Auto-seed static SERVICES cards ONLY IF database product count is 0
+    const count = await (Product as any).countDocuments();
+    if (count === 0) {
+      console.log("Seeding initial products to MongoDB Atlas...");
+      const seedOperations = (SERVICES as any[]).map((item) => ({
+        updateOne: {
+          filter: { productId: item.id },
+          update: {
+            $setOnInsert: {
+              productId: item.id,
+              title: item.title,
+              category: item.category,
+              subtitle: item.subtitle || item.badge || "",
+              operator: item.operator || "",
+              price: item.price,
+              originalPrice: item.originalPrice || Math.round(item.price * 1.2),
+              duration: item.validity || item.duration || "7 Days",
+              rating: item.rating || 4.8,
+              reviews: item.reviews || 120,
+              tag: item.badge || item.tag || "",
+              badge: item.badge || item.subtitle || "",
+              badgeColor: item.badgeColor || "",
+              logo: item.logo || item.image || "",
+              image: item.image || item.logo || "",
+              logoType: item.logoType || "",
+              icon: item.icon || "Sparkles",
+              inStock: item.inStock !== false && item.stock !== "Stock Out" && item.stock !== "Out of Stock",
+              stock: item.stock || (item.inStock === false ? "Out of Stock" : "In Stock"),
+              features: item.features || [],
+              popular: !!item.popular,
+              usdPrice: item.usdPrice || "",
+              unit: item.unit || "",
+              delivery: item.delivery || "Instant Auto-Delivery",
+              description: item.description || "",
+              overview: item.overview || "",
+              minQuantity: item.minQuantity,
+              maxQuantity: item.maxQuantity,
+              terms: item.terms || "",
+              priceNote: item.priceNote || "",
+            },
           },
+          upsert: true,
         },
-        upsert: true,
-      },
-    }));
+      }));
 
-    if (seedOperations.length > 0) {
-      await (Product as any).bulkWrite(seedOperations);
+      if (seedOperations.length > 0) {
+        await (Product as any).bulkWrite(seedOperations);
+      }
     }
 
     let products = await (Product as any).find().sort({ createdAt: -1 }).lean();

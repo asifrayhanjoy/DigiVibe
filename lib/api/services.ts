@@ -545,19 +545,50 @@ export async function apiCreateUpdate(payload: {
 /**
  * Delete Today's Update Entry from MongoDB Atlas (Admin)
  */
-export async function apiDeleteUpdate(id: string): Promise<{ success: boolean; message: string }> {
+export async function apiDeleteUpdate(id: string, title?: string): Promise<{ success: boolean; message: string }> {
   try {
-    const res = await fetch(`/api/updates?id=${encodeURIComponent(id)}`, {
+    let url = `/api/updates?id=${encodeURIComponent(id)}`;
+    if (title) {
+      url += `&title=${encodeURIComponent(title)}`;
+    }
+    const res = await fetch(url, {
       method: "DELETE",
     });
     const data = await res.json();
     if (res.ok && data.success) {
       return { success: true, message: data.message || "Update entry deleted." };
     }
-    return { success: false, message: data.message || "Failed to delete update." };
+    // Fallback try /api/updates/[id]
+    const res2 = await fetch(`/api/updates/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    const data2 = await res2.json();
+    if (res2.ok && data2.success) {
+      return { success: true, message: data2.message || "Update entry deleted." };
+    }
+    return { success: false, message: data.message || data2?.message || "Failed to delete update." };
   } catch (err: any) {
     console.error("Error deleting update entry from MongoDB Atlas:", err);
     return { success: false, message: err.message || "Failed to delete update entry." };
+  }
+}
+
+/**
+ * Permanently Delete All Today's Update Entries from MongoDB Atlas (Admin Purge)
+ */
+export async function apiPurgeAllUpdates(): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch("/api/updates?all=true", {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return { success: true, message: data.message || "All updates purged permanently." };
+    }
+    return { success: false, message: data.message || "Failed to purge all updates." };
+  } catch (err: any) {
+    console.error("Error purging all updates from MongoDB Atlas:", err);
+    return { success: false, message: err.message || "Failed to purge all updates." };
   }
 }
 
