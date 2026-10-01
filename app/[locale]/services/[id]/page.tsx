@@ -75,8 +75,6 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
   const fetchProductDetail = useCallback(async () => {
     if (!serviceId) return;
     try {
-      if (!service) setIsLoading(true);
-
       const [res, allRes] = await Promise.all([
         fetch(`/api/products/${encodeURIComponent(serviceId)}`, { cache: "no-store" }),
         fetch("/api/products", { cache: "no-store" })
@@ -100,7 +98,7 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
     } finally {
       setIsLoading(false);
     }
-  }, [serviceId, service]);
+  }, [serviceId]);
 
   useEffect(() => {
     fetchProductDetail();
@@ -381,17 +379,6 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
                   <span>Add To Cart</span>
                 </button>
               </div>
-
-              {/* WhatsApp Support Direct Button */}
-              <a
-                href={`https://wa.me/8801700000000?text=Hi!%20I%20am%20interested%20in%20"${encodeURIComponent(service.title)}"%20(Price:%20৳${service.price})`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-3.5 px-4 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all"
-              >
-                <PhoneCall className="w-4 h-4" />
-                <span>Contact Admin on WhatsApp for Support</span>
-              </a>
             </div>
           </div>
         </div>
