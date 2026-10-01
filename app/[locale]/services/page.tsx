@@ -85,47 +85,46 @@ function ServicesContent() {
   }, [fetchServicesFromDB]);
 
   // Admin Add / Edit Modal Handlers
-  const handleOpenAddModal = () => {
+  const handleOpenAddModal = useCallback(() => {
     setSelectedProductToEdit(null);
     setAdminModalMode("add");
     setIsAdminModalOpen(true);
-  };
+  }, []);
 
-  const handleOpenEditModal = (service: ServiceItem) => {
+  const handleOpenEditModal = useCallback((service: ServiceItem) => {
     setSelectedProductToEdit(service);
     setAdminModalMode("edit");
     setIsAdminModalOpen(true);
-  };
+  }, []);
 
-  const handleSaveSuccess = (savedProduct: ServiceItem) => {
+  const handleSaveSuccess = useCallback((savedProduct: ServiceItem) => {
     showToast(
       adminModalMode === "edit" ? "Card Updated! ✨" : "Card Created! 🎉",
       `"${savedProduct.title}" has been saved to the database.`
     );
+    if (savedProduct?.id) {
+      setHighlightedId(savedProduct.id);
+    }
     fetchServicesFromDB();
-  };
+  }, [adminModalMode, fetchServicesFromDB]);
 
   const hasScrolledRef = useRef<string>("");
 
-  // Handle incoming search query parameters & product ID scroll targeting + state sync on navigation
+  // Handle incoming search query parameters & product ID scroll targeting on navigation
   useEffect(() => {
     if (!searchParams) return;
     const urlQuery = searchParams.get("query") || searchParams.get("q") || searchParams.get("search");
     const urlId = searchParams.get("id") || searchParams.get("product");
     const urlCat = searchParams.get("cat") || searchParams.get("category");
 
-    // 1. Sync active category with URL parameter or reset to "all"
+    // 1. Sync active category with URL parameter if explicitly provided
     if (urlCat) {
       setActiveCategory(urlCat as CategoryId);
-    } else if (!urlId) {
-      setActiveCategory("all");
     }
 
-    // 2. Sync search query with URL parameter or reset when missing
+    // 2. Sync search query with URL parameter if explicitly provided
     if (urlQuery) {
       setSearchQuery(urlQuery);
-    } else if (!urlId) {
-      setSearchQuery("");
     }
 
     // 3. Handle product ID scroll & highlighting
@@ -149,7 +148,6 @@ function ServicesContent() {
         }, 400);
       }
     } else if (urlQuery) {
-      setHighlightedId(null);
       const paramKey = `query-${urlQuery}`;
       if (hasScrolledRef.current !== paramKey) {
         hasScrolledRef.current = paramKey;
@@ -160,10 +158,8 @@ function ServicesContent() {
           }
         }, 400);
       }
-    } else {
-      setHighlightedId(null);
     }
-  }, [searchParams, servicesList]);
+  }, [searchParams]);
 
   // Filter & Sort
   const processedServices = useMemo(() => {

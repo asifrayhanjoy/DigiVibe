@@ -130,34 +130,35 @@ button, a, input, select, textarea {
 }
 
 @media (max-width: 768px) {
+  html, body {
+    -webkit-overflow-scrolling: touch;
+  }
+
   /* Reduce GPU compositor load on mobile screens */
   .backdrop-blur-2xl,
   .backdrop-blur-xl,
   .backdrop-blur-lg,
-  .backdrop-blur-md {
+  .backdrop-blur-md,
+  .glass-panel {
     backdrop-filter: blur(4px) !important;
     -webkit-backdrop-filter: blur(4px) !important;
+    background-color: rgba(15, 23, 42, 0.94) !important;
   }
 
   /* Optimize heavy element blurs on small screens to prevent scroll stutter */
   [class*="blur-[1"],
   [class*="blur-[2"],
   .blur-3xl,
-  .blur-2xl {
-    filter: blur(10px) !important;
-    -webkit-filter: blur(10px) !important;
+  .blur-2xl,
+  .blur-xl {
+    filter: blur(8px) !important;
+    -webkit-filter: blur(8px) !important;
   }
 
   /* Reduce non-essential infinite background animations on mobile for smooth FPS */
   .animate-pulse-glow,
   .animate-float {
-    animation-duration: 8s !important;
-  }
-
-  /* Off-screen rendering optimization for product catalog lists */
-  .grid > [id^="product-"] {
-    content-visibility: auto;
-    contain-intrinsic-size: 1px 520px;
+    animation: none !important;
   }
 
   /* Hardware accelerate fixed header on mobile touch devices */
@@ -172,4 +173,5 @@ button, a, input, select, textarea {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
   }
 }
+
 

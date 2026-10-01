@@ -226,14 +226,18 @@ export default function ProfilePage() {
     if (!isAdmin) return;
 
     const fetchAdminOrders = async () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       const fresh = await apiFetchAllOrders();
       if (fresh && Array.isArray(fresh)) {
-        setAdminOrdersList(fresh);
+        setAdminOrdersList((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(fresh)) return prev;
+          return fresh;
+        });
       }
     };
 
-    // 5-second polling interval
-    const interval = setInterval(fetchAdminOrders, 5000);
+    // 30-second background polling interval (only when tab is visible)
+    const interval = setInterval(fetchAdminOrders, 30000);
 
     // Custom order creation event listener
     const handleOrderCreated = () => {

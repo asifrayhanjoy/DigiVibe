@@ -504,7 +504,11 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
             setService(updated);
             showToast("Product Updated! ✨", `"${updated.title}" has been saved to the database.`);
             setIsAdminModalOpen(false);
-            fetchProductDetail();
+            if (updated.id && updated.id !== service.id) {
+              router.replace(`/${locale}/services/${updated.id}`);
+            } else {
+              fetchProductDetail();
+            }
           }}
         />
       )}
