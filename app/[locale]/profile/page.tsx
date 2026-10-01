@@ -53,7 +53,8 @@ import {
   apiFetchUserOrders,
   apiFetchAllOrders,
   apiUpdateOrderStatus,
-  apiDeleteOrder
+  apiDeleteOrder,
+  apiUploadToCloudinary
 } from "@/lib/api/services";
 
 export function getNormalizedStatus(status?: string): "Pending" | "Completed" | "Rejected" {
@@ -71,7 +72,7 @@ export function getNormalizedStatus(status?: string): "Pending" | "Completed" | 
 type TabId = "assets" | "edit-profile" | "orders" | "security" | "support" | "admin";
 
 export default function ProfilePage() {
-  const { user: authUser, logout } = useAuth();
+  const { user: authUser, logout, updateUser } = useAuth();
   const { locale } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<TabId>("assets");
@@ -304,13 +305,30 @@ export default function ProfilePage() {
     setIsSavingAvatar(true);
     showToast("Saving Avatar...", "Uploading profile picture to MongoDB Atlas...");
 
+    let finalAvatar = targetAvatar;
+    if (targetAvatar.startsWith("data:image/")) {
+      try {
+        const cloudRes = await apiUploadToCloudinary(targetAvatar, `avatar_${Date.now()}`, "digivibe_avatars");
+        if (cloudRes.success && cloudRes.url) {
+          finalAvatar = cloudRes.url;
+        }
+      } catch (e) {
+        console.warn("Cloudinary upload fallback to base64:", e);
+      }
+    }
+
     const res = await apiUpdateProfile({
       email: profile.email,
-      avatar: targetAvatar
+      avatar: finalAvatar
     });
 
     setIsSavingAvatar(false);
     if (res.success) {
+      setProfile((prev) => ({ ...prev, avatar: finalAvatar }));
+      setEditForm((prev) => ({ ...prev, avatar: finalAvatar }));
+      if (updateUser) {
+        updateUser({ avatar: finalAvatar });
+      }
       setHasUnsavedAvatar(false);
       showToast("Avatar Saved to MongoDB Atlas 📸", "Profile picture persisted successfully in database!");
     } else {
@@ -340,7 +358,6 @@ export default function ProfilePage() {
   // Save Profile Details to MongoDB Atlas
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfile({ ...editForm });
     setIsEditingHeader(false);
 
     showToast("Saving to Database...", "Connecting to MongoDB Atlas...");
@@ -355,13 +372,16 @@ export default function ProfilePage() {
     });
 
     if (res.success) {
+      const updatedUser = res.user || { ...profile, ...editForm };
+      setProfile((prev) => ({ ...prev, ...updatedUser }));
+      if (updateUser) {
+        updateUser(updatedUser);
+      }
       showToast("Save and Updated! 🎉", res.message);
     } else {
       showToast("Database Notice", res.message);
     }
   };
-
-
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -378,16 +398,31 @@ export default function ProfilePage() {
     showToast("Support Ticket Opened 🎫", "Our 24/7 team will respond within 15 minutes.");
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPass !== confirmPass) {
       showToast("Password Error", "New password and confirm password do not match.");
       return;
     }
-    setCurrentPass("");
-    setNewPass("");
-    setConfirmPass("");
-    showToast("Password Changed 🔐", "Security password has been updated.");
+    if (!newPass || newPass.length < 4) {
+      showToast("Password Error", "New password must be at least 4 characters long.");
+      return;
+    }
+
+    showToast("Updating Password...", "Connecting to MongoDB Atlas...");
+    const res = await apiUpdateProfile({
+      email: profile.email,
+      password: newPass
+    });
+
+    if (res.success) {
+      setCurrentPass("");
+      setNewPass("");
+      setConfirmPass("");
+      showToast("Password Changed 🔐", "Security password has been updated in database.");
+    } else {
+      showToast("Password Change Failed", res.message || "Could not update password.");
+    }
   };
 
   // Filtered Orders for Admin Approval System

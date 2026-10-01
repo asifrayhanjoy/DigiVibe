@@ -11,6 +11,8 @@ export interface IUser extends Document {
   walletBalance?: number;
   role?: string;
   isVerified?: boolean;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -62,6 +64,14 @@ const UserSchema = new Schema<IUser>(
     isVerified: {
       type: Boolean,
       default: true,
+    },
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
     },
   },
   {

@@ -11,6 +11,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
+  updateUser: (updatedUser: Partial<User>) => void;
   requireAuth: (onSuccess?: () => void, redirectPath?: string) => boolean;
 }
 
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: () => {},
   logout: () => {},
+  updateUser: () => {},
   requireAuth: () => false,
 });
 
@@ -66,6 +68,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     document.cookie = "digivibe_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   }, []);
 
+  const updateUser = useCallback((updatedFields: Partial<User>) => {
+    setUser((prev) => {
+      const newUser = prev ? { ...prev, ...updatedFields } : (updatedFields as User);
+      localStorage.setItem("digivibe_user", JSON.stringify(newUser));
+      return newUser;
+    });
+  }, []);
+
   const requireAuth = useCallback((onSuccess?: () => void, redirectPath?: string): boolean => {
     const isLogged = !!user || !!localStorage.getItem("digivibe_token");
 
@@ -89,8 +99,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isLoading,
     login,
     logout,
+    updateUser,
     requireAuth,
-  }), [user, token, isLoading, login, logout, requireAuth]);
+  }), [user, token, isLoading, login, logout, updateUser, requireAuth]);
 
   return (
     <AuthContext.Provider value={value}>

@@ -24,7 +24,7 @@ const OtpSchema = new Schema<IOtp>(
     },
     purpose: {
       type: String,
-      enum: ["login", "signup"],
+      enum: ["login", "signup", "reset-password"],
       default: "login",
     },
     userData: {

@@ -105,10 +105,11 @@ export async function apiUpdateProfile(profileData: {
   whatsapp?: string;
   address?: string;
   avatar?: string;
+  password?: string;
 }): Promise<{ success: boolean; message: string; user?: User }> {
   try {
-    const authUrl = NODE_AUTH_SERVICE || "/api/auth";
-    const res = await fetch(`${authUrl}/profile`, {
+    const endpoint = NODE_AUTH_SERVICE ? `${NODE_AUTH_SERVICE}/profile` : "/api/auth/profile";
+    const res = await fetch(endpoint, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(profileData),
@@ -125,6 +126,42 @@ export async function apiUpdateProfile(profileData: {
   } catch (err: any) {
     console.error("Error persisting profile update to MongoDB Atlas:", err);
     return { success: false, message: `Could not save profile updates: ${err?.message || "Server error"}` };
+  }
+}
+
+/**
+ * Request Password Reset OTP via Email
+ */
+export async function apiForgotPassword(email: string): Promise<{ success: boolean; message: string; demoOtp?: string }> {
+  try {
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Error calling forgot password API:", err);
+    return { success: false, message: "Network error or forgot password server offline." };
+  }
+}
+
+/**
+ * Reset Password using 6-digit OTP
+ */
+export async function apiResetPassword(email: string, otp: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Error calling reset password API:", err);
+    return { success: false, message: "Network error or reset password server offline." };
   }
 }
 
