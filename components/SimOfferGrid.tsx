@@ -77,9 +77,11 @@ export const SimOfferGrid = ({
     return 'RB'; // default fallback
   };
 
-  const filteredOffers = selectedOperator === 'All'
-    ? simOffers
-    : simOffers.filter((item) => getOperatorType(item) === selectedOperator);
+  const filteredOffers = React.useMemo(() => {
+    return selectedOperator === 'All'
+      ? simOffers
+      : simOffers.filter((item) => getOperatorType(item) === selectedOperator);
+  }, [simOffers, selectedOperator]);
 
   return (
     <div className="w-full space-y-6">

@@ -177,11 +177,11 @@ export default function CheckoutModal({
       {/* Backdrop */}
       <div
         onClick={resetAndClose}
-        className="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity animate-in fade-in"
+        className="fixed inset-0 bg-slate-950/90 sm:backdrop-blur-md transition-opacity animate-in fade-in transform-gpu"
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-2xl bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-10 my-4 sm:my-8 max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-2xl bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-10 my-4 sm:my-8 max-h-[90vh] flex flex-col transform-gpu">
         {orderComplete ? (
           /* SUCCESS ORDER STATE */
           <div className="p-6 sm:p-8 text-center space-y-6 overflow-y-auto">

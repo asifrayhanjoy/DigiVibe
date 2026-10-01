@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -57,7 +57,9 @@ export default function HomePage() {
     }, targetPath);
   };
 
-  const popularServices = servicesList.filter((s) => s.popular);
+  const popularServices = useMemo(() => {
+    return servicesList.filter((s) => s.popular);
+  }, [servicesList]);
 
   const SERVICES_OVERVIEW = [
     {

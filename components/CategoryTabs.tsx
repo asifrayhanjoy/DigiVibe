@@ -38,7 +38,7 @@ interface CategoryTabsProps {
   getCategoryCount?: (id: CategoryId) => number;
 }
 
-export default function CategoryTabs({
+function CategoryTabs({
   activeCategory,
   onSelectCategory,
   getCategoryCount
@@ -56,8 +56,10 @@ export default function CategoryTabs({
   const checkScroll = useCallback(() => {
     if (!scrollRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setCanScrollLeft(scrollLeft > 5);
-    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
+    const nextLeft = scrollLeft > 5;
+    const nextRight = scrollLeft + clientWidth < scrollWidth - 5;
+    setCanScrollLeft((prev) => (prev !== nextLeft ? nextLeft : prev));
+    setCanScrollRight((prev) => (prev !== nextRight ? nextRight : prev));
   }, []);
 
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function CategoryTabs({
   };
 
   return (
-    <div className="relative w-full group py-2">
+    <div className="relative w-full group py-2 transform-gpu">
       {/* Left Scroll Button */}
       {canScrollLeft && (
         <button
@@ -141,7 +143,7 @@ export default function CategoryTabs({
             <button
               key={cat.id}
               onClick={() => onSelectCategory(cat.id as CategoryId)}
-              className={`flex flex-row items-center gap-2.5 px-4 py-3 rounded-2xl border transition-all duration-200 cursor-pointer shrink-0 text-xs sm:text-sm font-semibold select-none whitespace-nowrap will-change-transform ${
+              className={`flex flex-row items-center gap-2.5 px-4 py-3 rounded-2xl border transition-all duration-200 cursor-pointer shrink-0 text-xs sm:text-sm font-semibold select-none whitespace-nowrap will-change-transform transform-gpu ${
                 isActive
                   ? "bg-cyan-500/15 border-cyan-400 text-cyan-400 shadow-md shadow-cyan-500/20 scale-[1.02]"
                   : "bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
@@ -165,3 +167,6 @@ export default function CategoryTabs({
     </div>
   );
 }
+
+import React from "react";
+export default React.memo(CategoryTabs);

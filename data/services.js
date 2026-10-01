@@ -56,6 +56,60 @@ export const SERVICES = [
     popular: false
   })),
 
+  // --- NEW PROMOTIONAL OFFER CARDS (EXACT MATCH SERVICE CARD DESIGN SYSTEM) ---
+  {
+    id: "promo-gemini-18m",
+    title: "১৮ মাসের Gemini Pro / Google AI Pro Subscription 🚀",
+    category: "subscriptions",
+    subtitle: "24h warranty",
+    badge: "Popular 🔥",
+    tag: "Popular 🔥",
+    rating: 5.0,
+    reviews: 100,
+    price: 150,
+    originalPrice: 300,
+    usdPrice: "$1.20",
+    delivery: "5-20 Min Instant Setup",
+    stock: "In Stock",
+    inStock: true,
+    icon: "Sparkles",
+    logoType: "gemini",
+    features: [
+      "Single Invite (১৫০ টাকা) বা Full Owner (২৫০ টাকা) অপশন।",
+      "নিজের জিমেইল ব্যবহার করার সুবিধা।",
+      "শুধু একবার পেমেন্ট, পুরো ১৮ মাস ব্যবহার।",
+      "Gemini Pro, Veo 3, NotebookLM ও AI Studio অ্যাক্সেস।",
+      "১ মাসের জন্য ৫TB Storage (Single Invite) ও ১৮ মাসের রিপ্লেসমেন্ট ওয়ারেন্টি।",
+      "Bonus: CapCut+ Premium, YouTube Premium ও ক্যানবা প্রো সম্পূর্ণ ফ্রি!"
+    ],
+    popular: true
+  },
+  {
+    id: "promo-chatgpt-plus",
+    title: "🌸 ChatGPT Plus সাবস্ক্রিপশন অফার 🌸",
+    category: "subscriptions",
+    subtitle: "24h warranty",
+    badge: "Trusted 🔥",
+    tag: "Trusted 🔥",
+    rating: 5.0,
+    reviews: 100,
+    price: 300,
+    originalPrice: 500,
+    usdPrice: "$2.40",
+    delivery: "5-20 Min Instant Setup",
+    stock: "In Stock",
+    inStock: true,
+    icon: "Sparkles",
+    logoType: "chatgpt",
+    features: [
+      "Shared Account (Gmail ও পাসওয়ার্ডসহ): ১ মাস (৩০০৳), ১ বছর (৪৫০৳), ৩ বছর (৬০০৳)।",
+      "Personal Account (নিজের জিমেইলে): ১ মাস (৪০০৳), ১ বছর (৬০০৳), ৩ বছর (১১০০৳)।",
+      "দ্রুত সেটআপ (৫-২০ মিনিট)।",
+      "ফুল ওয়ারেন্টি ও সাপোর্ট।"
+    ],
+    popular: true
+  },
+
   // --- PREMIUM SUBSCRIPTIONS & AI TOOLS (EXACT +10 BDT PRICING & 4-FEATURE CHECKLIST) ---
   {
     id: "sub-chatgpt-plus",

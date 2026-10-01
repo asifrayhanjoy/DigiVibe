@@ -50,14 +50,14 @@ export default function SearchModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6 md:p-20 flex justify-center">
+    <div className="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6 md:p-20 flex justify-center transform-gpu">
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity animate-in fade-in"
+        className="fixed inset-0 bg-slate-950/85 sm:backdrop-blur-md transition-opacity animate-in fade-in"
       />
 
-      <div className="relative w-full max-w-2xl bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-10 self-start">
+      <div className="relative w-full max-w-2xl bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-10 self-start transform-gpu">
         {/* Search Header Form */}
         <form onSubmit={handleFormSubmit} className="p-4 border-b border-slate-800 flex items-center gap-3 bg-slate-900/60">
           <Search className="w-5 h-5 text-cyan-400 ml-2" />

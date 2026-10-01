@@ -68,7 +68,7 @@ function ServicesContent() {
   const fetchServicesFromDB = useCallback(async () => {
     try {
       setIsLoadingServices(true);
-      const res = await fetch("/api/products");
+      const res = await fetch("/api/products", { cache: "no-store" });
       const data = await res.json();
       if (data.success && Array.isArray(data.products) && data.products.length > 0) {
         setServicesList(data.products);
@@ -105,17 +105,30 @@ function ServicesContent() {
     fetchServicesFromDB();
   };
 
-  // Handle incoming search query parameters & product ID scroll targeting
+  const hasScrolledRef = useRef<string>("");
+
+  // Handle incoming search query parameters & product ID scroll targeting + state sync on navigation
   useEffect(() => {
     if (!searchParams) return;
     const urlQuery = searchParams.get("query") || searchParams.get("q") || searchParams.get("search");
     const urlId = searchParams.get("id") || searchParams.get("product");
     const urlCat = searchParams.get("cat") || searchParams.get("category");
 
+    // 1. Sync active category with URL parameter or reset to "all"
     if (urlCat) {
       setActiveCategory(urlCat as CategoryId);
+    } else if (!urlId) {
+      setActiveCategory("all");
     }
 
+    // 2. Sync search query with URL parameter or reset when missing
+    if (urlQuery) {
+      setSearchQuery(urlQuery);
+    } else if (!urlId) {
+      setSearchQuery("");
+    }
+
+    // 3. Handle product ID scroll & highlighting
     if (urlId) {
       setHighlightedId(urlId);
       const matched = servicesList.find((s) => s.id === urlId);
@@ -125,20 +138,30 @@ function ServicesContent() {
           setActiveCategory(matched.category as CategoryId);
         }
       }
-      setTimeout(() => {
-        const el = document.getElementById(`product-${urlId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }, 400);
+      const paramKey = `id-${urlId}`;
+      if (hasScrolledRef.current !== paramKey) {
+        hasScrolledRef.current = paramKey;
+        setTimeout(() => {
+          const el = document.getElementById(`product-${urlId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 400);
+      }
     } else if (urlQuery) {
-      setSearchQuery(urlQuery);
-      setTimeout(() => {
-        const el = document.getElementById("catalog-grid");
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 400);
+      setHighlightedId(null);
+      const paramKey = `query-${urlQuery}`;
+      if (hasScrolledRef.current !== paramKey) {
+        hasScrolledRef.current = paramKey;
+        setTimeout(() => {
+          const el = document.getElementById("catalog-grid");
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }, 400);
+      }
+    } else {
+      setHighlightedId(null);
     }
   }, [searchParams, servicesList]);
 
@@ -243,17 +266,20 @@ function ServicesContent() {
     }, `/${locale}/services`);
   }, [requireAuth, locale]);
 
+  const handleSelectCategory = useCallback((cat: CategoryId) => {
+    setActiveCategory(cat);
+    setSearchQuery("");
+    if (cat === "ip") setProxySubFilter("all");
+    if (cat === "smm") setSmmSubFilter("all");
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative">
       <Navbar
         onOpenCart={contextOpenCart}
         onOpenSearch={() => setIsSearchModalOpen(true)}
         activeCategory={activeCategory}
-        onSelectCategory={(cat) => {
-          setActiveCategory(cat);
-          if (cat === "ip") setProxySubFilter("all");
-          if (cat === "smm") setSmmSubFilter("all");
-        }}
+        onSelectCategory={handleSelectCategory}
         currentLocale={locale}
       />
 
@@ -276,11 +302,7 @@ function ServicesContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 w-full">
         <CategoryTabs
           activeCategory={activeCategory}
-          onSelectCategory={(cat) => {
-            setActiveCategory(cat);
-            if (cat === "ip") setProxySubFilter("all");
-            if (cat === "smm") setSmmSubFilter("all");
-          }}
+          onSelectCategory={handleSelectCategory}
           getCategoryCount={(catId) =>
             catId === "all" ? servicesList.length : servicesList.filter((s) => s.category === catId).length
           }

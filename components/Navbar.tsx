@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -39,7 +39,7 @@ interface NavbarProps {
   currentLocale?: Locale;
 }
 
-export default function Navbar({
+function Navbar({
   cartCount,
   onOpenCart,
   onOpenSearch,
@@ -130,9 +130,9 @@ export default function Navbar({
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled
-          ? "bg-slate-950/95 backdrop-blur-xl border-b border-cyan-500/20 py-0 shadow-xl shadow-cyan-950/20"
-          : "bg-slate-950/80 backdrop-blur-md py-0 border-b border-white/5"
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-200 transform-gpu ${scrolled
+          ? "bg-slate-950/95 sm:backdrop-blur-xl border-b border-cyan-500/20 py-0 shadow-xl shadow-cyan-950/20"
+          : "bg-slate-950/90 sm:backdrop-blur-md py-0 border-b border-white/5"
         }`}
     >
       <AnnouncementBanner />
@@ -365,11 +365,11 @@ export default function Navbar({
           {/* Backdrop Overlay */}
           <div
             onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
+            className="fixed inset-0 bg-slate-950/85 sm:backdrop-blur-md transition-opacity animate-in fade-in duration-200 transform-gpu"
           />
 
           {/* Slide-out Panel */}
-          <div className="relative w-[85vw] max-w-sm bg-slate-950 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl z-50 animate-in slide-in-from-right duration-300 overflow-y-auto">
+          <div className="relative w-[85vw] max-w-sm bg-slate-950 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl z-50 animate-in slide-in-from-right duration-200 overflow-y-auto transform-gpu will-change-transform">
             {/* Drawer Header */}
             <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 sticky top-0 z-10 backdrop-blur-md">
               <div className="flex items-center gap-2">
@@ -585,4 +585,6 @@ export default function Navbar({
     </header>
   );
 }
+
+export default memo(Navbar);
 

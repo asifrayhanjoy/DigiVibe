@@ -520,18 +520,50 @@ export default function UpdatesPage() {
                           </div>
 
                           {card.linkUrl && (
-                            <a
-                              href={card.linkUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="pt-2 text-xs font-bold text-cyan-400 hover:underline inline-flex items-center gap-1"
+                            <Link
+                              href={card.linkUrl.startsWith("http") ? card.linkUrl : `/${locale}${card.linkUrl}`}
+                              className="mt-3 px-4 py-2.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-cyan-500/20 inline-flex items-center justify-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                             >
-                              <span>View Link / Action</span>
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
+                              <span>Buy Now (অর্ডার করুন)</span>
+                              <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                            </Link>
                           )}
                         </div>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Promotional Offer Direct CTA Actions */}
+                  {item.category === "Promotional Offer" && (
+                    <div className="pt-4 flex flex-wrap items-center gap-3">
+                      {item.title.includes("ChatGPT") ? (
+                        <Link
+                          href={`/${locale}/services?query=ChatGPT`}
+                          className="px-6 py-3 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 hover:from-rose-400 hover:to-purple-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-pink-500/20 inline-flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95"
+                        >
+                          <Sparkles className="w-4 h-4 fill-white" />
+                          <span>Buy ChatGPT Plus Now (অর্ডার করুন)</span>
+                          <ArrowRight className="w-4 h-4 stroke-[3]" />
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/${locale}/services?query=Gemini`}
+                          className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-500/20 inline-flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95"
+                        >
+                          <Sparkles className="w-4 h-4 fill-slate-950" />
+                          <span>Order Gemini Pro Subscription Now (৳১৫০ / ৳২৫০)</span>
+                          <ArrowRight className="w-4 h-4 stroke-[3]" />
+                        </Link>
+                      )}
+
+                      <a
+                        href={`https://wa.me/8801700000000?text=Hi!%20I%20want%20to%20order%20"${encodeURIComponent(item.title)}"`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-5 py-3 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 font-bold text-xs sm:text-sm rounded-xl inline-flex items-center gap-2 transition-all"
+                      >
+                        <span>Contact Admin on WhatsApp</span>
+                      </a>
                     </div>
                   )}
 

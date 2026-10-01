@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Bell,
@@ -83,7 +83,7 @@ export default function AdminNotificationBell({ locale = "en" }: AdminNotificati
     }
   }, []);
 
-  const fetchAdminOrders = async (isManualRefresh: boolean = false) => {
+  const fetchAdminOrders = useCallback(async (isManualRefresh: boolean = false) => {
     if (isManualRefresh) setIsLoading(true);
     try {
       const data = await apiFetchAllOrders();
@@ -113,14 +113,30 @@ export default function AdminNotificationBell({ locale = "en" }: AdminNotificati
     } finally {
       if (isManualRefresh) setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchAdminOrders(true);
-    // Real-time polling every 5 seconds for instant notification updates
-    const interval = setInterval(() => fetchAdminOrders(false), 5000);
-    return () => clearInterval(interval);
-  }, []);
+
+    const handleVisibilityAndPoll = () => {
+      if (document.visibilityState === "visible") {
+        fetchAdminOrders(false);
+      }
+    };
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchAdminOrders(false);
+      }
+    }, 15000);
+
+    document.addEventListener("visibilitychange", handleVisibilityAndPoll);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityAndPoll);
+    };
+  }, [fetchAdminOrders]);
 
   const pendingOrders = orders.filter((o) => o.status === "Pending");
   const unreadPendingOrders = pendingOrders.filter((o) => !o.isReadByAdmin && !readOrderIds.includes(o.orderId));

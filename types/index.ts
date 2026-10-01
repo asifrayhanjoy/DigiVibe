@@ -27,6 +27,9 @@ export interface ServiceItem {
   popular?: boolean;
   subtitle?: string;
   description?: string;
+  logo?: string;
+  image?: string;
+  overview?: string;
   logoType?: string;
   usdPrice?: string;
   inStock?: boolean;

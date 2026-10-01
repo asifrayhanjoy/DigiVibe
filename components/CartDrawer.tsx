@@ -53,14 +53,14 @@ export default function CartDrawer({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] overflow-hidden flex justify-end">
+    <div className="fixed inset-0 z-[99999] overflow-hidden flex justify-end transform-gpu">
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
+        className="fixed inset-0 bg-slate-950/85 sm:backdrop-blur-md transition-opacity animate-in fade-in duration-200 transform-gpu"
       />
 
-      <div className="relative w-full max-w-md bg-slate-950 border-l border-slate-800 shadow-2xl h-full flex flex-col justify-between z-50 animate-in slide-in-from-right duration-300">
+      <div className="relative w-full max-w-md bg-slate-950 border-l border-slate-800 shadow-2xl h-full flex flex-col justify-between z-50 animate-in slide-in-from-right duration-200 transform-gpu will-change-transform">
           {/* Header */}
           <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
             <div className="flex items-center gap-3">

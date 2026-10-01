@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Bell,
@@ -80,7 +80,7 @@ export default function UserNotificationBell({ locale = "en" }: UserNotification
     }
   }, []);
 
-  const fetchUserOrders = async () => {
+  const fetchUserOrders = useCallback(async () => {
     if (!user?.email) return;
     try {
       const userOrds = await apiFetchUserOrders(user.email);
@@ -150,13 +150,30 @@ export default function UserNotificationBell({ locale = "en" }: UserNotification
     } catch (err) {
       console.error("Error fetching user notifications:", err);
     }
-  };
+  }, [user?.email]);
 
   useEffect(() => {
     fetchUserOrders();
-    const interval = setInterval(fetchUserOrders, 5000);
-    return () => clearInterval(interval);
-  }, [user?.email]);
+
+    const handleVisibilityAndPoll = () => {
+      if (document.visibilityState === "visible") {
+        fetchUserOrders();
+      }
+    };
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchUserOrders();
+      }
+    }, 15000);
+
+    document.addEventListener("visibilitychange", handleVisibilityAndPoll);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityAndPoll);
+    };
+  }, [user?.email, fetchUserOrders]);
 
   // Close dropdown on click outside
   useEffect(() => {

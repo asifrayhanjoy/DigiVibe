@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo } from "react";
+import { useState, memo, useMemo, useCallback } from "react";
 import {
   Shield,
   ShieldAlert,
@@ -34,6 +34,7 @@ import {
   Cpu,
   Pencil
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { ServiceItem } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
@@ -459,80 +460,99 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
   const [imgError, setImgError] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const calcOriginalPrice = service.originalPrice && service.originalPrice > service.price
-    ? service.originalPrice
-    : Math.round(service.price * 1.2) || service.price + 10;
+  const calcOriginalPrice = useMemo(() => {
+    return service.originalPrice && service.originalPrice > service.price
+      ? service.originalPrice
+      : Math.round(service.price * 1.2) || service.price + 10;
+  }, [service.originalPrice, service.price]);
 
-  const discountPercent = Math.max(0, Math.round(((calcOriginalPrice - service.price) / calcOriginalPrice) * 100));
+  const discountPercent = useMemo(() => {
+    return Math.max(0, Math.round(((calcOriginalPrice - service.price) / calcOriginalPrice) * 100));
+  }, [calcOriginalPrice, service.price]);
 
   const displayTitle = isBn ? service.title_bn || service.title : service.title;
   
   const isSubscription = service.category?.toLowerCase() === "subscriptions";
   const isSoldOut = service.stock === "Sold Out" || service.badge === "Sold Out ❌" || service.badge === "SOLD OUT" || (service as any).inStock === false;
 
-  const firstWord = service.title.toLowerCase().split(" ")[0].replace(/[^a-z]/g, "");
-  const rawLogo = (service as any).logo || (service as any).image || `/images/vpns/${firstWord}.svg`;
-  const fallbackLogo = `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(service.title)}`;
-  const displayLogo = logoError ? fallbackLogo : rawLogo;
+  const displayLogo = useMemo(() => {
+    if (logoError) return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(service.title)}`;
+    const firstWord = service.title.toLowerCase().split(" ")[0].replace(/[^a-z]/g, "");
+    return (service as any).logo || (service as any).image || `/images/vpns/${firstWord}.svg`;
+  }, [logoError, service.title, (service as any).logo, (service as any).image]);
 
-  // Features list guarantee (at least 3-4 professional features tailored per category)
-  const defaultCategoryFeatures: Record<string, string[]> = {
-    ip: [
-      "100% Clean High Anonymity Pool",
-      "Instant Code / Account Delivery",
-      "Socks5 & HTTP Protocol Support",
-      "Full Replacement Warranty Support"
-    ],
-    smm: [
-      "Instant Fast Order Start",
-      "Non-Drop High Speed Delivery",
-      "Safe for Account & Monetization",
-      "Refill Guarantee Support"
-    ],
-    vpn: [
-      "100% Full Fresh Dedicated Account",
-      "High Speed Zero-Logging Servers",
-      "Multi-Device Platform Support",
-      "Full Replacement Warranty"
-    ],
-    default: [
-      "100% Genuine Guaranteed Service",
-      "Instant Automated Order Processing",
-      "Full Replacement Warranty Support",
-      "Secure Instant Delivery Mechanism"
-    ]
-  };
+  const featureList = useMemo(() => {
+    const defaultCategoryFeatures: Record<string, string[]> = {
+      ip: [
+        "100% Clean High Anonymity Pool",
+        "Instant Code / Account Delivery",
+        "Socks5 & HTTP Protocol Support",
+        "Full Replacement Warranty Support"
+      ],
+      smm: [
+        "Instant Fast Order Start",
+        "Non-Drop High Speed Delivery",
+        "Safe for Account & Monetization",
+        "Refill Guarantee Support"
+      ],
+      vpn: [
+        "100% Full Fresh Dedicated Account",
+        "High Speed Zero-Logging Servers",
+        "Multi-Device Platform Support",
+        "Full Replacement Warranty"
+      ],
+      default: [
+        "100% Genuine Guaranteed Service",
+        "Instant Automated Order Processing",
+        "Full Replacement Warranty Support",
+        "Secure Instant Delivery Mechanism"
+      ]
+    };
 
-  const categoryKey = (service.category || "").toLowerCase();
-  const fallbackFeatures = defaultCategoryFeatures[categoryKey] || defaultCategoryFeatures.default;
-  
-  const featureList = (service.features && service.features.length >= 2 ? service.features : fallbackFeatures)
-    .filter((feat) => !/500 days|30 days|90d|180d|365d/i.test(feat) || /replacement|full fresh|guaranteed/i.test(feat));
+    const categoryKey = (service.category || "").toLowerCase();
+    const fallbackFeatures = defaultCategoryFeatures[categoryKey] || defaultCategoryFeatures.default;
+    
+    return (service.features && service.features.length >= 2 ? service.features : fallbackFeatures)
+      .filter((feat) => !/500 days|30 days|90d|180d|365d/i.test(feat) || /replacement|full fresh|guaranteed/i.test(feat));
+  }, [service.category, service.features]);
 
   const hasSvgLogo = isSubscription || !!service.logoType || service.category?.toLowerCase() === "ip" || service.category?.toLowerCase() === "smm";
 
-  // Clean Badge text without time/validity mention
-  const rawBadge = service.badge || service.subtitle || "";
-  const cleanBadge = /500 days|30 days|90d|180d|365d|validity/i.test(rawBadge)
-    ? "Full Replacement Support ✅"
-    : rawBadge;
+  const cleanBadge = useMemo(() => {
+    const rawBadge = service.badge || service.subtitle || "";
+    return /500 days|30 days|90d|180d|365d|validity/i.test(rawBadge)
+      ? "Full Replacement Support ✅"
+      : rawBadge;
+  }, [service.badge, service.subtitle]);
 
-  const cleanSubtitle = /500 days|30 days|90d|180d|365d|validity/i.test(service.subtitle || "")
-    ? "Full Replacement Support ✅"
-    : (service.subtitle || "100% Genuine Digital Service ✅");
+  const cleanSubtitle = useMemo(() => {
+    return /500 days|30 days|90d|180d|365d|validity/i.test(service.subtitle || "")
+      ? "Full Replacement Support ✅"
+      : (service.subtitle || "100% Genuine Digital Service ✅");
+  }, [service.subtitle]);
 
-  const handleAdd = () => {
+  const router = useRouter();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Navigate to product detail page
+    router.push(`/${locale}/services/${service.id}`);
+  };
+
+  const handleAdd = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     if (onAddToCart) onAddToCart(service);
-  };
+  }, [onAddToCart, service]);
 
-  const handleBuy = () => {
+  const handleBuy = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     if (onBuyNow) onBuyNow(service);
-  };
+  }, [onBuyNow, service]);
 
   return (
     <div
       id={`product-${service.id}`}
-      className={`group relative glass-panel glass-panel-hover rounded-[28px] p-5 flex flex-col justify-between overflow-hidden border transition-all duration-500 min-h-[520px] ${
+      onClick={handleCardClick}
+      className={`group relative glass-panel glass-panel-hover rounded-[28px] p-5 flex flex-col justify-between overflow-hidden border transition-all duration-300 transform-gpu min-h-[520px] cursor-pointer ${
         isHighlighted
           ? "border-cyan-400 ring-4 ring-cyan-400/40 shadow-2xl shadow-cyan-500/30 scale-[1.02] bg-slate-900/90"
           : "border-slate-800/80 hover:border-cyan-500/40"

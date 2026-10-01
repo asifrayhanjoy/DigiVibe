@@ -2,10 +2,115 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Update from "@/lib/models/Update";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const PROMO_OFFER_SEED = {
+  title: "মাত্র ১৫০ টাকায় ১৮ মাসের Gemini Pro / Google AI Pro Subscription! 🚀",
+  description: `🎉 স্পেশাল মেগা অফার! ১৮ মাসের Gemini Pro / Google AI Pro এর সাথে পাচ্ছেন ৫TB ক্লাউড স্টোরেজ এবং বোনাস হিসেবে সেরা সব প্রিমিয়াম সাবস্ক্রিপশন সম্পূর্ণ ফ্রিতে!
+
+📌 অর্ডারের নিয়ম ও প্রয়োজনীয় তথ্য:
+• Single Invite (১৫০ টাকা): নিজের জিমেইল ব্যবহার, একবার পেমেন্ট ১৮ মাস ব্যবহার, ব্যক্তিগত ব্যবহারের জন্য সেরা, এবং সাথে ৫TB Storage সুবিধা।
+• Personal+ Full Owner (২৫০ টাকা): সম্পূর্ণ ফ্যামিলি ম্যানেজার অ্যাকাউন্ট আপনার নিজের নিয়ন্ত্রণে, সর্বোচ্চ ৫ জনকে ইনভাইট করার সুবিধা, রিসেল বা টিম ব্যবহারের জন্য উপযুক্ত।
+
+🚀 অর্ডারের জন্য প্রয়োজনীয় তথ্য: Single Invite-এর জন্য শুধু জিমেইল এবং Full Owner-এর জন্য জিমেইল, নাম ও নাম্বার প্রয়োজন।
+⚡ ডেলিভারি সময়: ৫-২০ মিনিটের মধ্যে ইনস্ট্যান্ট সেটআপ ও ১৮ মাসের ফুল রিপ্লেসমেন্ট ওয়ারেন্টি!`,
+  category: "Promotional Offer",
+  badgeText: "🔥 SPECIAL DEAL - 18 MONTHS",
+  isPinned: true,
+  author: "Master Admin",
+  cards: [
+    {
+      title: "Single Invite Plan (১৫০ টাকা)",
+      content: "• নিজের জিমেইল (Gmail) এ ইনস্ট্যান্ট এক্টিভেশন\n• একবার পেমেন্টে ১৮ মাস নিরবচ্ছিন্ন ব্যবহারের সুবিধা\n• ব্যক্তিগত ব্যবহারের জন্য সেরা পছন্দ\n• সাথে পাবেন ৫TB Google Cloud Storage স্পেস",
+      badge: "১৫০ টাকা / ১৮ মাস",
+      linkUrl: "/en/services?cat=subscriptions"
+    },
+    {
+      title: "Personal+ Full Owner (২৫০ টাকা)",
+      content: "• সম্পূর্ণ ফ্যামিলি ম্যানেজার অ্যাকাউন্ট আপনার নিজের নিয়ন্ত্রণে\n• সর্বোচ্চ ৫ জনকে ইনভাইট বা শেয়ার করার পূর্ণ সুবিধা\n• রিসেল, পরিবার বা টিম ব্যবহারের জন্য সবচেয়ে উপযুক্ত\n• জিমেইল, নাম ও নাম্বার দিয়ে ইন্সট্যান্ট সেটআপ",
+      badge: "২৫০ টাকা / ১৮ মাস",
+      linkUrl: "/en/services?cat=subscriptions"
+    },
+    {
+      title: "Included Pro Tools & AI Models",
+      content: "• Gemini Pro AI Deep Reasoning Model\n• Veo 3 Cinematic AI Video Generator\n• Flow & Whisk Creative AI Tools\n• Google Search & NotebookLM Integration\n• Android Studio & Google AI Studio Access",
+      badge: "AI Suite",
+      linkUrl: ""
+    },
+    {
+      title: "🎁 FREE Bonus Subscriptions (১৮ মাস)",
+      content: "• CapCut+ Premium (১৮ মাস বিনামূল্যে)\n• YouTube Premium for Android (১৮ মাস ফ্রি)\n• Canva Pro Premium (ক্যানবা প্রো ১৮ মাস ফ্রি)\n• ১০০% গ্যারান্টিযুক্ত অফিসিয়াল গিফট বোনাস",
+      badge: "🎁 FREE BONUS",
+      linkUrl: ""
+    },
+    {
+      title: "Official Guarantee & Rapid Delivery",
+      content: "• ১০০% অফিসিয়াল গুগল লাইসেন্সড এক্টিভেশন\n• অর্ডার করার ৫ থেকে ২০ মিনিটের ফাস্ট ডেলিভারি\n• ১৮ মাসের ফুল রিপ্লেসমেন্ট ওয়ারেন্টি সুবিধা\n• ২৪/৭ অ্যাডমিন হোয়াটসঅ্যাপ সাপোর্ট টিম",
+      badge: "100% Guaranteed",
+      linkUrl: "https://wa.me/8801700000000"
+    }
+  ]
+};
+
+const CHATGPT_PLUS_OFFER_SEED = {
+  title: "🌸 ChatGPT Plus সাবস্ক্রিপশন অফার! 🌸",
+  description: `⚡ ChatGPT Plus (GPT-4o, Sora, DALL-E 3) প্রিমিয়াম সাবস্ক্রিপশন অফার! 
+
+অফার প্যাকেজসমূহ:
+• Package 1: Shared Account (আমরা Gmail ও পাসওয়ার্ড প্রদান করব)
+• Package 2: Personal Account (আপনার নিজস্ব ব্যক্তিগত জিমেইলে নেওয়া হবে)
+
+নিচের তালিকা থেকে আপনার পছন্দের প্যাকেজ নির্বাচন করুন এবং "অর্ডার করুন (Buy Now)" বাটনে ক্লিক করুন!`,
+  category: "Promotional Offer",
+  badgeText: "🌸 CHATGPT PLUS OFFER",
+  isPinned: true,
+  author: "Master Admin",
+  cards: [
+    {
+      title: "Package 1: Shared Account (আমরা Gmail ও পাসওয়ার্ড দিব)",
+      content: "• ১ মাসের জন্য: ৩০০ টাকা\n• ১ বছরের জন্য: ৪৫০ টাকা\n• ৩ বছরের জন্য: ৬০০ টাকা\n• ইনস্ট্যান্ট লগইন অ্যাকাউন্ট ও রিপ্লেসমেন্ট ওয়ারেন্টি",
+      badge: "৩০০ টাকা থেকে শুরু",
+      linkUrl: "/services?query=ChatGPT"
+    },
+    {
+      title: "Package 2: Personal Account (আপনার নিজের জিমেইলে নেওয়া হবে)",
+      content: "• ১ মাসের জন্য: ৪০০ টাকা\n• ১ বছরের জন্য: ৬০০ টাকা\n• ৩ বছরের জন্য: ১১০০ টাকা\n• ১০০% প্রাইভেট ও পার্সোনাল জিমেইল এক্টিভেশন",
+      badge: "৪০০ টাকা থেকে শুরু",
+      linkUrl: "/services?query=ChatGPT"
+    },
+    {
+      title: "Included Features & GPT-4o Power",
+      content: "• GPT-4o & GPT-4 Turbo Model Access\n• DALL-E 3 AI Image Generation\n• Sora Video Generation & Custom GPTs\n• Fast Response Time & High Priority Access",
+      badge: "GPT-4o Full Access",
+      linkUrl: ""
+    }
+  ]
+};
+
 // 1. GET /api/updates - Fetch all daily updates sorted by pinned & createdAt
 export async function GET() {
   try {
     await connectDB();
+
+    // Check if Gemini Promo offer exists, auto-upsert if missing
+    const existingPromo = await (Update as any).findOne({
+      title: "মাত্র ১৫০ টাকায় ১৮ মাসের Gemini Pro / Google AI Pro Subscription! 🚀"
+    });
+    if (!existingPromo) {
+      console.log("Seeding Gemini Pro 18 Months Promotional Offer to MongoDB Atlas...");
+      await (Update as any).create(PROMO_OFFER_SEED);
+    }
+
+    // Check if ChatGPT Plus offer exists, auto-upsert if missing
+    const existingChatGPT = await (Update as any).findOne({
+      title: "🌸 ChatGPT Plus সাবস্ক্রিপশন অফার! 🌸"
+    });
+    if (!existingChatGPT) {
+      console.log("Seeding ChatGPT Plus Subscription Offer to MongoDB Atlas...");
+      await (Update as any).create(CHATGPT_PLUS_OFFER_SEED);
+    }
+
     const updates = await (Update as any).find({}).sort({ isPinned: -1, createdAt: -1 });
 
     return NextResponse.json({
