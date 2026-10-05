@@ -98,15 +98,15 @@ export default function SupportPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              {/* Admin 1 */}
+              {/* Admin 1: FARID */}
               <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between space-y-3">
                 <div>
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Admin</span>
-                  <h4 className="text-sm font-black text-white truncate">MD ASIF RAYHAN JOY</h4>
-                  <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">01302271472</p>
+                  <h4 className="text-sm font-black text-white truncate">FARID</h4>
+                  <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">01990800188</p>
                 </div>
                 <a
-                  href="https://wa.me/8801302271472"
+                  href="https://wa.me/8801990800188"
                   target="_blank"
                   rel="noreferrer"
                   className="w-full py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
@@ -116,15 +116,15 @@ export default function SupportPage() {
                 </a>
               </div>
 
-              {/* Admin 2 */}
+              {/* Admin 2: MD ASIF RAYHAN JOY */}
               <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between space-y-3">
                 <div>
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Admin</span>
-                  <h4 className="text-sm font-black text-white truncate">FARID</h4>
-                  <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">01990800188</p>
+                  <h4 className="text-sm font-black text-white truncate">MD ASIF RAYHAN JOY</h4>
+                  <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">01302271472</p>
                 </div>
                 <a
-                  href="https://wa.me/8801990800188"
+                  href="https://wa.me/8801302271472"
                   target="_blank"
                   rel="noreferrer"
                   className="w-full py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
@@ -231,15 +231,6 @@ export default function SupportPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             <a
-              href="https://wa.me/8801302271472"
-              target="_blank"
-              rel="noreferrer"
-              className="px-5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-2"
-            >
-              <PhoneCall className="w-4 h-4" />
-              <span>WhatsApp Admin Joy (01302271472)</span>
-            </a>
-            <a
               href="https://wa.me/8801990800188"
               target="_blank"
               rel="noreferrer"
@@ -247,6 +238,15 @@ export default function SupportPage() {
             >
               <PhoneCall className="w-4 h-4" />
               <span>WhatsApp Admin Farid (01990800188)</span>
+            </a>
+            <a
+              href="https://wa.me/8801302271472"
+              target="_blank"
+              rel="noreferrer"
+              className="px-5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-2"
+            >
+              <PhoneCall className="w-4 h-4" />
+              <span>WhatsApp Admin Joy (01302271472)</span>
             </a>
           </div>
         </div>

@@ -165,7 +165,7 @@ export default function UserNotificationBell({ locale = "en" }: UserNotification
       if (document.visibilityState === "visible") {
         fetchUserOrders();
       }
-    }, 15000);
+    }, 30000);
 
     document.addEventListener("visibilitychange", handleVisibilityAndPoll);
 

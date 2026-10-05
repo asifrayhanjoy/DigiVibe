@@ -587,6 +587,8 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
               <img
                 src={displayLogo}
                 alt={service.title}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                 onError={() => {
                   if (!logoError) setLogoError(true);

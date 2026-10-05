@@ -15,9 +15,11 @@ import {
   CheckCheck,
   Check
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { apiFetchAllOrders, apiUpdateOrderStatus, apiMarkNotificationRead, apiMarkAllNotificationsRead } from "@/lib/api/services";
 import { getAdminWhatsAppLink, ADMIN_WHATSAPP_NUMBERS } from "@/lib/whatsappNotification";
-import OrderApprovalModal from "@/components/OrderApprovalModal";
+
+const OrderApprovalModal = dynamic(() => import("@/components/OrderApprovalModal"), { ssr: false });
 
 interface AdminNotificationBellProps {
   locale?: string;
@@ -128,7 +130,7 @@ export default function AdminNotificationBell({ locale = "en" }: AdminNotificati
       if (document.visibilityState === "visible") {
         fetchAdminOrders(false);
       }
-    }, 15000);
+    }, 30000);
 
     document.addEventListener("visibilitychange", handleVisibilityAndPoll);
 

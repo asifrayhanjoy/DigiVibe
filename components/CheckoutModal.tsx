@@ -21,8 +21,7 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
     id: "bkash",
     name: "bKash (বিকাশ)",
     type: "Send Money",
-    number: "01990800188",
-    optionalNumber: "01302271472",
+    number: "01516602381",
     accountType: "Personal",
     color: "from-pink-500 to-rose-600",
     badge: "Send Money Only 🇧🇩",
@@ -33,19 +32,8 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
     name: "Nagad (নগদ)",
     type: "Send Money",
     number: "01516602381",
-    optionalNumber: "01302271472",
     accountType: "Personal",
     color: "from-orange-500 to-amber-600",
-    badge: "Send Money Only ⚡",
-    status: "active"
-  },
-  {
-    id: "cellfin",
-    name: "CellFin (সেলফিন)",
-    type: "Send Money",
-    number: "01302271472",
-    accountType: "IBBL CellFin",
-    color: "from-emerald-500 to-teal-600",
     badge: "Send Money Only ⚡",
     status: "active"
   },
@@ -53,11 +41,42 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
     id: "rocket",
     name: "Rocket (রকেট)",
     type: "Send Money",
-    number: "01302271472",
+    number: "01516602381",
     accountType: "Personal",
     color: "from-purple-600 to-indigo-600",
     badge: "Send Money Only ⚡",
     status: "active"
+  },
+  {
+    id: "cellfin",
+    name: "CellFin (সেলফিন)",
+    type: "Send Money",
+    number: "01516602381",
+    accountType: "IBBL CellFin",
+    color: "from-emerald-500 to-teal-600",
+    badge: "Send Money Only ⚡",
+    status: "active"
+  },
+  {
+    id: "upay",
+    name: "Upay (উপায়)",
+    type: "Send Money",
+    number: "01516602381",
+    accountType: "Personal",
+    color: "from-blue-500 to-cyan-600",
+    badge: "Send Money Only ⚡",
+    status: "active"
+  },
+  {
+    id: "binance",
+    name: "Binance Pay (বাইনান্স)",
+    type: "Binance Pay User ID",
+    number: "993800002",
+    accountType: "Binance Pay User ID",
+    color: "from-yellow-400 to-amber-600",
+    badge: "Pay ID: 993800002 ⚡",
+    status: "active",
+    disabled: false
   },
   {
     id: "bank",
@@ -66,17 +85,6 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
     number: "Under Processing",
     accountType: "Bank Account",
     color: "from-amber-500 to-yellow-600",
-    badge: "Soon (প্রসেসিং)",
-    status: "processing",
-    disabled: true
-  },
-  {
-    id: "binance",
-    name: "Binance Pay (বাইনান্স)",
-    type: "Binance Pay ID / USDT",
-    number: "Under Processing",
-    accountType: "Crypto USDT",
-    color: "from-yellow-400 to-amber-600",
     badge: "Soon (প্রসেসিং)",
     status: "processing",
     disabled: true
@@ -368,7 +376,7 @@ export default function CheckoutModal({
                         ) : (
                           <>
                             <Copy className="w-3.5 h-3.5" />
-                            <span>Copy Main</span>
+                            <span>{currentPaymentInfo.id === "binance" ? "Copy Pay ID" : "Copy Number"}</span>
                           </>
                         )}
                       </button>
@@ -411,9 +419,15 @@ export default function CheckoutModal({
                     </div>
                   )}
 
-                  <p className="text-[10px] sm:text-[11px] text-slate-300 leading-relaxed bg-amber-500/10 border border-amber-500/20 p-2.5 sm:p-3 rounded-xl break-words">
-                    💡 <strong>নির্দেশনা:</strong> ওপরের নম্বরে ঠিক <strong className="text-white">৳{totalAmount}</strong> টাকা <strong className="text-cyan-400 font-extrabold">Send Money (সেন্ড মানি)</strong> করার পর নিচের বক্সে পেমেন্ট Transaction ID (TrxID) দিয়ে অর্ডার কনফার্ম করুন। <span className="text-rose-400 font-bold">(ক্যাশআউট গ্রহণযোগ্য নয় ❌)</span>
-                  </p>
+                  {currentPaymentInfo.id === "binance" ? (
+                    <p className="text-[10px] sm:text-[11px] text-slate-300 leading-relaxed bg-amber-500/10 border border-amber-500/20 p-2.5 sm:p-3 rounded-xl break-words">
+                      💡 <strong>নির্দেশনা:</strong> Binance অ্যাপ থেকে ওপরের <strong className="text-cyan-400 font-black">User ID: 993800002</strong> তে ঠিক <strong className="text-white">৳{totalAmount}</strong> (সমপরিমাণ USDT) সেন্ড করে পেমেন্ট এর Transaction ID (TrxID) বা Order ID নিচের ঘরে বসিয়ে কনফার্ম করুন। ⚡
+                    </p>
+                  ) : (
+                    <p className="text-[10px] sm:text-[11px] text-slate-300 leading-relaxed bg-amber-500/10 border border-amber-500/20 p-2.5 sm:p-3 rounded-xl break-words">
+                      💡 <strong>নির্দেশনা:</strong> ওপরের নম্বরে ঠিক <strong className="text-white">৳{totalAmount}</strong> টাকা <strong className="text-cyan-400 font-extrabold">Send Money (সেন্ড মানি)</strong> করার পর নিচের বক্সে পেমেন্ট Transaction ID (TrxID) দিয়ে অর্ডার কনফার্ম করুন। <span className="text-rose-400 font-bold">(ক্যাশআউট গ্রহণযোগ্য নয় ❌)</span>
+                    </p>
+                  )}
                 </div>
               )}
 

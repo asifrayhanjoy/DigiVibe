@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import TrustBanner from "@/components/TrustBanner";
@@ -10,7 +11,8 @@ import PromotionalBanner from "@/components/PromotionalBanner";
 import Testimonials from "@/components/Testimonials";
 import FaqSection from "@/components/FaqSection";
 import Footer from "@/components/Footer";
-import SearchModal from "@/components/SearchModal";
+
+const SearchModal = dynamic(() => import("@/components/SearchModal"), { ssr: false });
 import {
   ShieldCheck,
   Smartphone,

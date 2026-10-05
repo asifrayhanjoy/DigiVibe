@@ -1111,30 +1111,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-3 pt-2">
-                  {/* Admin 1 */}
-                  <a
-                    href="https://wa.me/8801302271472"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 flex items-center justify-between group transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xs">
-                        👑
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Admin</div>
-                        <div className="text-xs font-black text-white group-hover:text-emerald-400 transition-colors">MD ASIF RAYHAN JOY</div>
-                        <div className="text-[11px] font-mono text-slate-400">01302271472</div>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs flex items-center gap-1 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all">
-                      <span>Chat</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </span>
-                  </a>
-
-                  {/* Admin 2 */}
+                  {/* Admin 1: FARID */}
                   <a
                     href="https://wa.me/8801990800188"
                     target="_blank"
@@ -1149,6 +1126,29 @@ export default function ProfilePage() {
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Admin</div>
                         <div className="text-xs font-black text-white group-hover:text-emerald-400 transition-colors">FARID</div>
                         <div className="text-[11px] font-mono text-slate-400">01990800188</div>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs flex items-center gap-1 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all">
+                      <span>Chat</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </span>
+                  </a>
+
+                  {/* Admin 2: MD ASIF RAYHAN JOY */}
+                  <a
+                    href="https://wa.me/8801302271472"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 flex items-center justify-between group transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                        👑
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Admin</div>
+                        <div className="text-xs font-black text-white group-hover:text-emerald-400 transition-colors">MD ASIF RAYHAN JOY</div>
+                        <div className="text-[11px] font-mono text-slate-400">01302271472</div>
                       </div>
                     </div>
                     <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs flex items-center gap-1 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all">

@@ -4,7 +4,7 @@ export const existingVpnProducts = [
     title: "Nord VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 155,
+    price: 156,
     duration: "30 Days",
     rating: 4.9,
     tag: "Popular",
@@ -19,7 +19,7 @@ export const existingVpnProducts = [
     title: "Nord VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     rating: 4.8,
     logo: "/images/vpns/nordvpn.svg",
@@ -32,7 +32,7 @@ export const existingVpnProducts = [
     title: "IP Vanish VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     logo: "/images/vpns/ipvanish.svg",
     image: "/images/vpns/ipvanish.svg",
@@ -44,7 +44,7 @@ export const existingVpnProducts = [
     title: "Express VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 105,
+    price: 106,
     duration: "30 Days",
     logo: "/images/vpns/expressvpn.svg",
     image: "/images/vpns/expressvpn.svg",
@@ -56,7 +56,7 @@ export const existingVpnProducts = [
     title: "Express VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 25,
+    price: 26,
     duration: "3 Days",
     logo: "/images/vpns/expressvpn.svg",
     image: "/images/vpns/expressvpn.svg",
@@ -68,7 +68,7 @@ export const existingVpnProducts = [
     title: "Proton VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 50,
+    price: 51,
     duration: "14 Days",
     logo: "/images/vpns/protonvpn.svg",
     image: "/images/vpns/protonvpn.svg",
@@ -80,7 +80,7 @@ export const existingVpnProducts = [
     title: "Surfshark VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     logo: "/images/vpns/surfshark.svg",
     image: "/images/vpns/surfshark.svg",
@@ -92,7 +92,7 @@ export const existingVpnProducts = [
     title: "Avast Secureline VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     logo: "/images/vpns/avast.svg",
     image: "/images/vpns/avast.svg",
@@ -104,7 +104,7 @@ export const existingVpnProducts = [
     title: "Avast Secureline VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 70,
+    price: 71,
     duration: "30 Days",
     logo: "/images/vpns/avast.svg",
     image: "/images/vpns/avast.svg",
@@ -116,7 +116,7 @@ export const existingVpnProducts = [
     title: "Cyberghost VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 25,
+    price: 26,
     duration: "3 Days",
     logo: "/images/vpns/cyberghost.svg",
     image: "/images/vpns/cyberghost.svg",
@@ -128,7 +128,7 @@ export const existingVpnProducts = [
     title: "HMA VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     logo: "/images/vpns/hma.svg",
     image: "/images/vpns/hma.svg",
@@ -140,7 +140,7 @@ export const existingVpnProducts = [
     title: "Potato VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     logo: "/images/vpns/potato.svg",
     image: "/images/vpns/potato.svg",
@@ -152,7 +152,7 @@ export const existingVpnProducts = [
     title: "PIA VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     logo: "/images/vpns/pia.svg",
     image: "/images/vpns/pia.svg",
@@ -164,7 +164,7 @@ export const existingVpnProducts = [
     title: "Bitdefender VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     logo: "/images/vpns/bitdefender.svg",
     image: "/images/vpns/bitdefender.svg",
@@ -176,7 +176,7 @@ export const existingVpnProducts = [
     title: "Bitdefender VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 70,
+    price: 71,
     duration: "30 Days",
     logo: "/images/vpns/bitdefender.svg",
     image: "/images/vpns/bitdefender.svg",
@@ -188,7 +188,7 @@ export const existingVpnProducts = [
     title: "AVG VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     logo: "/images/vpns/avg.svg",
     image: "/images/vpns/avg.svg",
@@ -200,7 +200,7 @@ export const existingVpnProducts = [
     title: "Vypr VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 25,
+    price: 26,
     duration: "3 Days",
     logo: "/images/vpns/vypr.svg",
     image: "/images/vpns/vypr.svg",
@@ -212,7 +212,7 @@ export const existingVpnProducts = [
     title: "X VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30,
+    price: 31,
     duration: "7 Days",
     logo: "/images/vpns/xvpn.svg",
     image: "/images/vpns/xvpn.svg",
@@ -227,7 +227,7 @@ export const additionalVpnProducts = [
     title: "Comet VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 28, // Original 23 + 10
+    price: 29, // Original 23 + 10
     inStock: false,
     stock: "Stock Out",
     badge: "SOLD OUT",
@@ -240,7 +240,7 @@ export const additionalVpnProducts = [
     title: "VPN Proxy Master",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -252,7 +252,7 @@ export const additionalVpnProducts = [
     title: "HMA VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 70, // Original 65 + 10
+    price: 71, // Original 65 + 10
     inStock: true,
     stock: "In Stock",
     duration: "30 Days",
@@ -264,7 +264,7 @@ export const additionalVpnProducts = [
     title: "Pure VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -276,7 +276,7 @@ export const additionalVpnProducts = [
     title: "Hotspot Shield VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -288,7 +288,7 @@ export const additionalVpnProducts = [
     title: "Goose VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -300,7 +300,7 @@ export const additionalVpnProducts = [
     title: "Adguard VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -312,7 +312,7 @@ export const additionalVpnProducts = [
     title: "Norton VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -324,7 +324,7 @@ export const additionalVpnProducts = [
     title: "Turbo VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -336,7 +336,7 @@ export const additionalVpnProducts = [
     title: "PIA VPN (Only 1 Device)",
     category: "VPN",
     subtitle: "Only 1 Device ✅",
-    price: 170, // Original 165 + 10
+    price: 171, // Original 165 + 10
     inStock: true,
     stock: "In Stock",
     duration: "30 Days",
@@ -348,7 +348,7 @@ export const additionalVpnProducts = [
     title: "Bebra VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 25, // Original 20 + 10
+    price: 26, // Original 20 + 10
     inStock: true,
     stock: "In Stock",
     duration: "3 Days",
@@ -360,7 +360,7 @@ export const additionalVpnProducts = [
     title: "Octohide VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -372,7 +372,7 @@ export const additionalVpnProducts = [
     title: "Panda VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 25, // Original 20 + 10
+    price: 26, // Original 20 + 10
     inStock: true,
     stock: "In Stock",
     duration: "3 Days",
@@ -384,7 +384,7 @@ export const additionalVpnProducts = [
     title: "Quark VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -396,7 +396,7 @@ export const additionalVpnProducts = [
     title: "Octohide VPN (Pro)",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 50, // Original 45 + 10
+    price: 51, // Original 45 + 10
     inStock: true,
     stock: "In Stock",
     duration: "14 Days",
@@ -408,7 +408,7 @@ export const additionalVpnProducts = [
     title: "Sky VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -420,7 +420,7 @@ export const additionalVpnProducts = [
     title: "G-Data VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -432,7 +432,7 @@ export const additionalVpnProducts = [
     title: "VPN 360",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",
@@ -444,7 +444,7 @@ export const additionalVpnProducts = [
     title: "Mysterium VPN",
     category: "VPN",
     subtitle: "Fast & Secure 🔥",
-    price: 1405, // Original 1400 + 10
+    price: 1406, // Original 1400 + 10
     inStock: false,
     stock: "Stock Out",
     badge: "SOLD OUT",
@@ -457,7 +457,7 @@ export const additionalVpnProducts = [
     title: "Ultra VPN",
     category: "VPN",
     subtitle: "100% Full Fresh VPN ✅",
-    price: 30, // Original 25 + 10
+    price: 31, // Original 25 + 10
     inStock: true,
     stock: "In Stock",
     duration: "7 Days",

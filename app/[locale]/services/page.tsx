@@ -3,14 +3,16 @@
 import { useState, useMemo, useCallback, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import ServiceCard from "@/components/ServiceCard";
 import CategoryTabs from "@/components/CategoryTabs";
-import CheckoutModal from "@/components/CheckoutModal";
-import SearchModal from "@/components/SearchModal";
-import AdminProductModal from "@/components/AdminProductModal";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
+
+const CheckoutModal = dynamic(() => import("@/components/CheckoutModal"), { ssr: false });
+const SearchModal = dynamic(() => import("@/components/SearchModal"), { ssr: false });
+const AdminProductModal = dynamic(() => import("@/components/AdminProductModal"), { ssr: false });
 import { SERVICES } from "@/data/services";
 import { CategoryId, CartItem, ServiceItem } from "@/types";
 import { SlidersHorizontal, ArrowUpDown, Sparkles, Info, Server, Headphones, Plus } from "lucide-react";

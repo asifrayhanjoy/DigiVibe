@@ -21,14 +21,16 @@ import {
   UserPlus,
   LogOut
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import CartDrawer from "@/components/CartDrawer";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import AdminNotificationBell from "@/components/AdminNotificationBell";
 import UserNotificationBell from "@/components/UserNotificationBell";
 import { Locale } from "@/types";
+
+const CartDrawer = dynamic(() => import("@/components/CartDrawer"), { ssr: false });
 
 interface NavbarProps {
   cartCount?: number;
