@@ -58,16 +58,6 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
     status: "active"
   },
   {
-    id: "upay",
-    name: "Upay (উপায়)",
-    type: "Send Money",
-    number: "01516602381",
-    accountType: "Personal",
-    color: "from-blue-500 to-cyan-600",
-    badge: "Send Money Only ⚡",
-    status: "active"
-  },
-  {
     id: "binance",
     name: "Binance Pay (বাইনান্স)",
     type: "Binance Pay User ID",
