@@ -350,7 +350,7 @@ export async function apiLogin(email: string, pass: string): Promise<{ success: 
 /**
  * Step 1 Signup - Triggers Real Email OTP
  */
-export async function apiSignup(name: string, email: string, pass: string, phone: string): Promise<{ success: boolean; requiresOtp: boolean; message: string; demoOtp?: string }> {
+export async function apiSignup(name: string, email: string, pass: string, phone: string): Promise<{ success: boolean; requiresOtp: boolean; message: string; demoOtp?: string; user?: User; token?: string }> {
   try {
     const res = await fetch("/api/auth/register", {
       method: "POST",

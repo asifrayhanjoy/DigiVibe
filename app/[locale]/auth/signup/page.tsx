@@ -53,15 +53,25 @@ export default function SignupPage() {
       const res = await apiSignup(name, email, password, phone);
       setIsSubmitting(false);
 
-      if (res.success && res.requiresOtp) {
-        setStep("otp");
-        setToast({ title: "Verification OTP Sent 🔑", message: res.message });
+      if (res.success) {
+        if (res.requiresOtp) {
+          setStep("otp");
+          setToast({ title: "Verification OTP Sent 🔑", message: res.message });
+        } else {
+          if (res.user && res.token) {
+            login(res.user, res.token);
+          }
+          setToast({ title: "Registration Successful! 🎉", message: res.message || "Account created successfully." });
+          setTimeout(() => {
+            window.location.href = `/${locale}/services`;
+          }, 1000);
+        }
       } else {
-        setToast({ title: "Registration Failed", message: res.message || "Could not send OTP email." });
+        setToast({ title: "Registration Failed", message: res.message || "Could not complete registration." });
       }
     } catch (err) {
       setIsSubmitting(false);
-      setToast({ title: "Registration Error", message: "Could not initiate registration." });
+      setToast({ title: "Registration Error", message: "Could not initiate registration. Please check your network connection." });
     }
   };
 

@@ -100,14 +100,11 @@ app.post('/api/auth/verify-otp', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid or expired OTP code. Please request a new OTP.' });
     }
 
-    // Delete used OTP from MongoDB Atlas
-    await Otp.deleteOne({ email: cleanEmail });
-
-    // Retrieve or Create User document in MongoDB Atlas
+    // Retrieve or Create/Update User document in MongoDB Atlas
+    const userData = otpRecord?.userData || {};
     let dbUser = await User.findOne({ email: cleanEmail });
 
     if (!dbUser) {
-      const userData = otpRecord?.userData || {};
       dbUser = await User.create({
         name: userData.name || cleanEmail.split('@')[0],
         email: cleanEmail,
@@ -121,8 +118,19 @@ app.post('/api/auth/verify-otp', async (req, res) => {
       });
       console.log(`✅ [MONGODB ATLAS] Saved NEW User to Database: ${cleanEmail}`);
     } else {
-      console.log(`✅ [MONGODB ATLAS] Authenticated User from Database: ${cleanEmail}`);
+      if (userData.name) dbUser.name = userData.name;
+      if (userData.password) dbUser.password = userData.password;
+      if (userData.phone) {
+        dbUser.phone = userData.phone;
+        if (!dbUser.whatsapp) dbUser.whatsapp = userData.phone;
+      }
+      dbUser.isVerified = true;
+      await dbUser.save();
+      console.log(`✅ [MONGODB ATLAS] Updated & Verified User in Database: ${cleanEmail}`);
     }
+
+    // Delete used OTP from MongoDB Atlas AFTER user save succeeds
+    await Otp.deleteOne({ email: cleanEmail });
 
     return res.status(200).json({
       success: true,
@@ -132,12 +140,12 @@ app.post('/api/auth/verify-otp', async (req, res) => {
         id: dbUser._id.toString(),
         name: dbUser.name,
         email: dbUser.email,
-        phone: dbUser.phone,
-        whatsapp: dbUser.whatsapp,
-        address: dbUser.address,
-        avatar: dbUser.avatar,
-        walletBalance: dbUser.walletBalance,
-        role: dbUser.role,
+        phone: dbUser.phone || '',
+        whatsapp: dbUser.whatsapp || '',
+        address: dbUser.address || 'Dhaka, Bangladesh',
+        avatar: dbUser.avatar || '',
+        walletBalance: dbUser.walletBalance || 0,
+        role: dbUser.role || 'customer',
         createdAt: dbUser.createdAt
       }
     });
@@ -150,27 +158,44 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 // 3. POST /api/auth/register (Sends Real Email OTP)
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone } = req.body || {};
 
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
 
-    const cleanEmail = email.toLowerCase();
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanName = name ? name.trim() : cleanEmail.split('@')[0];
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     const userData = {
-      name: name || cleanEmail.split('@')[0],
+      name: cleanName,
       email: cleanEmail,
       password: password,
-      phone: phone || ''
+      phone: phone ? phone.trim() : ''
     };
 
     let userDoc = await User.findOne({ email: cleanEmail });
     if (!userDoc) {
-      userDoc = await User.create(userData);
-      console.log(`✅ [MONGODB ATLAS] Registered & Saved User to Database: ${cleanEmail}`);
+      userDoc = await User.create({
+        ...userData,
+        whatsapp: userData.phone,
+        address: 'Dhaka, Bangladesh',
+        walletBalance: 0,
+        role: 'customer',
+        isVerified: false
+      });
+      console.log(`✅ [MONGODB ATLAS] Registered & Saved NEW User to Database: ${cleanEmail}`);
+    } else {
+      userDoc.name = userData.name;
+      userDoc.password = userData.password;
+      if (userData.phone) {
+        userDoc.phone = userData.phone;
+        if (!userDoc.whatsapp) userDoc.whatsapp = userData.phone;
+      }
+      await userDoc.save();
+      console.log(`✅ [MONGODB ATLAS] Updated User Registration Data in Database: ${cleanEmail}`);
     }
 
     // Save OTP to MongoDB Atlas
@@ -199,7 +224,7 @@ app.post('/api/auth/register', async (req, res) => {
         id: userDoc._id.toString(),
         name: userDoc.name,
         email: userDoc.email,
-        phone: userDoc.phone
+        phone: userDoc.phone || ''
       }
     });
   } catch (err) {
