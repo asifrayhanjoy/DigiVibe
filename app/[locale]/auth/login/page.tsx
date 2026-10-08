@@ -1,41 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
-import { Zap, Mail, Lock, LogIn, KeyRound, CheckCircle2, ArrowRight, RefreshCw, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Zap, Mail, Lock, LogIn, KeyRound, CheckCircle2, RefreshCw, ShieldCheck, ArrowLeft } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
-import { apiLogin, apiVerifyOtp, apiSendOtp, apiForgotPassword, apiResetPassword } from "@/lib/api/services";
+import { apiLogin, apiForgotPassword, apiResetPassword } from "@/lib/api/services";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
 
-  // Step state: "credentials" | "otp" | "forgot" | "reset"
-  const [step, setStep] = useState<"credentials" | "otp" | "forgot" | "reset">("credentials");
-  const [otpCode, setOtpCode] = useState("");
+  // Step state: "credentials" | "forgot" | "reset"
+  const [step, setStep] = useState<"credentials" | "forgot" | "reset">("credentials");
   const [resetOtp, setResetOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [resendTimer, setResendTimer] = useState(60);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const { locale, dict } = useLanguage();
   const { login } = useAuth();
-
-  // OTP Countdown timer
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (step === "otp" && resendTimer > 0) {
-      timer = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
-    }
-    return () => clearInterval(timer);
-  }, [step, resendTimer]);
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,63 +42,16 @@ export default function LoginPage() {
         if (res.user && res.token) {
           login(res.user, res.token);
         }
-        if (res.requiresOtp) {
-          setStep("otp");
-          setToast({ title: "Email OTP Sent 🔑", message: res.message });
-        } else {
-          setToast({ title: "Login Successful 🎉", message: res.message });
-          setTimeout(() => {
-            window.location.href = `/${locale}/services`;
-          }, 800);
-        }
+        setToast({ title: "Login Successful 🎉", message: res.message || "Welcome back!" });
+        setTimeout(() => {
+          window.location.href = `/${locale}/services`;
+        }, 800);
       } else {
         setToast({ title: "Login Failed", message: res.message || "Invalid credentials." });
       }
     } catch (err) {
       setIsSubmitting(false);
       setToast({ title: "Login Failed", message: "Invalid credentials or authentication server offline." });
-    }
-  };
-
-  const handleOtpVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otpCode || otpCode.length < 6) {
-      setToast({ title: "Invalid Code", message: "Please enter a valid 6-digit OTP." });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await apiVerifyOtp(email, otpCode);
-      setIsSubmitting(false);
-
-      if (res.success) {
-        if (res.user && res.token) {
-          login(res.user, res.token);
-        }
-        setToast({ title: "Authentication Successful! 🎉", message: "Redirecting to All Services..." });
-        setTimeout(() => {
-          window.location.href = `/${locale}/services`;
-        }, 1000);
-      } else {
-        setToast({ title: "Verification Failed", message: res.message });
-      }
-    } catch (err) {
-      setIsSubmitting(false);
-      setToast({ title: "Verification Error", message: "Invalid OTP code." });
-    }
-  };
-
-  const handleResendOtp = async () => {
-    if (resendTimer > 0) return;
-    setIsSubmitting(true);
-    const res = await apiSendOtp(email, "login");
-    setIsSubmitting(false);
-    if (res.success) {
-      setResendTimer(60);
-      setToast({ title: "New OTP Sent", message: res.message });
-    } else {
-      setToast({ title: "Resend Failed", message: res.message || "Failed to resend OTP code." });
     }
   };
 
@@ -131,7 +73,7 @@ export default function LoginPage() {
         if (res.demoOtp) {
           setResetOtp(res.demoOtp);
         }
-        setToast({ title: "Reset OTP Sent 📧", message: res.message });
+        setToast({ title: "Reset Code Sent 📧", message: res.message });
       } else {
         setToast({ title: "Request Failed", message: res.message || "No account found with this email." });
       }
@@ -259,10 +201,13 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:opacity-90 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/25 transition-all mt-2"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:opacity-90 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/25 transition-all mt-2 disabled:opacity-75"
                   >
                     {isSubmitting ? (
-                      <span>Sending OTP...</span>
+                      <span className="flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
+                        <span>Authenticating...</span>
+                      </span>
                     ) : (
                       <>
                         <LogIn className="w-4 h-4 stroke-[2.5]" />
@@ -281,76 +226,6 @@ export default function LoginPage() {
               </div>
             )}
 
-            {step === "otp" && (
-              /* STEP 2: 2FA EMAIL OTP VERIFICATION SCREEN */
-              <div>
-                <div className="text-center mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/10">
-                    <KeyRound className="w-7 h-7" />
-                  </div>
-                  <h2 className="text-2xl font-black text-white">Enter 6-Digit Email OTP</h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    We sent a verification code to <strong className="text-cyan-300">{email}</strong>
-                  </p>
-                </div>
-
-                <form onSubmit={handleOtpVerify} className="space-y-5">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-2 text-center">
-                      6-Digit Security Code
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={6}
-                      autoFocus
-                      required
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value)}
-                      placeholder="123456"
-                      className="w-full text-center tracking-[0.4em] font-mono text-xl font-bold bg-slate-900 border border-cyan-500/40 rounded-xl py-3.5 text-cyan-300 placeholder-slate-600 focus:outline-none focus:border-cyan-400"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:opacity-90 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/25 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin text-slate-950 stroke-[2.5]" />
-                        <span>Verifying & Redirecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                        <span>Verify & Access All Services</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-
-                <div className="mt-6 flex items-center justify-between text-xs pt-4 border-t border-slate-800">
-                  <button
-                    onClick={() => setStep("credentials")}
-                    className="text-slate-400 hover:text-white"
-                  >
-                    ← Back to Login
-                  </button>
-
-                  <button
-                    onClick={handleResendOtp}
-                    disabled={resendTimer > 0}
-                    className={`flex items-center gap-1 font-semibold ${resendTimer > 0 ? "text-slate-500" : "text-cyan-400 hover:underline"
-                      }`}
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                    <span>{resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
             {step === "forgot" && (
               /* FORGOT PASSWORD: REQUEST RESET CODE */
               <div>
@@ -360,7 +235,7 @@ export default function LoginPage() {
                   </div>
                   <h2 className="text-2xl font-black text-white">Forgot Password?</h2>
                   <p className="text-xs text-slate-400 mt-1">
-                    Enter your registered email address to receive a password reset OTP.
+                    Enter your registered email address to receive a password reset code.
                   </p>
                 </div>
 
@@ -390,12 +265,12 @@ export default function LoginPage() {
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
-                        <span>Sending Reset OTP...</span>
+                        <span>Sending Reset Code...</span>
                       </span>
                     ) : (
                       <>
                         <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
-                        <span>Send Password Reset OTP</span>
+                        <span>Send Password Reset Code</span>
                       </>
                     )}
                   </button>
@@ -414,7 +289,7 @@ export default function LoginPage() {
             )}
 
             {step === "reset" && (
-              /* RESET PASSWORD: ENTER OTP & NEW PASSWORD */
+              /* RESET PASSWORD: ENTER CODE & NEW PASSWORD */
               <div>
                 <div className="text-center mb-6">
                   <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/10">
@@ -422,14 +297,14 @@ export default function LoginPage() {
                   </div>
                   <h2 className="text-2xl font-black text-white">Reset Password</h2>
                   <p className="text-xs text-slate-400 mt-1">
-                    Enter the reset OTP sent to <strong className="text-cyan-300">{email}</strong> and set a new password.
+                    Enter the reset code sent to <strong className="text-cyan-300">{email}</strong> and set a new password.
                   </p>
                 </div>
 
                 <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1 text-center">
-                      6-Digit Security OTP Code
+                      6-Digit Security Reset Code
                     </label>
                     <input
                       type="text"
@@ -516,3 +391,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

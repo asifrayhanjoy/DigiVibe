@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/lib/models/User";
-import Otp from "@/lib/models/Otp";
 import { sendDeliverableOtpEmail } from "@/lib/emailService";
 
 export async function POST(req: Request) {
@@ -40,18 +39,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate 6-digit OTP code for password reset
+    // Generate 6-digit code for password reset
     const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // Valid for 15 minutes
 
-    // Save in Otp collection
-    await Otp.findOneAndUpdate(
-      { email: cleanEmail, purpose: "reset-password" },
-      { otp: resetOtp, expiresAt, purpose: "reset-password" },
-      { upsert: true, new: true }
-    );
-
-    // Save on User doc as well for double security
+    // Save on User doc directly
     userDoc.resetPasswordToken = resetOtp;
     userDoc.resetPasswordExpires = expiresAt;
     await userDoc.save();
@@ -67,10 +59,10 @@ export async function POST(req: Request) {
     if (mailRes.demo) {
       message = `Password reset code sent to ${cleanEmail}. (Code: ${resetOtp})`;
     } else if (!mailRes.success) {
-      message = `Password reset OTP generated (${resetOtp}). Email delivery status: ${mailRes.error || "Check mailer setup"}`;
+      message = `Password reset code generated (${resetOtp}). Email delivery status: ${mailRes.error || "Check mailer setup"}`;
     }
 
-    console.log(`✅ [Forgot Password API] Reset OTP generated for ${cleanEmail}: ${resetOtp}`);
+    console.log(`✅ [Forgot Password API] Reset code generated for ${cleanEmail}: ${resetOtp}`);
 
     return NextResponse.json({
       success: true,
@@ -89,3 +81,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/lib/models/User";
-import Otp from "@/lib/models/Otp";
 
 export async function POST(req: Request) {
   try {
@@ -10,7 +9,7 @@ export async function POST(req: Request) {
 
     if (!email || !otp || !newPassword) {
       return NextResponse.json(
-        { success: false, message: "Email, OTP code, and new password are required." },
+        { success: false, message: "Email, reset code, and new password are required." },
         { status: 400 }
       );
     }
@@ -37,8 +36,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify OTP from Otp collection or User schema
-    const otpRecord = await Otp.findOne({ email: cleanEmail, purpose: "reset-password" });
     const userDoc = await User.findOne({ email: cleanEmail });
 
     if (!userDoc) {
@@ -51,9 +48,7 @@ export async function POST(req: Request) {
     const now = new Date();
     let isOtpValid = false;
 
-    if (otpRecord && otpRecord.otp === otp.trim() && now < new Date(otpRecord.expiresAt)) {
-      isOtpValid = true;
-    } else if (
+    if (
       userDoc.resetPasswordToken &&
       userDoc.resetPasswordToken === otp.trim() &&
       userDoc.resetPasswordExpires &&
@@ -64,7 +59,7 @@ export async function POST(req: Request) {
 
     if (!isOtpValid) {
       return NextResponse.json(
-        { success: false, message: "Invalid or expired password reset OTP code. Please request a new code." },
+        { success: false, message: "Invalid or expired password reset code. Please request a new code." },
         { status: 400 }
       );
     }
@@ -74,9 +69,6 @@ export async function POST(req: Request) {
     userDoc.resetPasswordToken = undefined;
     userDoc.resetPasswordExpires = undefined;
     await userDoc.save();
-
-    // Clean up OTP document
-    await Otp.deleteMany({ email: cleanEmail, purpose: "reset-password" });
 
     console.log(`✅ [MongoDB Atlas] Password updated successfully for: ${cleanEmail}`);
 
@@ -95,3 +87,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

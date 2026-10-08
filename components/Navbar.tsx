@@ -112,7 +112,7 @@ function Navbar({
 
   const navLinks = [
     { name: "Home", href: `/${locale}` },
-    { name: "All Services", href: `/${locale}/services`, categoryId: "all" },
+    { name: "Products", href: `/${locale}/services`, categoryId: "all" },
     { name: "Today's Update", href: `/${locale}/updates` },
     { name: "About Us", href: `/${locale}/about` },
     { name: "Support", href: `/${locale}/support` },
@@ -133,8 +133,8 @@ function Navbar({
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-200 transform-gpu ${scrolled
-          ? "bg-slate-950/95 sm:backdrop-blur-xl border-b border-cyan-500/20 py-0 shadow-xl shadow-cyan-950/20"
-          : "bg-slate-950/90 sm:backdrop-blur-md py-0 border-b border-white/5"
+        ? "bg-slate-950/95 sm:backdrop-blur-xl border-b border-cyan-500/20 py-0 shadow-xl shadow-cyan-950/20"
+        : "bg-slate-950/90 sm:backdrop-blur-md py-0 border-b border-white/5"
         }`}
     >
       <AnnouncementBanner />
@@ -173,8 +173,8 @@ function Navbar({
                   router.push(link.href);
                 }}
                 className={`px-2.5 py-1.5 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${isActive
-                    ? "bg-slate-900 text-cyan-400 border border-cyan-500/30 shadow-md"
-                    : "hover:bg-slate-900/60 hover:text-cyan-400 text-slate-300"
+                  ? "bg-slate-900 text-cyan-400 border border-cyan-500/30 shadow-md"
+                  : "hover:bg-slate-900/60 hover:text-cyan-400 text-slate-300"
                   }`}
               >
                 {link.name}
@@ -208,7 +208,7 @@ function Navbar({
             onClick={handleSearch}
             className="p-2 lg:hidden text-slate-300 hover:text-cyan-400 bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl transition-all"
             aria-label="Search"
-            title="Search Products"
+            title="Search Services"
           >
             <Search className="w-4 h-4" />
           </button>
@@ -517,8 +517,8 @@ function Navbar({
                         router.push(link.href);
                       }}
                       className={`w-full text-left flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors ${isActive
-                          ? "bg-cyan-950/60 text-cyan-400 border border-cyan-500/30"
-                          : "text-slate-200 hover:bg-slate-900 hover:text-cyan-400"
+                        ? "bg-cyan-950/60 text-cyan-400 border border-cyan-500/30"
+                        : "text-slate-200 hover:bg-slate-900 hover:text-cyan-400"
                         }`}
                     >
                       <span>{link.name}</span>

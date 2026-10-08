@@ -4,7 +4,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password?: string;
-  phone?: string;
+  phone: string;
   whatsapp?: string;
   address?: string;
   avatar?: string;
@@ -21,12 +21,12 @@ const UserSchema = new Schema<IUser>(
   {
     name: {
       type: String,
-      required: [true, "Name is required"],
+      required: [true, "Full name is required"],
       trim: true,
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: [true, "Email address is required"],
       unique: true,
       lowercase: true,
       trim: true,
@@ -38,7 +38,8 @@ const UserSchema = new Schema<IUser>(
     },
     phone: {
       type: String,
-      default: "",
+      required: [true, "Phone / WhatsApp number is required"],
+      trim: true,
     },
     whatsapp: {
       type: String,
@@ -80,3 +81,4 @@ const UserSchema = new Schema<IUser>(
 );
 
 export default (mongoose.models.User as mongoose.Model<IUser>) || mongoose.model<IUser>("User", UserSchema);
+

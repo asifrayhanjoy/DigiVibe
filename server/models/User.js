@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Name is required'],
+    required: [true, 'Full name is required'],
     trim: true,
   },
   email: {
     type: String,
-    required: [true, 'Email is required'],
+    required: [true, 'Email address is required'],
     unique: true,
     lowercase: true,
     trim: true,
@@ -20,7 +20,8 @@ const UserSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    default: '',
+    required: [true, 'Phone / WhatsApp number is required'],
+    trim: true,
   },
   whatsapp: {
     type: String,
@@ -52,3 +53,4 @@ const UserSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.models.User || mongoose.model('User', UserSchema);
+

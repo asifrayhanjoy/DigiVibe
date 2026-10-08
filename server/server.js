@@ -3,9 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
-const { sendOtpEmail } = require('./config/mailer');
 const User = require('./models/User');
-const Otp = require('./models/Otp');
 const Order = require('./models/Order');
 const Asset = require('./models/Asset');
 
@@ -40,191 +38,66 @@ app.get('/api/health', async (req, res) => {
 
 // --- AUTHENTICATION & NODEMAILER REAL OTP ENDPOINTS ---
 
-// 1. POST /api/auth/send-otp
+// 1. POST /api/auth/send-otp (Disabled)
 app.post('/api/auth/send-otp', async (req, res) => {
-  try {
-    const { email, purpose, userData } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'Email address is required' });
-    }
-
-    const cleanEmail = email.toLowerCase();
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
-
-    // Save OTP to MongoDB Atlas
-    await Otp.findOneAndUpdate(
-      { email: cleanEmail },
-      { otp, expiresAt, purpose: purpose || 'login', userData },
-      { upsert: true, new: true }
-    );
-
-    // Trigger Real Nodemailer Email
-    const emailRes = await sendOtpEmail(cleanEmail, otp);
-    if (!emailRes.success) {
-      return res.status(400).json({
-        success: false,
-        message: `Failed to send OTP to ${cleanEmail}: ${emailRes.error || 'Nodemailer error'}`
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: `Security OTP sent to ${cleanEmail}. Please check your inbox.`,
-      email: cleanEmail,
-      expiresInSeconds: 300
-    });
-  } catch (err) {
-    console.error('Error sending OTP:', err);
-    return res.status(500).json({ success: false, message: 'Database error sending OTP' });
-  }
+  return res.status(400).json({ success: false, message: 'OTP verification system has been permanently disabled.' });
 });
 
-// 2. POST /api/auth/verify-otp (Strict Verification)
+// 2. POST /api/auth/verify-otp (Disabled)
 app.post('/api/auth/verify-otp', async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-
-    if (!email || !otp) {
-      return res.status(400).json({ success: false, message: 'Email and OTP code are required' });
-    }
-
-    const cleanEmail = email.toLowerCase();
-    const otpRecord = await Otp.findOne({ email: cleanEmail });
-
-    // Verify OTP against MongoDB Atlas record
-    const isValid = otpRecord && otpRecord.otp === otp && new Date() < new Date(otpRecord.expiresAt);
-
-    if (!isValid) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired OTP code. Please request a new OTP.' });
-    }
-
-    // Retrieve or Create/Update User document in MongoDB Atlas
-    const userData = otpRecord?.userData || {};
-    let dbUser = await User.findOne({ email: cleanEmail });
-
-    if (!dbUser) {
-      dbUser = await User.create({
-        name: userData.name || cleanEmail.split('@')[0],
-        email: cleanEmail,
-        password: userData.password || 'hashed_default_pass_2026',
-        phone: userData.phone || '',
-        whatsapp: userData.phone || '',
-        address: 'Dhaka, Bangladesh',
-        walletBalance: 0,
-        role: 'customer',
-        isVerified: true
-      });
-      console.log(`✅ [MONGODB ATLAS] Saved NEW User to Database: ${cleanEmail}`);
-    } else {
-      if (userData.name) dbUser.name = userData.name;
-      if (userData.password) dbUser.password = userData.password;
-      if (userData.phone) {
-        dbUser.phone = userData.phone;
-        if (!dbUser.whatsapp) dbUser.whatsapp = userData.phone;
-      }
-      dbUser.isVerified = true;
-      await dbUser.save();
-      console.log(`✅ [MONGODB ATLAS] Updated & Verified User in Database: ${cleanEmail}`);
-    }
-
-    // Delete used OTP from MongoDB Atlas AFTER user save succeeds
-    await Otp.deleteOne({ email: cleanEmail });
-
-    return res.status(200).json({
-      success: true,
-      message: 'OTP verification successful!',
-      token: 'jwt_secure_token_digivibe_' + Date.now(),
-      user: {
-        id: dbUser._id.toString(),
-        name: dbUser.name,
-        email: dbUser.email,
-        phone: dbUser.phone || '',
-        whatsapp: dbUser.whatsapp || '',
-        address: dbUser.address || 'Dhaka, Bangladesh',
-        avatar: dbUser.avatar || '',
-        walletBalance: dbUser.walletBalance || 0,
-        role: dbUser.role || 'customer',
-        createdAt: dbUser.createdAt
-      }
-    });
-  } catch (err) {
-    console.error('Error verifying OTP:', err);
-    return res.status(500).json({ success: false, message: 'Database error verifying OTP: ' + err.message });
-  }
+  return res.status(400).json({ success: false, message: 'OTP verification system has been permanently disabled.' });
 });
 
-// 3. POST /api/auth/register (Sends Real Email OTP)
+// 3. POST /api/auth/register (Direct Registration without OTP)
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password, phone } = req.body || {};
 
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required' });
+    if (!name || !email || !password || !phone) {
+      return res.status(400).json({ success: false, message: 'Full Name, Email, Password, and Phone / WhatsApp number are required' });
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const cleanName = name ? name.trim() : cleanEmail.split('@')[0];
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const cleanName = name.trim();
+    const cleanPhone = phone.trim();
 
-    const userData = {
+    let userDoc = await User.findOne({ email: cleanEmail });
+    if (userDoc) {
+      return res.status(400).json({ success: false, message: 'An account with this email address already exists.' });
+    }
+
+    userDoc = await User.create({
       name: cleanName,
       email: cleanEmail,
       password: password,
-      phone: phone ? phone.trim() : ''
-    };
+      phone: cleanPhone,
+      whatsapp: cleanPhone,
+      address: 'Dhaka, Bangladesh',
+      walletBalance: 0,
+      role: 'customer',
+      isVerified: true
+    });
 
-    let userDoc = await User.findOne({ email: cleanEmail });
-    if (!userDoc) {
-      userDoc = await User.create({
-        ...userData,
-        whatsapp: userData.phone,
-        address: 'Dhaka, Bangladesh',
-        walletBalance: 0,
-        role: 'customer',
-        isVerified: false
-      });
-      console.log(`✅ [MONGODB ATLAS] Registered & Saved NEW User to Database: ${cleanEmail}`);
-    } else {
-      userDoc.name = userData.name;
-      userDoc.password = userData.password;
-      if (userData.phone) {
-        userDoc.phone = userData.phone;
-        if (!userDoc.whatsapp) userDoc.whatsapp = userData.phone;
-      }
-      await userDoc.save();
-      console.log(`✅ [MONGODB ATLAS] Updated User Registration Data in Database: ${cleanEmail}`);
-    }
+    console.log(`✅ [MONGODB ATLAS] Instant Direct Registered User: ${cleanEmail}`);
 
-    // Save OTP to MongoDB Atlas
-    await Otp.findOneAndUpdate(
-      { email: cleanEmail },
-      { otp, expiresAt, purpose: 'signup', userData },
-      { upsert: true, new: true }
-    );
-
-    // Send Real Email OTP
-    const emailRes = await sendOtpEmail(cleanEmail, otp);
-    if (!emailRes.success) {
-      return res.status(400).json({
-        success: false,
-        requiresOtp: false,
-        message: `Failed to send OTP to ${cleanEmail}: ${emailRes.error || 'Nodemailer error'}`
-      });
-    }
+    const token = 'jwt_secure_token_digivibe_' + Date.now();
 
     return res.status(201).json({
       success: true,
-      requiresOtp: true,
-      message: `Registration Security OTP sent to ${cleanEmail}`,
-      email: cleanEmail,
+      requiresOtp: false,
+      message: 'Registration successful!',
+      token,
       user: {
         id: userDoc._id.toString(),
         name: userDoc.name,
         email: userDoc.email,
-        phone: userDoc.phone || ''
+        phone: userDoc.phone || '',
+        whatsapp: userDoc.whatsapp || '',
+        address: userDoc.address || 'Dhaka, Bangladesh',
+        avatar: userDoc.avatar || '',
+        walletBalance: userDoc.walletBalance || 0,
+        role: userDoc.role || 'customer',
+        createdAt: userDoc.createdAt
       }
     });
   } catch (err) {
@@ -233,52 +106,41 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// 4. POST /api/auth/login (Sends Real Email OTP)
+// 4. POST /api/auth/login (Direct Login without OTP)
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
 
-    const cleanEmail = email.toLowerCase();
-    let userDoc = await User.findOne({ email: cleanEmail });
+    const cleanEmail = email.toLowerCase().trim();
+    const userDoc = await User.findOne({ email: cleanEmail });
 
-    if (!userDoc) {
-      userDoc = await User.create({
-        name: cleanEmail.split('@')[0],
-        email: cleanEmail,
-        password: password,
-        walletBalance: 0
-      });
-      console.log(`✅ [MONGODB ATLAS] First-time Login User Saved to Database: ${cleanEmail}`);
+    if (!userDoc || userDoc.password !== password) {
+      return res.status(401).json({ success: false, message: 'Invalid email address or password' });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-    await Otp.findOneAndUpdate(
-      { email: cleanEmail },
-      { otp, expiresAt, purpose: 'login' },
-      { upsert: true, new: true }
-    );
-
-    // Send Real Email OTP
-    const emailRes = await sendOtpEmail(cleanEmail, otp);
-    if (!emailRes.success) {
-      return res.status(400).json({
-        success: false,
-        requiresOtp: false,
-        message: `Failed to send OTP to ${cleanEmail}: ${emailRes.error || 'Nodemailer error'}`
-      });
-    }
+    const token = 'jwt_secure_token_digivibe_' + Date.now();
 
     return res.status(200).json({
       success: true,
-      requiresOtp: true,
-      message: `Security OTP sent to ${cleanEmail}`,
-      email: cleanEmail
+      requiresOtp: false,
+      message: 'Login successful!',
+      token,
+      user: {
+        id: userDoc._id.toString(),
+        name: userDoc.name,
+        email: userDoc.email,
+        phone: userDoc.phone || '',
+        whatsapp: userDoc.whatsapp || '',
+        address: userDoc.address || 'Dhaka, Bangladesh',
+        avatar: userDoc.avatar || '',
+        walletBalance: userDoc.walletBalance || 0,
+        role: userDoc.role || 'customer',
+        createdAt: userDoc.createdAt
+      }
     });
   } catch (err) {
     console.error('Error logging in:', err);

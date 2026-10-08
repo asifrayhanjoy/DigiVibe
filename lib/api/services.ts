@@ -197,82 +197,23 @@ export async function apiAddWalletCredit(email: string, amount: number): Promise
 }
 
 /**
- * Send Email OTP Request via Nodemailer & MongoDB Atlas
+ * Send Email OTP Request (Disabled)
  */
-export async function apiSendOtp(email: string, purpose: "login" | "signup", userData?: any): Promise<{ success: boolean; message: string; demoOtp?: string }> {
-  try {
-    const res = await fetch("/api/auth/send-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, purpose, userData }),
-    });
-    const data = await res.json();
-    if (data && (res.ok || data.message)) {
-      return data;
-    }
-  } catch (err: any) {
-    console.error("Error sending OTP via API route:", err);
-    if (NODE_AUTH_SERVICE) {
-      try {
-        const res = await fetch(`${NODE_AUTH_SERVICE}/send-otp`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, purpose, userData }),
-        });
-        if (res.ok) return await res.json();
-      } catch (e) {}
-    }
-  }
-
+export async function apiSendOtp(): Promise<{ success: boolean; message: string }> {
   return {
     success: false,
-    message: "Failed to send OTP code. Please check your network or database connection.",
+    message: "OTP verification system has been permanently disabled.",
   };
 }
 
 /**
- * Verify 6-Digit Email OTP against MongoDB Atlas
+ * Verify 6-Digit Email OTP (Disabled)
  */
-export async function apiVerifyOtp(email: string, otp: string): Promise<{ success: boolean; message: string; user?: User; token?: string }> {
-  try {
-    const res = await fetch("/api/auth/verify-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp }),
-    });
-    
-    const data = await res.json();
-    if (res.ok && data.success) {
-      if (data.token) {
-        localStorage.setItem("digivibe_user", JSON.stringify(data.user));
-        localStorage.setItem("digivibe_token", data.token);
-        localStorage.setItem("digivibe_user_email", email.toLowerCase());
-        document.cookie = `token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
-        document.cookie = `digivibe_token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
-      }
-      return data;
-    }
-    if (data && data.message) {
-      return { success: false, message: data.message };
-    }
-  } catch (err: any) {
-    console.error("Error verifying OTP against database:", err);
-    if (NODE_AUTH_SERVICE) {
-      try {
-        const res = await fetch(`${NODE_AUTH_SERVICE}/verify-otp`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, otp }),
-        });
-        if (res.ok) return await res.json();
-      } catch (e) {}
-    }
-  }
-
-  return { success: false, message: "Invalid OTP or authentication server error." };
+export async function apiVerifyOtp(): Promise<{ success: boolean; message: string }> {
+  return { success: false, message: "OTP verification system has been permanently disabled." };
 }
 
-export async function apiLogin(email: string, pass: string): Promise<{ success: boolean; requiresOtp: boolean; message: string; user?: User; token?: string; demoOtp?: string }> {
+export async function apiLogin(email: string, pass: string): Promise<{ success: boolean; requiresOtp: boolean; message: string; user?: User; token?: string }> {
   const normalizedEmail = email.trim().toLowerCase();
 
   // Hardcoded Admin Access Verification Rule
@@ -324,33 +265,17 @@ export async function apiLogin(email: string, pass: string): Promise<{ success: 
     console.error("Error calling login API route:", err);
   }
 
-  // Fallback regular user login if backend offline
-  const fallbackUser: User = {
-    id: "user-" + Date.now(),
-    name: normalizedEmail.split("@")[0],
-    email: normalizedEmail,
-    role: "customer",
-    walletBalance: 0,
-    createdAt: new Date().toISOString()
-  };
-  const userToken = "token_" + Date.now();
-  localStorage.setItem("digivibe_user", JSON.stringify(fallbackUser));
-  localStorage.setItem("digivibe_token", userToken);
-  localStorage.setItem("digivibe_user_email", normalizedEmail);
-
   return {
-    success: true,
+    success: false,
     requiresOtp: false,
-    message: "Login successful.",
-    user: fallbackUser,
-    token: userToken
+    message: "Login failed. Please check your credentials and connection.",
   };
 }
 
 /**
- * Step 1 Signup - Triggers Real Email OTP
+ * Direct Instant Signup - Direct User Registration
  */
-export async function apiSignup(name: string, email: string, pass: string, phone: string): Promise<{ success: boolean; requiresOtp: boolean; message: string; demoOtp?: string; user?: User; token?: string }> {
+export async function apiSignup(name: string, email: string, pass: string, phone: string): Promise<{ success: boolean; requiresOtp: boolean; message: string; user?: User; token?: string }> {
   try {
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -359,6 +284,13 @@ export async function apiSignup(name: string, email: string, pass: string, phone
     });
     const data = await res.json();
     if (data && (res.ok || data.message)) {
+      if (data.user && data.token) {
+        localStorage.setItem("digivibe_user", JSON.stringify(data.user));
+        localStorage.setItem("digivibe_token", data.token);
+        localStorage.setItem("digivibe_user_email", email.toLowerCase().trim());
+        document.cookie = `token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `digivibe_token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
+      }
       return data;
     }
   } catch (err: any) {
@@ -371,6 +303,13 @@ export async function apiSignup(name: string, email: string, pass: string, phone
           body: JSON.stringify({ name, email, password: pass, phone }),
         });
         const errData = await res.json();
+        if (errData.user && errData.token) {
+          localStorage.setItem("digivibe_user", JSON.stringify(errData.user));
+          localStorage.setItem("digivibe_token", errData.token);
+          localStorage.setItem("digivibe_user_email", email.toLowerCase().trim());
+          document.cookie = `token=${errData.token}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `digivibe_token=${errData.token}; path=/; max-age=604800; SameSite=Lax`;
+        }
         return errData;
       } catch (e) {}
     }
@@ -379,9 +318,10 @@ export async function apiSignup(name: string, email: string, pass: string, phone
   return {
     success: false,
     requiresOtp: false,
-    message: "Registration server error. Please verify your internet connection and database setup.",
+    message: "Registration server error. Please verify your connection.",
   };
 }
+
 
 /**
  * Order Processing Integration (Saves Real Order directly to MongoDB Atlas)
