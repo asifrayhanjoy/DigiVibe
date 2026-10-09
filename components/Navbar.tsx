@@ -109,7 +109,7 @@ function Navbar({
     router.push(targetPath);
   };
 
-  const navLinks = [
+  const navLinks: Array<{ name: string; href: string; categoryId?: string }> = [
     { name: "Home", href: `/${locale}` },
     { name: "Today's Update", href: `/${locale}/updates` },
     { name: "About Us", href: `/${locale}/about` },
