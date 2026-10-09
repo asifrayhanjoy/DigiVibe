@@ -2,6 +2,7 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { Locale } from "@/types";
+import BackgroundSlider from "@/components/BackgroundSlider";
 
 export default async function LocalizedLayout({
   children,
@@ -17,6 +18,7 @@ export default async function LocalizedLayout({
     <AuthProvider>
       <LanguageProvider initialLocale={locale}>
         <CartProvider>
+          <BackgroundSlider />
           {children}
         </CartProvider>
       </LanguageProvider>

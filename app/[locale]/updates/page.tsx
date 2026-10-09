@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
 import FilePreviewModal from "@/components/FilePreviewModal";
+import BackgroundSlider from "@/components/BackgroundSlider";
 import {
   Sparkles,
   Megaphone,
@@ -267,13 +268,16 @@ export default function UpdatesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-950">
+    <div className="min-h-screen text-slate-100 flex flex-col font-sans relative selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden">
+      {/* DYNAMIC 3D BACKGROUND SLIDER (Rotates 5 3D Tech Images every 4s with Dark Overlay) */}
+      <BackgroundSlider />
+
       <Navbar onOpenSearch={() => { }} currentLocale={locale} />
 
-      <main className="flex-1 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-8">
+      <main className="relative z-10 flex-1 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-8">
         
         {/* HERO HEADER BANNER */}
-        <div className="glass-panel p-6 sm:p-10 rounded-3xl border border-cyan-500/30 relative overflow-hidden bg-gradient-to-br from-slate-950 via-cyan-950/20 to-slate-950 shadow-2xl space-y-4">
+        <div className="glass-panel p-6 sm:p-10 rounded-3xl border border-slate-700/60 relative overflow-hidden bg-slate-900/80 backdrop-blur-2xl shadow-2xl space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
             <div className="space-y-2 max-w-2xl">
               <div className="flex items-center gap-2 flex-wrap">
@@ -281,15 +285,15 @@ export default function UpdatesPage() {
                   <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
                   <span>Today's Update & Software Hub</span>
                 </span>
-                <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
                   Live System 🇧🇩
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight drop-shadow-md">
                 ⚡ Today's Live Updates & Downloads
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
                 Stay informed with daily service updates, newly added software tools, app patches, premium downloads, and instant system notifications directly from our Master Admin team.
               </p>
             </div>
@@ -299,7 +303,7 @@ export default function UpdatesPage() {
               <div className="flex items-center gap-2 flex-wrap shrink-0">
                 <button
                   onClick={() => setIsCreating(true)}
-                  className="px-5 py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-cyan-500/20 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                  className="px-5 py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-cyan-500/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
                 >
                   <Plus className="w-5 h-5 stroke-[3]" />
                   <span>Publish New Update</span>
@@ -308,7 +312,7 @@ export default function UpdatesPage() {
                 {updates.length > 0 && (
                   <button
                     onClick={handlePurgeAllUpdates}
-                    className="px-4 py-3.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 border border-rose-500/30 font-bold text-xs sm:text-sm rounded-2xl transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 py-3.5 bg-rose-500/20 hover:bg-rose-500 hover:text-white text-rose-300 border border-rose-500/40 font-bold text-xs sm:text-sm rounded-2xl transition-all flex items-center gap-1.5 cursor-pointer"
                     title="Purge all updates permanently from MongoDB"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -320,55 +324,55 @@ export default function UpdatesPage() {
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-800/80 text-xs">
-            <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-700/60 text-xs">
+            <div className="p-3.5 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-700/60 flex items-center gap-3 shadow-md">
+              <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                 <Megaphone className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-[10px] text-slate-400 uppercase font-bold">Total Published</div>
-                <div className="text-sm font-black text-white">{updates.length} Updates</div>
+                <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Published</div>
+                <div className="text-sm sm:text-base font-black text-white">{updates.length} Updates</div>
               </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+            <div className="p-3.5 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-700/60 flex items-center gap-3 shadow-md">
+              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
                 <Pin className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-[10px] text-slate-400 uppercase font-bold">Pinned Feature</div>
-                <div className="text-sm font-black text-amber-300">
+                <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Pinned Feature</div>
+                <div className="text-sm sm:text-base font-black text-amber-300">
                   {updates.filter((u) => u.isPinned).length} Pinned
                 </div>
               </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+            <div className="p-3.5 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-700/60 flex items-center gap-3 shadow-md">
+              <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                 <Download className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-[10px] text-slate-400 uppercase font-bold">Software Files</div>
-                <div className="text-sm font-black text-emerald-400">
+                <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Software Files</div>
+                <div className="text-sm sm:text-base font-black text-emerald-400">
                   {updates.reduce((acc, curr) => acc + (curr.files?.length || 0), 0)} Software
                 </div>
               </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
+            <div className="p-3.5 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-700/60 flex items-center gap-3 shadow-md">
+              <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-[10px] text-slate-400 uppercase font-bold">Verified By</div>
-                <div className="text-sm font-black text-white">Master Admin</div>
+                <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Verified By</div>
+                <div className="text-sm sm:text-base font-black text-white">Master Admin</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* SEARCH & FILTER CONTROL BAR */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-panel p-4 rounded-2xl border border-slate-800">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-panel p-4 rounded-2xl border border-slate-700/60 bg-slate-900/80 backdrop-blur-xl shadow-xl">
           <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
             <button
               onClick={() => setSelectedCategory("all")}
@@ -435,23 +439,23 @@ export default function UpdatesPage() {
 
         {/* UPDATES STREAM LIST VIEW */}
         {isLoading ? (
-          <div className="glass-panel p-12 rounded-3xl border border-slate-800 text-center space-y-3">
+          <div className="glass-panel p-12 rounded-3xl border border-slate-700/60 bg-slate-900/80 backdrop-blur-xl text-center space-y-3 shadow-2xl">
             <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
-            <p className="text-xs text-slate-400 font-bold">Fetching fresh daily updates from MongoDB Atlas...</p>
+            <p className="text-xs text-slate-300 font-extrabold">Fetching fresh daily updates from MongoDB Atlas...</p>
           </div>
         ) : filteredUpdates.length === 0 ? (
-          <div className="glass-panel p-12 rounded-3xl border border-slate-800 text-center space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mx-auto">
-              <Megaphone className="w-8 h-8" />
+          <div className="glass-panel p-12 sm:p-16 rounded-3xl border border-slate-700/60 bg-slate-900/85 backdrop-blur-xl text-center space-y-4 shadow-2xl max-w-3xl mx-auto my-6">
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 mx-auto shadow-lg shadow-cyan-500/10">
+              <Megaphone className="w-8 h-8 stroke-[2.5]" />
             </div>
-            <div className="space-y-1">
-              <h3 className="text-lg font-black text-white">No Updates Found</h3>
-              <p className="text-xs text-slate-400">There are no updates matching your search query or filter criteria.</p>
+            <div className="space-y-1.5">
+              <h3 className="text-xl font-black text-white tracking-tight">No Updates Found</h3>
+              <p className="text-xs sm:text-sm text-slate-300 font-medium max-w-md mx-auto">There are no updates matching your search query or filter criteria.</p>
             </div>
             {isAdmin && (
               <button
                 onClick={() => setIsCreating(true)}
-                className="px-4 py-2.5 bg-cyan-500 text-slate-950 font-black text-xs rounded-xl inline-flex items-center gap-1.5"
+                className="mt-2 px-5 py-3 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-slate-950 font-black text-xs sm:text-sm rounded-xl inline-flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <Plus className="w-4 h-4 stroke-[3]" />
                 <span>Create First Update</span>
@@ -463,9 +467,9 @@ export default function UpdatesPage() {
             {filteredUpdates.map((item) => (
               <article
                 key={item._id}
-                className={`glass-panel rounded-3xl border transition-all duration-300 overflow-hidden shadow-xl ${item.isPinned
-                    ? "border-amber-500/40 bg-gradient-to-br from-slate-950 via-amber-950/10 to-slate-950"
-                    : "border-slate-800/80 bg-slate-950/80 hover:border-slate-700"
+                className={`glass-panel rounded-3xl border backdrop-blur-xl transition-all duration-300 overflow-hidden shadow-2xl ${item.isPinned
+                    ? "border-amber-500/50 bg-slate-900/85 hover:border-amber-400"
+                    : "border-slate-700/60 bg-slate-900/80 hover:border-cyan-500/40"
                   }`}
               >
                 {/* Header Metadata Bar */}
@@ -535,7 +539,7 @@ export default function UpdatesPage() {
                       {item.cards.map((card: any, cIdx: number) => (
                         <div
                           key={cIdx}
-                          className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2 hover:border-cyan-500/30 transition-all flex flex-col justify-between"
+                          className="p-5 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-700/60 space-y-2 hover:border-cyan-500/40 transition-all flex flex-col justify-between shadow-md"
                         >
                           <div className="space-y-1.5">
                             <div className="flex items-center justify-between gap-2">

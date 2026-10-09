@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
+import RightDock from "@/components/RightDock";
 import Footer from "@/components/Footer";
 import SearchModal from "@/components/SearchModal";
 import Toast from "@/components/Toast";
@@ -56,7 +57,7 @@ export default function SupportPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative selection:bg-cyan-500 selection:text-slate-950">
+    <div className="min-h-screen text-slate-100 flex flex-col font-sans relative selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden">
       <Navbar
         cartCount={0}
         onOpenCart={() => { }}
@@ -64,17 +65,19 @@ export default function SupportPage() {
         currentLocale={locale}
       />
 
+      <RightDock onOpenSearch={() => setIsSearchModalOpen(true)} />
+
       {/* Hero Header */}
-      <section className="pt-36 pb-14 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 border-b border-slate-800/80 relative overflow-hidden">
+      <section className="relative z-10 pt-28 pb-10 bg-gradient-to-b from-slate-950/70 via-slate-950/85 to-[#070b16]/90 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <span className="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+          <span className="px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 backdrop-blur-md">
             24/7 Support Engine 🎧
           </span>
-          <h1 className="text-3xl sm:text-5xl font-black text-white mt-4 tracking-tight">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white mt-3 font-sans tracking-tight drop-shadow-md">
             How Can We Help You Today?
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-3 max-w-xl mx-auto">
-            Get instant support via WhatsApp, browse frequent questions, or send a direct message to our customer care team.
+          <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-xl mx-auto font-medium">
+            Get instant support via WhatsApp, browse frequent questions, or email our support team.
           </p>
         </div>
       </section>
@@ -83,25 +86,25 @@ export default function SupportPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-20 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Card 1: WhatsApp Support (Two Admins) */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/90 border border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-300 shadow-xl flex flex-col justify-between space-y-5">
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-emerald-500/40 hover:border-emerald-400 transition-all duration-300 shadow-2xl flex flex-col justify-between space-y-5">
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm">
                   Fastest Response
                 </span>
                 <PhoneCall className="w-6 h-6 text-emerald-400" />
               </div>
               <h3 className="text-xl sm:text-2xl font-black text-white">WhatsApp Live Support</h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-300 mt-1 font-medium">
                 Direct WhatsApp contact with our official DigiVibe support admins for instant help.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               {/* Admin 1: FARID */}
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between space-y-3">
+              <div className="p-4 rounded-2xl bg-slate-950/80 backdrop-blur-md border border-slate-700/60 flex flex-col justify-between space-y-3">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Admin</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Admin</span>
                   <h4 className="text-sm font-black text-white truncate">FARID</h4>
                   <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">01990800188</p>
                 </div>
@@ -109,7 +112,7 @@ export default function SupportPage() {
                   href="https://wa.me/8801990800188"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
+                  className="w-full py-2 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
                 >
                   <PhoneCall className="w-3.5 h-3.5" />
                   <span>Chat Now</span>
@@ -117,9 +120,9 @@ export default function SupportPage() {
               </div>
 
               {/* Admin 2: MD ASIF RAYHAN JOY */}
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between space-y-3">
+              <div className="p-4 rounded-2xl bg-slate-950/80 backdrop-blur-md border border-slate-700/60 flex flex-col justify-between space-y-3">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Admin</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Admin</span>
                   <h4 className="text-sm font-black text-white truncate">MD ASIF RAYHAN JOY</h4>
                   <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">01302271472</p>
                 </div>
@@ -127,7 +130,7 @@ export default function SupportPage() {
                   href="https://wa.me/8801302271472"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
+                  className="w-full py-2 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
                 >
                   <PhoneCall className="w-3.5 h-3.5" />
                   <span>Chat Now</span>
@@ -137,7 +140,7 @@ export default function SupportPage() {
           </div>
 
           {/* Card 2: Official Email Support */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 shadow-xl flex flex-col justify-between space-y-5">
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-cyan-500/40 hover:border-cyan-400 transition-all duration-300 shadow-2xl flex flex-col justify-between space-y-5">
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
@@ -192,17 +195,17 @@ export default function SupportPage() {
             return (
               <div
                 key={idx}
-                className={`rounded-2xl border transition-all duration-300 overflow-hidden ${isOpen
-                  ? "bg-slate-900/90 border-cyan-500/40 shadow-lg shadow-cyan-500/10"
-                  : "bg-slate-900/50 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/80"
+                className={`glass-panel rounded-2xl border backdrop-blur-xl transition-all duration-300 overflow-hidden ${isOpen
+                  ? "bg-slate-900/90 border-cyan-400 shadow-xl shadow-cyan-500/20"
+                  : "bg-slate-900/75 border-slate-700/60 hover:border-slate-500 hover:bg-slate-900/90"
                   }`}
               >
                 <button
                   onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                  className="w-full flex items-center justify-between p-5 text-left font-bold text-sm sm:text-base text-slate-100 hover:text-cyan-400 transition-colors"
+                  className="w-full flex items-center justify-between p-5 text-left font-bold text-sm sm:text-base text-white hover:text-cyan-300 transition-colors"
                 >
                   <span className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-slate-950 border border-slate-800 text-cyan-400 font-mono text-xs flex items-center justify-center shrink-0">
+                    <span className="w-6 h-6 rounded-full bg-slate-950 border border-slate-700 text-cyan-400 font-mono text-xs flex items-center justify-center shrink-0">
                       {idx + 1}
                     </span>
                     <span>{faq.q}</span>
@@ -210,11 +213,11 @@ export default function SupportPage() {
                   {isOpen ? (
                     <ChevronUp className="w-5 h-5 text-cyan-400 shrink-0 ml-3" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-500 shrink-0 ml-3" />
+                    <ChevronDown className="w-5 h-5 text-slate-400 shrink-0 ml-3" />
                   )}
                 </button>
                 {isOpen && (
-                  <div className="px-5 pb-6 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-4 animate-in fade-in space-y-2">
+                  <div className="px-5 pb-6 text-xs sm:text-sm text-slate-200 font-medium leading-relaxed border-t border-slate-700/60 pt-4 animate-in fade-in space-y-2">
                     <p>{faq.a}</p>
                   </div>
                 )}
@@ -224,7 +227,7 @@ export default function SupportPage() {
         </div>
 
         {/* Bottom Direct Contact Banner */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/80 border border-slate-800 text-center space-y-4 mt-8">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl bg-slate-900/85 backdrop-blur-xl border border-slate-700/60 text-center space-y-4 mt-8 shadow-2xl">
           <h3 className="text-lg font-black text-white">Still have questions or need custom bulk orders?</h3>
           <p className="text-xs text-slate-400 max-w-lg mx-auto">
             Our support admins are ready to assist you directly on WhatsApp for instant assistance.

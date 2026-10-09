@@ -101,68 +101,68 @@ function CategoryTabs({
   };
 
   return (
-    <div className="relative w-full group py-2 transform-gpu">
-      {/* Left Scroll Button */}
-      {canScrollLeft && (
-        <button
-          onClick={() => scrollByOffset(-240)}
-          aria-label="Scroll Left"
-          className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-slate-900/95 border border-cyan-500/50 text-cyan-400 shadow-lg shadow-black/50 backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
+    <div className="relative w-full max-w-6xl mx-auto py-2 transform-gpu">
+      {/* Unified Glassmorphism Background Container Bar */}
+      <div className="relative w-full rounded-2xl sm:rounded-full bg-slate-950/75 border border-slate-800/90 backdrop-blur-2xl p-1.5 sm:p-2 shadow-2xl overflow-hidden group">
+        
+        {/* Left Scroll Button */}
+        {canScrollLeft && (
+          <button
+            onClick={() => scrollByOffset(-240)}
+            aria-label="Scroll Left"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-900 border border-cyan-500/40 text-cyan-400 shadow-xl backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
+          >
+            <ChevronLeft className="w-4 h-4 stroke-[3]" />
+          </button>
+        )}
+
+        {/* Right Scroll Button */}
+        {canScrollRight && (
+          <button
+            onClick={() => scrollByOffset(240)}
+            aria-label="Scroll Right"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-900 border border-cyan-500/40 text-cyan-400 shadow-xl backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
+          >
+            <ChevronRight className="w-4 h-4 stroke-[3]" />
+          </button>
+        )}
+
+        {/* Scroll Container (No Left Clipping) */}
+        <div
+          ref={scrollRef}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeaveOrUp}
+          onMouseUp={handleMouseLeaveOrUp}
+          onMouseMove={handleMouseMove}
+          className="flex items-center justify-start gap-2.5 sm:gap-3 overflow-x-auto scrollbar-none scroll-smooth touch-pan-x overscroll-x-contain py-1.5 px-4 sm:px-8 cursor-grab active:cursor-grabbing select-none w-full"
         >
-          <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
-        </button>
-      )}
+          {CATEGORIES.map((cat) => {
+            const Icon = ICON_MAP[cat.icon] || LayoutGrid;
+            const isActive = activeCategory === cat.id;
+            const count = getCategoryCount ? getCategoryCount(cat.id as CategoryId) : cat.count;
+            const categoryLabel = (locale === "bn" ? cat.labelBn : cat.labelEn) || cat.label || cat.id;
 
-      {/* Right Scroll Button */}
-      {canScrollRight && (
-        <button
-          onClick={() => scrollByOffset(240)}
-          aria-label="Scroll Right"
-          className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-slate-900/95 border border-cyan-500/50 text-cyan-400 shadow-lg shadow-black/50 backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
-        >
-          <ChevronRight className="w-5 h-5 stroke-[2.5]" />
-        </button>
-      )}
-
-      {/* Scroll Container */}
-      <div
-        ref={scrollRef}
-        onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseLeaveOrUp}
-        onMouseUp={handleMouseLeaveOrUp}
-        onMouseMove={handleMouseMove}
-        className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto scrollbar-none scroll-smooth touch-pan-x overscroll-x-contain py-2 px-1 cursor-grab active:cursor-grabbing select-none"
-      >
-        {CATEGORIES.map((cat) => {
-          const Icon = ICON_MAP[cat.icon] || LayoutGrid;
-          const isActive = activeCategory === cat.id;
-          const count = getCategoryCount ? getCategoryCount(cat.id as CategoryId) : cat.count;
-          const categoryLabel = (locale === "bn" ? cat.labelBn : cat.labelEn) || cat.label || cat.id;
-
-          return (
-            <button
-              key={cat.id}
-              onClick={() => onSelectCategory(cat.id as CategoryId)}
-              className={`flex flex-row items-center gap-2.5 px-4 py-3 rounded-2xl border transition-all duration-200 cursor-pointer shrink-0 text-xs sm:text-sm font-semibold select-none whitespace-nowrap will-change-transform transform-gpu ${
-                isActive
-                  ? "bg-cyan-500/15 border-cyan-400 text-cyan-400 shadow-md shadow-cyan-500/20 scale-[1.02]"
-                  : "bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
-              }`}
-            >
-              <Icon className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 ${isActive ? "text-cyan-400" : "text-slate-400"}`} />
-              <span className="font-medium text-slate-200">{categoryLabel}</span>
-              <span
-                className={`px-2 py-0.5 text-[11px] sm:text-xs font-bold rounded-full transition-colors shrink-0 ${
-                  isActive
-                    ? "bg-cyan-400/20 text-cyan-300 border border-cyan-400/30"
-                    : "bg-slate-800 text-slate-400 border border-slate-700"
-                }`}
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSelectCategory(cat.id as CategoryId)}
+                className={`pill-tab shrink-0 ${isActive ? "pill-tab-active" : ""}`}
               >
-                {count}
-              </span>
-            </button>
-          );
-        })}
+                <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-white scale-110" : "text-cyan-400"}`} />
+                <span className="font-extrabold text-xs sm:text-sm tracking-wide">{categoryLabel}</span>
+                <span
+                  className={`px-2.5 py-0.5 text-[11px] sm:text-xs font-black rounded-full transition-colors shrink-0 ${
+                    isActive
+                      ? "bg-white/25 text-white border border-white/40 shadow-sm"
+                      : "bg-slate-800/90 text-cyan-300 border border-slate-700/80"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

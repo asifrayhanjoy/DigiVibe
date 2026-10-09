@@ -450,13 +450,13 @@ export default function ProfilePage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative selection:bg-cyan-500 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-950/40 backdrop-blur-[2px] text-slate-100 flex flex-col font-sans relative selection:bg-cyan-500 selection:text-slate-950">
       <Navbar cartCount={0} onOpenCart={() => { }} onOpenSearch={() => { }} currentLocale={locale} />
 
       <main className="flex-1 pt-32 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-8">
 
         {/* HEADER PROFILE SUMMARY CARD */}
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800/80 relative overflow-hidden bg-gradient-to-r from-slate-950 via-cyan-950/20 to-slate-950 shadow-2xl">
+        <div className="backdrop-blur-2xl bg-slate-900/80 p-6 sm:p-8 rounded-3xl border border-slate-700/60 relative overflow-hidden bg-gradient-to-r from-slate-900/90 via-cyan-950/40 to-slate-900/90 shadow-2xl shadow-cyan-950/20">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
 
             {/* Avatar & User Details */}
@@ -502,7 +502,7 @@ export default function ProfilePage() {
                   </span>
                 </div>
 
-                <div className="text-xs text-slate-400 mt-1.5 space-y-0.5">
+                <div className="text-xs text-slate-300 font-medium mt-1.5 space-y-0.5">
                   <div className="flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5 text-cyan-400" />
                     <span>{profile.email}</span>
@@ -523,7 +523,7 @@ export default function ProfilePage() {
                   setActiveTab("edit-profile");
                   setIsEditingHeader(!isEditingHeader);
                 }}
-                className="px-4 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold text-xs rounded-xl flex items-center gap-2 transition-all"
+                className="px-4 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-md"
               >
                 <Edit3 className="w-4 h-4" />
                 <span>{isEditingHeader ? "Close Edit" : "Edit Profile"}</span>
@@ -534,7 +534,7 @@ export default function ProfilePage() {
                   logout();
                   window.location.href = `/${locale}`;
                 }}
-                className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs rounded-xl flex items-center gap-2 transition-all"
+                className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/40 font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-md"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Log Out</span>
@@ -543,28 +543,28 @@ export default function ProfilePage() {
           </div>
 
           {/* CLEAN & BALANCED PROFILE STATS GRID (COMPLETED VS INCOMPLETE/PENDING ORDERS) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8 pt-6 border-t border-slate-800/80">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8 pt-6 border-t border-slate-700/60">
             {/* 1. Completed Orders Status Summary */}
-            <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-4 hover:border-emerald-500/30 transition-all shadow-lg">
-              <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <CheckCircle2 className="w-6 h-6" />
+            <div className="p-5 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 flex items-center gap-4 hover:border-emerald-500/50 hover:bg-slate-900/80 transition-all shadow-xl shadow-black/20 group">
+              <div className="p-3.5 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 group-hover:scale-105 transition-transform">
+                <CheckCircle2 className="w-7 h-7" />
               </div>
               <div>
-                <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Completed Orders</div>
-                <div className="text-2xl font-black text-emerald-400 mt-0.5">
+                <div className="text-xs text-slate-300 font-bold uppercase tracking-wider">Completed Orders</div>
+                <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-0.5 drop-shadow">
                   {dbOrders.filter((o) => o.status === "Completed" || !o.status).length} Orders
                 </div>
               </div>
             </div>
 
             {/* 2. Incomplete / Pending Orders Status Summary */}
-            <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-4 hover:border-amber-500/30 transition-all shadow-lg">
-              <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                <Clock className="w-6 h-6" />
+            <div className="p-5 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 flex items-center gap-4 hover:border-amber-500/50 hover:bg-slate-900/80 transition-all shadow-xl shadow-black/20 group">
+              <div className="p-3.5 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30 group-hover:scale-105 transition-transform">
+                <Clock className="w-7 h-7" />
               </div>
               <div>
-                <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Incomplete / Pending</div>
-                <div className="text-2xl font-black text-amber-400 mt-0.5">
+                <div className="text-xs text-slate-300 font-bold uppercase tracking-wider">Incomplete / Pending</div>
+                <div className="text-2xl sm:text-3xl font-black text-amber-400 mt-0.5 drop-shadow">
                   {dbOrders.filter((o) => o.status === "Pending").length} Pending
                 </div>
               </div>
@@ -573,69 +573,69 @@ export default function ProfilePage() {
         </div>
 
         {/* DASHBOARD TABS NAVIGATION */}
-        <div className="w-full overflow-x-auto no-scrollbar border-b border-slate-800">
+        <div className="w-full overflow-x-auto no-scrollbar p-1.5 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-800/80 shadow-lg">
           <div className="flex items-center gap-2 min-w-max">
             <button
               onClick={() => setActiveTab("assets")}
-              className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-bold text-xs sm:text-sm transition-all ${activeTab === "assets"
-                ? "border-cyan-400 text-cyan-400 bg-cyan-500/10 rounded-t-xl"
-                : "border-transparent text-slate-400 hover:text-slate-200"
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all ${activeTab === "assets"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-md shadow-cyan-500/10 font-black"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"
                 }`}
             >
-              <KeyRound className="w-4 h-4" />
+              <KeyRound className="w-4 h-4 text-cyan-400" />
               <span>🔑 Digital Assets ({dbAssets.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab("edit-profile")}
-              className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-bold text-xs sm:text-sm transition-all ${activeTab === "edit-profile"
-                ? "border-cyan-400 text-cyan-400 bg-cyan-500/10 rounded-t-xl"
-                : "border-transparent text-slate-400 hover:text-slate-200"
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all ${activeTab === "edit-profile"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-md shadow-cyan-500/10 font-black"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"
                 }`}
             >
-              <User className="w-4 h-4" />
+              <User className="w-4 h-4 text-cyan-400" />
               <span>👤 Edit Profile</span>
             </button>
 
             <button
               onClick={() => setActiveTab("orders")}
-              className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-bold text-xs sm:text-sm transition-all ${activeTab === "orders"
-                ? "border-cyan-400 text-cyan-400 bg-cyan-500/10 rounded-t-xl"
-                : "border-transparent text-slate-400 hover:text-slate-200"
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all ${activeTab === "orders"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-md shadow-cyan-500/10 font-black"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"
                 }`}
             >
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-4 h-4 text-cyan-400" />
               <span>📜 Order History ({dbOrders.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab("security")}
-              className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-bold text-xs sm:text-sm transition-all ${activeTab === "security"
-                ? "border-cyan-400 text-cyan-400 bg-cyan-500/10 rounded-t-xl"
-                : "border-transparent text-slate-400 hover:text-slate-200"
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all ${activeTab === "security"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-md shadow-cyan-500/10 font-black"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"
                 }`}
             >
-              <ShieldCheck className="w-4 h-4" />
+              <ShieldCheck className="w-4 h-4 text-cyan-400" />
               <span>🔐 Security & 2FA</span>
             </button>
 
             <button
               onClick={() => setActiveTab("support")}
-              className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-bold text-xs sm:text-sm transition-all ${activeTab === "support"
-                ? "border-cyan-400 text-cyan-400 bg-cyan-500/10 rounded-t-xl"
-                : "border-transparent text-slate-400 hover:text-slate-200"
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all ${activeTab === "support"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-md shadow-cyan-500/10 font-black"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"
                 }`}
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 text-cyan-400" />
               <span>💬 Support & Help</span>
             </button>
 
             {isAdmin && (
               <button
                 onClick={() => setActiveTab("admin")}
-                className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-bold text-xs sm:text-sm transition-all ${activeTab === "admin"
-                  ? "border-amber-400 text-amber-400 bg-amber-500/10 rounded-t-xl"
-                  : "border-transparent text-amber-400/80 hover:text-amber-300"
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all ${activeTab === "admin"
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-md shadow-amber-500/10 font-black"
+                  : "text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10 border border-transparent"
                   }`}
               >
                 <ShieldCheck className="w-4 h-4 text-amber-400" />
@@ -657,15 +657,17 @@ export default function ProfilePage() {
             </div>
 
             {dbAssets.length === 0 ? (
-              <div className="glass-panel p-12 text-center rounded-3xl border border-slate-800 my-4 space-y-3">
-                <KeyRound className="w-12 h-12 text-slate-600 mx-auto" />
-                <h3 className="text-base font-bold text-white">No active digital assets found in MongoDB Atlas</h3>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              <div className="backdrop-blur-2xl bg-slate-900/80 p-12 text-center rounded-3xl border border-slate-700/60 my-4 space-y-4 shadow-2xl">
+                <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mx-auto text-cyan-400">
+                  <KeyRound className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-black text-white">No active digital assets found in MongoDB Atlas</h3>
+                <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
                   When you purchase VPNs, subscriptions, or proxies, your credentials will appear here instantly.
                 </p>
                 <Link
                   href={`/${locale}/services`}
-                  className="inline-block px-5 py-2.5 bg-cyan-500 text-slate-950 font-bold text-xs rounded-xl"
+                  className="inline-block px-6 py-3 bg-gradient-to-r from-cyan-500 to-sky-600 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-cyan-500/20 hover:scale-105 transition-all"
                 >
                   Explore Shop Services
                 </Link>
@@ -673,20 +675,20 @@ export default function ProfilePage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {dbAssets.map((asset) => (
-                  <div key={asset._id || asset.id} className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
+                  <div key={asset._id || asset.id} className="backdrop-blur-2xl bg-slate-900/80 p-6 rounded-3xl border border-slate-700/60 space-y-4 shadow-xl hover:border-cyan-500/40 transition-all">
                     <div className="flex justify-between items-start">
                       <div>
                         <span className="text-[10px] font-mono text-cyan-400 font-extrabold uppercase">{asset.category}</span>
-                        <h3 className="text-base font-bold text-white mt-0.5">{asset.title}</h3>
+                        <h3 className="text-base font-black text-white mt-0.5">{asset.title}</h3>
                       </div>
-                      <span className="px-2.5 py-0.5 text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
+                      <span className="px-2.5 py-0.5 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full">
                         {asset.status || "Active"}
                       </span>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                    <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 space-y-3 backdrop-blur-lg">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400 font-semibold">Access Credentials:</span>
+                        <span className="text-slate-300 font-semibold">Access Credentials:</span>
                         {asset.credentials && (
                           <button
                             onClick={() => handleCopy(asset.credentials, asset._id || asset.id)}
@@ -697,7 +699,7 @@ export default function ProfilePage() {
                           </button>
                         )}
                       </div>
-                      <div className="text-cyan-300 font-mono text-xs font-bold break-all bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/60">
+                      <div className="text-cyan-300 font-mono text-xs font-bold break-all bg-slate-900/90 p-2.5 rounded-xl border border-slate-700/60">
                         {asset.credentials || "Standard Digital License / Access Granted"}
                       </div>
 
@@ -717,7 +719,7 @@ export default function ProfilePage() {
                               <span>{copiedId === (asset._id || asset.id) + "_notes" ? "Copied!" : "Copy Notes"}</span>
                             </button>
                           </div>
-                          <div className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 font-sans">
+                          <div className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed bg-amber-500/10 p-3 rounded-xl border border-amber-500/30 font-sans">
                             {asset.deliveryNotes}
                           </div>
                         </div>
@@ -739,7 +741,7 @@ export default function ProfilePage() {
                               return (
                                 <div
                                   key={fIdx}
-                                  className="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 transition-all space-y-2"
+                                  className="p-3 rounded-xl bg-slate-900/90 border border-slate-700/60 hover:border-cyan-500/50 transition-all space-y-2"
                                 >
                                   <div className="flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2.5 truncate min-w-0 flex-1">
@@ -804,7 +806,7 @@ export default function ProfilePage() {
 
         {/* TAB 2: EDIT PROFILE */}
         {activeTab === "edit-profile" && (
-          <div className="max-w-2xl mx-auto glass-panel p-8 rounded-3xl border border-slate-800 space-y-6 animate-in fade-in">
+          <div className="max-w-2xl mx-auto backdrop-blur-2xl bg-slate-900/80 p-8 rounded-3xl border border-slate-700/60 space-y-6 animate-in fade-in shadow-2xl">
             <div>
               <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-full">
                 MongoDB Atlas Real-Time Persistence
@@ -817,7 +819,7 @@ export default function ProfilePage() {
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
               {/* Profile Avatar Card in Edit Tab */}
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-4">
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <img
                     src={editForm.avatar}
@@ -862,7 +864,7 @@ export default function ProfilePage() {
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-slate-950/80 border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
                 />
               </div>
 
@@ -872,7 +874,7 @@ export default function ProfilePage() {
                   type="email"
                   disabled
                   value={editForm.email}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
+                  className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
                 />
               </div>
 
@@ -883,7 +885,7 @@ export default function ProfilePage() {
                     type="text"
                     value={editForm.phone}
                     onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-slate-950/80 border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
                   />
                 </div>
 
@@ -893,7 +895,7 @@ export default function ProfilePage() {
                     type="text"
                     value={editForm.whatsapp}
                     onChange={(e) => setEditForm({ ...editForm, whatsapp: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-slate-950/80 border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
                   />
                 </div>
               </div>
@@ -904,14 +906,14 @@ export default function ProfilePage() {
                   type="text"
                   value={editForm.address}
                   onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-slate-950/80 border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
                 />
               </div>
 
               <div className="pt-4 flex gap-3">
                 <button
                   type="submit"
-                  className="py-3.5 px-6 bg-gradient-to-r from-cyan-500 to-sky-600 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center gap-2"
+                  className="py-3.5 px-6 bg-gradient-to-r from-cyan-500 to-sky-600 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center gap-2 hover:scale-105 transition-all"
                 >
                   <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
                   <span>Save Profile</span>
@@ -919,7 +921,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("assets")}
-                  className="py-3.5 px-6 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
+                  className="py-3.5 px-6 bg-slate-800/80 hover:bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
                 >
                   Cancel
                 </button>
@@ -937,24 +939,26 @@ export default function ProfilePage() {
             </h2>
 
             {dbOrders.length === 0 ? (
-              <div className="glass-panel p-12 text-center rounded-3xl border border-slate-800 my-4 space-y-3">
-                <ShoppingBag className="w-12 h-12 text-slate-600 mx-auto" />
-                <h3 className="text-base font-bold text-white">No transaction records found in MongoDB Atlas</h3>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              <div className="backdrop-blur-2xl bg-slate-900/80 p-12 text-center rounded-3xl border border-slate-700/60 my-4 space-y-4 shadow-2xl">
+                <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mx-auto text-cyan-400">
+                  <ShoppingBag className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-black text-white">No transaction records found in MongoDB Atlas</h3>
+                <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
                   Your purchase receipts and transaction history will appear here once you place an order.
                 </p>
                 <Link
                   href={`/${locale}/services`}
-                  className="inline-block px-5 py-2.5 bg-cyan-500 text-slate-950 font-bold text-xs rounded-xl"
+                  className="inline-block px-6 py-3 bg-gradient-to-r from-cyan-500 to-sky-600 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-cyan-500/20 hover:scale-105 transition-all"
                 >
                   Start Shopping
                 </Link>
               </div>
             ) : (
-              <div className="glass-panel rounded-3xl border border-slate-800 overflow-hidden">
+              <div className="backdrop-blur-2xl bg-slate-900/80 rounded-3xl border border-slate-700/60 overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-300">
-                    <thead className="bg-slate-900/80 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <table className="w-full text-left text-xs text-slate-200">
+                    <thead className="bg-slate-950/80 text-slate-300 font-bold uppercase text-[10px] tracking-wider border-b border-slate-700/60">
                       <tr>
                         <th className="p-4">Order ID</th>
                         <th className="p-4">Items Count</th>
@@ -967,7 +971,7 @@ export default function ProfilePage() {
                     </thead>
                     <tbody className="divide-y divide-slate-800/60">
                       {dbOrders.map((ord) => (
-                        <tr key={ord._id || ord.orderId} className="hover:bg-slate-900/40">
+                        <tr key={ord._id || ord.orderId} className="hover:bg-cyan-500/10 transition-colors">
                           <td className="p-4 font-mono font-bold text-cyan-400">
                             <div>{ord.orderId}</div>
                             {ord.deliveryFiles && ord.deliveryFiles.length > 0 && (
@@ -978,13 +982,13 @@ export default function ProfilePage() {
                             )}
                           </td>
                           <td className="p-4 font-bold text-white">{ord.items?.length || 1} Item(s)</td>
-                          <td className="p-4 text-slate-400">{new Date(ord.createdAt || Date.now()).toLocaleDateString()}</td>
+                          <td className="p-4 text-slate-300">{new Date(ord.createdAt || Date.now()).toLocaleDateString()}</td>
                           <td className="p-4">{ord.paymentMethod}</td>
                           <td className="p-4 font-mono text-cyan-300">{ord.trxId}</td>
                           <td className="p-4 font-black text-cyan-300">৳{ord.totalAmount}</td>
                           <td className="p-4">
                             <div className="space-y-1">
-                              <span className="px-2.5 py-0.5 text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full inline-block">
+                              <span className="px-2.5 py-0.5 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full inline-block">
                                 {ord.status || "Delivered"}
                               </span>
                               {ord.deliveryFiles && ord.deliveryFiles.length > 0 && (
@@ -1017,9 +1021,9 @@ export default function ProfilePage() {
         {/* TAB 4: SECURITY */}
         {activeTab === "security" && (
           <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in">
-            <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
+            <div className="backdrop-blur-2xl bg-slate-900/80 p-6 rounded-3xl border border-slate-700/60 space-y-4 shadow-2xl">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                <div className="p-3 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div>
@@ -1029,8 +1033,8 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <div className="backdrop-blur-2xl bg-slate-900/80 p-8 rounded-3xl border border-slate-700/60 space-y-4 shadow-2xl">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
                 <Lock className="w-5 h-5 text-cyan-400" />
                 <span>Change Account Password</span>
               </h3>
@@ -1043,7 +1047,7 @@ export default function ProfilePage() {
                     required
                     value={currentPass}
                     onChange={(e) => setCurrentPass(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white"
+                    className="w-full bg-slate-950/80 border border-slate-700/60 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
                   />
                 </div>
 
@@ -1055,7 +1059,7 @@ export default function ProfilePage() {
                       required
                       value={newPass}
                       onChange={(e) => setNewPass(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white"
+                      className="w-full bg-slate-950/80 border border-slate-700/60 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
                     />
                   </div>
 
@@ -1066,12 +1070,12 @@ export default function ProfilePage() {
                       required
                       value={confirmPass}
                       onChange={(e) => setConfirmPass(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white"
+                      className="w-full bg-slate-950/80 border border-slate-700/60 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
                     />
                   </div>
                 </div>
 
-                <button type="submit" className="py-3 px-6 bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-bold text-xs rounded-xl">
+                <button type="submit" className="py-3 px-6 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold text-xs rounded-xl hover:bg-cyan-500/30 transition-all shadow-md">
                   Update Password
                 </button>
               </form>
@@ -1083,12 +1087,12 @@ export default function ProfilePage() {
         {activeTab === "support" && (
           <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in">
             {/* Header Banner */}
-            <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-slate-900 to-indigo-950/40 space-y-2 text-center sm:text-left">
+            <div className="backdrop-blur-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900/80 to-indigo-950/60 p-6 sm:p-8 rounded-3xl border border-cyan-500/40 space-y-2 text-center sm:text-left shadow-2xl">
               <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
                 24/7 Priority Support 🎧
               </span>
               <h3 className="text-xl sm:text-2xl font-black text-white">Need Live 24/7 Assistance?</h3>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
+              <p className="text-xs sm:text-sm text-slate-200 max-w-xl">
                 Contact our dedicated admin team directly via WhatsApp or Email for immediate order and account support.
               </p>
             </div>
@@ -1096,7 +1100,7 @@ export default function ProfilePage() {
             {/* 2 Main Support Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Card 1: WhatsApp Support (Two Admins) */}
-              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-5 flex flex-col justify-between">
+              <div className="backdrop-blur-2xl bg-slate-900/80 p-6 sm:p-8 rounded-3xl border border-slate-700/60 space-y-5 flex flex-col justify-between shadow-2xl">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
@@ -1107,7 +1111,7 @@ export default function ProfilePage() {
                     </span>
                   </div>
                   <h4 className="text-lg font-black text-white">WhatsApp Live Chat</h4>
-                  <p className="text-xs text-slate-400 mt-1">Get instant order verification & instant assistance from our official admins.</p>
+                  <p className="text-xs text-slate-300 mt-1">Get instant order verification & instant assistance from our official admins.</p>
                 </div>
 
                 <div className="space-y-3 pt-2">
@@ -1116,16 +1120,16 @@ export default function ProfilePage() {
                     href="https://wa.me/8801990800188"
                     target="_blank"
                     rel="noreferrer"
-                    className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 flex items-center justify-between group transition-all"
+                    className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-700/60 hover:border-emerald-500/50 flex items-center justify-between group transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center font-bold text-xs">
                         💬
                       </div>
                       <div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Admin</div>
                         <div className="text-xs font-black text-white group-hover:text-emerald-400 transition-colors">FARID</div>
-                        <div className="text-[11px] font-mono text-slate-400">01990800188</div>
+                        <div className="text-[11px] font-mono text-slate-300">01990800188</div>
                       </div>
                     </div>
                     <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs flex items-center gap-1 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all">
@@ -1139,16 +1143,16 @@ export default function ProfilePage() {
                     href="https://wa.me/8801302271472"
                     target="_blank"
                     rel="noreferrer"
-                    className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 flex items-center justify-between group transition-all"
+                    className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-700/60 hover:border-emerald-500/50 flex items-center justify-between group transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center font-bold text-xs">
                         👑
                       </div>
                       <div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Admin</div>
                         <div className="text-xs font-black text-white group-hover:text-emerald-400 transition-colors">MD ASIF RAYHAN JOY</div>
-                        <div className="text-[11px] font-mono text-slate-400">01302271472</div>
+                        <div className="text-[11px] font-mono text-slate-300">01302271472</div>
                       </div>
                     </div>
                     <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs flex items-center gap-1 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all">
@@ -1160,7 +1164,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Card 2: Official Email Support */}
-              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-5 flex flex-col justify-between">
+              <div className="backdrop-blur-2xl bg-slate-900/80 p-6 sm:p-8 rounded-3xl border border-slate-700/60 space-y-5 flex flex-col justify-between shadow-2xl">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
@@ -1171,10 +1175,10 @@ export default function ProfilePage() {
                     </span>
                   </div>
                   <h4 className="text-lg font-black text-white">Email Helpdesk</h4>
-                  <p className="text-xs text-slate-400 mt-1">Send your detailed order queries, warranty inquiries, or business questions via email.</p>
+                  <p className="text-xs text-slate-300 mt-1">Send your detailed order queries, warranty inquiries, or business questions via email.</p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
                   <div>
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Support Mail</div>
                     <div className="text-xs sm:text-sm font-black text-cyan-300 truncate mt-0.5">mdasifrayhanjoy2@gmail.com</div>
@@ -1197,7 +1201,7 @@ export default function ProfilePage() {
         {activeTab === "admin" && isAdmin && (
           <div className="space-y-8 animate-in fade-in">
             {/* Admin Header Card - Distinct Look */}
-            <div className="p-6 sm:p-8 rounded-3xl border border-amber-500/40 bg-gradient-to-br from-slate-950 via-amber-950/20 to-slate-950 shadow-2xl relative overflow-hidden">
+            <div className="p-6 sm:p-8 rounded-3xl border border-amber-500/50 bg-gradient-to-br from-slate-900/90 via-amber-950/40 to-slate-900/90 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                   <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 w-max">
@@ -1238,12 +1242,12 @@ export default function ProfilePage() {
 
               {/* Admin Order Status Metrics Bar */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-amber-500/20">
-                <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/20">
+                <div className="p-4 rounded-2xl bg-slate-950/80 border border-amber-500/20">
                   <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Received</div>
                   <div className="text-2xl font-black text-white mt-1">{adminOrdersList.length} Orders</div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30 shadow-lg shadow-amber-500/5">
+                <div className="p-4 rounded-2xl bg-slate-950/80 border border-amber-500/30 shadow-lg shadow-amber-500/5">
                   <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                     <span>Pending Approval</span>
@@ -1253,14 +1257,14 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/30 shadow-lg shadow-emerald-500/5">
+                <div className="p-4 rounded-2xl bg-slate-950/80 border border-emerald-500/30 shadow-lg shadow-emerald-500/5">
                   <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Approved / Completed</div>
                   <div className="text-2xl font-black text-emerald-400 mt-1">
                     {adminOrdersList.filter((o) => getNormalizedStatus(o.status) === "Completed").length} Approved
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900/90 border border-rose-500/20">
+                <div className="p-4 rounded-2xl bg-slate-950/80 border border-rose-500/20">
                   <div className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">Rejected</div>
                   <div className="text-2xl font-black text-rose-400 mt-1">
                     {adminOrdersList.filter((o) => getNormalizedStatus(o.status) === "Rejected").length} Rejected
@@ -1270,13 +1274,13 @@ export default function ProfilePage() {
             </div>
 
             {/* Order Filter Tabs & Search Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-panel p-4 rounded-2xl border border-slate-800">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-2xl bg-slate-900/80 p-4 rounded-2xl border border-slate-700/60 shadow-xl">
               <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
                 <button
                   onClick={() => setAdminOrderFilter("all")}
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${adminOrderFilter === "all"
                       ? "bg-amber-500 text-slate-950 font-black shadow-md"
-                      : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                      : "bg-slate-950/80 text-slate-400 hover:text-white border border-slate-800"
                     }`}
                 >
                   All Orders ({adminOrdersList.length})
@@ -1318,15 +1322,15 @@ export default function ProfilePage() {
                 placeholder="Search Order ID, Email or TrxID..."
                 value={adminSearchQuery}
                 onChange={(e) => setAdminSearchQuery(e.target.value)}
-                className="w-full sm:w-64 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                className="w-full sm:w-64 bg-slate-950/80 border border-slate-700/60 rounded-xl px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
               />
             </div>
 
             {/* ADMIN ORDERS APPROVAL TABLE */}
-            <div className="glass-panel rounded-3xl border border-amber-500/30 overflow-hidden shadow-xl">
+            <div className="backdrop-blur-2xl bg-slate-900/80 rounded-3xl border border-amber-500/40 overflow-hidden shadow-2xl">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-900/90 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <thead className="bg-slate-950/90 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
                     <tr>
                       <th className="p-4">Order ID & Date</th>
                       <th className="p-4">Customer Email</th>
@@ -1351,7 +1355,7 @@ export default function ProfilePage() {
                           <tr key={ord.orderId} className="hover:bg-slate-900/60 transition-colors">
                             <td className="p-4">
                               <div className="font-mono font-black text-amber-400 text-sm">{ord.orderId}</div>
-                              <div className="text-[10px] text-slate-500 mt-0.5">
+                              <div className="text-[10px] text-slate-400 mt-0.5">
                                 {new Date(ord.createdAt || Date.now()).toLocaleString()}
                               </div>
                             </td>

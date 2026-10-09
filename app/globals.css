@@ -2,13 +2,19 @@
 
 @layer base {
   :root {
-    --background: 9 13 22;
+    --background: 7 11 22;
     --foreground: 241 245 249;
   }
 }
 
 html, body {
-  background-color: #080c14;
+  background-color: #070b16;
+  background-image: 
+    linear-gradient(to bottom, rgba(7, 11, 22, 0.85), rgba(7, 11, 22, 0.92)),
+    url('/images/hero-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   color: #f1f5f9;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   overflow-x: hidden;
@@ -17,14 +23,15 @@ html, body {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #080c14;
+  background: #070b16;
 }
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
-  border-radius: 4px;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #06b6d4;
@@ -41,19 +48,20 @@ html, body {
   scrollbar-width: none;
 }
 
-/* Glassmorphism utilities with mobile performance optimization */
+/* Glassmorphism utilities with reference UI styling */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
   transform: translateZ(0);
 }
 
 @media (max-width: 640px) {
   .glass-panel {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     background: rgba(15, 23, 42, 0.88);
   }
 }
@@ -63,10 +71,83 @@ html, body {
   will-change: transform, box-shadow;
 }
 .glass-panel-hover:hover {
-  background: rgba(15, 23, 42, 0.85);
-  border-color: rgba(6, 182, 212, 0.4);
-  box-shadow: 0 8px 24px -8px rgba(6, 182, 212, 0.25);
+  background: rgba(15, 23, 42, 0.75);
+  border-color: rgba(6, 182, 212, 0.35);
+  box-shadow: 0 12px 32px -8px rgba(6, 182, 212, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
   transform: translateY(-2px) translateZ(0);
+}
+
+/* Reference UI Category Pill Tabs - Translucent Glassmorphism & Upscaled Prominence */
+.pill-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 1.35rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+.pill-tab:hover {
+  color: #ffffff;
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(6, 182, 212, 0.5);
+  box-shadow: 0 6px 24px -4px rgba(6, 182, 212, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px) scale(1.02);
+}
+.pill-tab-active {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%) !important;
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  box-shadow: 0 6px 25px -2px rgba(6, 182, 212, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.25) !important;
+  transform: translateY(-1px);
+}
+
+/* Reference UI Dashboard Launcher Cards */
+.dashboard-card {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s ease;
+}
+.dashboard-card:hover {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 16px 40px -12px rgba(6, 182, 212, 0.15);
+}
+
+/* Reference UI Floating Right Launcher Dock */
+.right-dock {
+  position: fixed;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.5rem;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
 }
 
 .glow-cyan {
@@ -77,7 +158,19 @@ html, body {
   text-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
 }
 
-/* Gradient animations with hardware acceleration optimization */
+/* Continuous Ken Burns Background Zoom & Movement Animation */
+@keyframes kenburns {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.06) translate(-0.8%, -0.5%); }
+  100% { transform: scale(1.12) translate(0.8%, 0.5%); }
+}
+
+.animate-kenburns {
+  animation: kenburns 8s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Gradient animations */
 @keyframes pulseGlow {
   0%, 100% { opacity: 0.4; transform: scale(1) translateZ(0); }
   50% { opacity: 0.8; transform: scale(1.05) translateZ(0); }
@@ -100,30 +193,7 @@ html, body {
   transform: translateZ(0);
 }
 
-/* Continuous Marquee Ticker */
-@keyframes marqueeContinuous {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
-}
-
-.animate-marquee-continuous {
-  display: flex;
-  width: max-content;
-  animation: marqueeContinuous 18s linear infinite;
-  will-change: transform;
-}
-
-@media (max-width: 768px) {
-  .animate-marquee-continuous {
-    animation-duration: 15s;
-  }
-}
-
-.animate-marquee-continuous:hover {
-  animation-play-state: paused;
-}
-
-/* Mobile Performance & Touch Responsiveness Optimizations */
+/* Mobile Performance & Touch Responsiveness */
 button, a, input, select, textarea {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -133,45 +203,48 @@ button, a, input, select, textarea {
   html, body {
     -webkit-overflow-scrolling: touch;
   }
-
-  /* Reduce GPU compositor load on mobile screens */
   .backdrop-blur-2xl,
   .backdrop-blur-xl,
   .backdrop-blur-lg,
   .backdrop-blur-md,
   .glass-panel {
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
-    background-color: rgba(15, 23, 42, 0.94) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    background-color: rgba(15, 23, 42, 0.9) !important;
   }
-
-  /* Optimize heavy element blurs on small screens to prevent scroll stutter */
-  [class*="blur-[1"],
-  [class*="blur-[2"],
-  .blur-3xl,
-  .blur-2xl,
-  .blur-xl {
-    filter: blur(8px) !important;
-    -webkit-filter: blur(8px) !important;
-  }
-
-  /* Reduce non-essential infinite background animations on mobile for smooth FPS */
-  .animate-pulse-glow,
-  .animate-float {
-    animation: none !important;
-  }
-
-  /* Hardware accelerate fixed header on mobile touch devices */
   header {
     transform: translateZ(0);
     will-change: transform;
   }
-
-  /* Disable heavy box shadows on small mobile screens for smooth 60fps touch scroll */
-  .shadow-2xl,
-  .shadow-xl {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-  }
 }
+
+/* Infinite Marquee Ticker Animations */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 45s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.animate-marquee-reverse {
+  display: flex;
+  width: max-content;
+  animation: marquee-reverse 50s linear infinite;
+}
+.animate-marquee-reverse:hover {
+  animation-play-state: paused;
+}
+
 
 

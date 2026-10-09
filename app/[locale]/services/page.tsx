@@ -7,6 +7,8 @@ import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import ServiceCard from "@/components/ServiceCard";
 import CategoryTabs from "@/components/CategoryTabs";
+import RightDock from "@/components/RightDock";
+import BackgroundSlider from "@/components/BackgroundSlider";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
 
@@ -161,7 +163,7 @@ function ServicesContent() {
         }, 400);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, servicesList]);
 
   // Filter & Sort
   const processedServices = useMemo(() => {
@@ -272,7 +274,10 @@ function ServicesContent() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative">
+    <div className="min-h-screen text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
+      {/* DYNAMIC 3D BACKGROUND SLIDER (Rotates 5 3D Tech Images every 4s with Dark Overlay) */}
+      <BackgroundSlider />
+
       <Navbar
         onOpenCart={contextOpenCart}
         onOpenSearch={() => setIsSearchModalOpen(true)}
@@ -281,23 +286,27 @@ function ServicesContent() {
         currentLocale={locale}
       />
 
+      <RightDock
+        onOpenSearch={() => setIsSearchModalOpen(true)}
+      />
+
       {/* Header Banner */}
-      <div className="pt-32 pb-8 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 border-b border-slate-800">
+      <div className="relative z-10 pt-24 pb-4 bg-gradient-to-b from-slate-950/70 via-slate-950/85 to-[#070b16]/90 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-            Digital Catalog 🇧🇩
+          <span className="px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+            Digital Shop Catalog 🇧🇩
           </span>
-          <h1 className="text-3xl sm:text-5xl font-black text-white mt-3">
-            All Digital Services & Subscriptions
+          <h1 className="text-2xl sm:text-4xl font-black text-white mt-2 font-sans">
+            Digital Tools & Subscriptions Catalog
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-2 max-w-xl mx-auto">
-            Browse VPNs, SIM bundles, ChatGPT Plus, YouTube Premium, IP Proxies and Verified Emails with instant automated delivery.
+          <p className="text-xs text-slate-400 mt-1 max-w-lg mx-auto">
+            Browse VPNs, SIM bundles, ChatGPT Plus, YouTube Premium, IP Proxies and PVA Emails.
           </p>
         </div>
       </div>
 
       {/* Categories & Sorting Toolbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 w-full">
         <CategoryTabs
           activeCategory={activeCategory}
           onSelectCategory={handleSelectCategory}
@@ -555,19 +564,19 @@ function ServicesContent() {
             {isAdmin && (
               <div
                 onClick={handleOpenAddModal}
-                className="group rounded-[28px] p-6 border-2 border-dashed border-amber-500/40 hover:border-amber-400 bg-amber-500/5 hover:bg-amber-500/10 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 min-h-[520px] shadow-lg shadow-amber-500/5 hover:scale-[1.02]"
+                className="group rounded-2xl p-4 border-2 border-dashed border-amber-500/40 hover:border-amber-400 bg-amber-500/5 hover:bg-amber-500/10 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 min-h-[240px] shadow-lg shadow-amber-500/5 hover:scale-[1.02]"
               >
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/50 text-amber-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
-                  <Plus className="w-8 h-8 stroke-[3]" />
+                <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md">
+                  <Plus className="w-6 h-6 stroke-[3]" />
                 </div>
-                <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full mb-2">
+                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full mb-1">
                   Admin Control
                 </span>
-                <h3 className="text-xl font-black text-amber-300 group-hover:text-amber-200">
-                  + Add New Service Card
+                <h3 className="text-base font-black text-amber-300 group-hover:text-amber-200">
+                  + Add New Card
                 </h3>
-                <p className="text-xs text-slate-400 mt-2 max-w-xs leading-relaxed">
-                  Click here to create a new database-driven card with full title, images, badges, price, and features.
+                <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-tight">
+                  Create a new database-driven product card.
                 </p>
               </div>
             )}

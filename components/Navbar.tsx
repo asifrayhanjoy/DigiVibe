@@ -25,7 +25,6 @@ import dynamic from "next/dynamic";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import AnnouncementBanner from "@/components/AnnouncementBanner";
 import AdminNotificationBell from "@/components/AdminNotificationBell";
 import UserNotificationBell from "@/components/UserNotificationBell";
 import { Locale } from "@/types";
@@ -112,7 +111,6 @@ function Navbar({
 
   const navLinks = [
     { name: "Home", href: `/${locale}` },
-    { name: "Products", href: `/${locale}/services`, categoryId: "all" },
     { name: "Today's Update", href: `/${locale}/updates` },
     { name: "About Us", href: `/${locale}/about` },
     { name: "Support", href: `/${locale}/support` },
@@ -137,7 +135,6 @@ function Navbar({
         : "bg-slate-950/90 sm:backdrop-blur-md py-0 border-b border-white/5"
         }`}
     >
-      <AnnouncementBanner />
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 h-16 w-full">
         {/* LOGO */}
         <Link href={`/${locale}`} className="flex items-center gap-2 group shrink-0 min-w-0">
