@@ -202,17 +202,31 @@ button, a, input, select, textarea {
 @media (max-width: 768px) {
   html, body {
     -webkit-overflow-scrolling: touch;
+    background-attachment: scroll !important; /* Fixed backgrounds cause severe lag on mobile Safari/Chrome */
+  }
+  .animate-kenburns {
+    animation: none !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+  .animate-pulse-glow {
+    animation: none !important;
+    opacity: 0.6 !important;
+  }
+  .animate-float {
+    animation: none !important;
   }
   .backdrop-blur-2xl,
   .backdrop-blur-xl,
   .backdrop-blur-lg,
   .backdrop-blur-md,
-  .glass-panel {
+  .glass-panel,
+  .pill-tab {
     backdrop-filter: blur(6px) !important;
     -webkit-backdrop-filter: blur(6px) !important;
-    background-color: rgba(15, 23, 42, 0.9) !important;
+    background-color: rgba(15, 23, 42, 0.92) !important;
   }
-  header {
+  header, nav, main {
     transform: translateZ(0);
     will-change: transform;
   }
@@ -244,6 +258,16 @@ button, a, input, select, textarea {
 }
 .animate-marquee-reverse:hover {
   animation-play-state: paused;
+}
+
+/* Prefers Reduced Motion & Zero-Lag Performance Rules */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 

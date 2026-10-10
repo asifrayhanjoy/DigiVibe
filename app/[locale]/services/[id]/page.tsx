@@ -8,7 +8,8 @@ import Footer from "@/components/Footer";
 import CheckoutModal from "@/components/CheckoutModal";
 import AdminProductModal from "@/components/AdminProductModal";
 import Toast from "@/components/Toast";
-import ServiceCard from "@/components/ServiceCard";
+import ServiceCard, { BrandLogoSvg } from "@/components/ServiceCard";
+import BackgroundSlider from "@/components/BackgroundSlider";
 import { ServiceItem, CartItem } from "@/types";
 import { SERVICES } from "@/data/services";
 import { useLanguage } from "@/context/LanguageContext";
@@ -177,11 +178,12 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
+      <BackgroundSlider />
       <Navbar onOpenSearch={() => {}} currentLocale={locale as any} />
 
       {/* Main Content Area */}
-      <main className="pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1">
+      <main className="pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 relative z-10">
         {/* Breadcrumb Navigation */}
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mb-6 font-semibold">
           <Link href={`/${locale}`} className="hover:text-cyan-400 transition-colors">Home</Link>
@@ -218,12 +220,13 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
                 <img
                   src={service.logo || service.image}
                   alt={service.title}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-contain max-h-60"
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center text-cyan-500">
-                  <Sparkles className="w-20 h-20" />
-                  <span className="text-xs text-slate-500 uppercase font-black mt-2">{service.category}</span>
+                <div className="w-full h-full flex items-center justify-center p-4">
+                  <BrandLogoSvg logoType={service.logoType} title={service.title} />
                 </div>
               )}
 

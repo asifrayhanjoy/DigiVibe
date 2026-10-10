@@ -133,20 +133,38 @@ export default function ProfilePage() {
     }
   };
 
-  const handleRejectOrder = async (orderId: string) => {
-    showToast("Rejecting Order...", `Updating order #${orderId}...`);
+  const handleRejectOrder = async (targetOrder: any) => {
+    const orderId = typeof targetOrder === "string" ? targetOrder : (targetOrder?.orderId || targetOrder?._id);
+    const orderDisplayId = typeof targetOrder === "string" ? targetOrder : (targetOrder?.orderId || "Order");
+
+    if (!orderId) return;
+
+    showToast("Rejecting Order...", `Updating order #${orderDisplayId}...`);
+
+    // Optimistic state update
+    setAdminOrdersList((prev) =>
+      prev.map((o) => (o.orderId === orderId || o._id === orderId ? { ...o, status: "Rejected" } : o))
+    );
+
     const res = await apiUpdateOrderStatus(orderId, "Rejected");
+
     if (res.success) {
-      setAdminOrdersList((prev) =>
-        prev.map((o) => (o.orderId === orderId ? { ...o, status: "Rejected" } : o))
-      );
-      showToast("Order Rejected ❌", `Order #${orderId} marked as rejected.`);
+      showToast("Order Rejected ❌", `Order #${orderDisplayId} marked as rejected.`);
+      const freshOrds = await apiFetchAllOrders();
+      if (freshOrds && Array.isArray(freshOrds)) {
+        setAdminOrdersList(freshOrds);
+      }
       const userEmail = authUser?.email || localStorage.getItem("digivibe_user_email") || profile.email;
       if (userEmail) {
         apiFetchUserOrders(userEmail).then((ords) => setDbOrders(ords || []));
+        apiFetchUserAssets(userEmail).then((asts) => setDbAssets(asts || []));
       }
     } else {
-      showToast("Rejection Failed", res.message);
+      showToast("Rejection Failed ❌", res.message || "Failed to update status.");
+      const freshOrds = await apiFetchAllOrders();
+      if (freshOrds && Array.isArray(freshOrds)) {
+        setAdminOrdersList(freshOrds);
+      }
     }
   };
 

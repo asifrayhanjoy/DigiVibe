@@ -2,17 +2,21 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
 import { SERVICES } from "@/data/services";
+import { getCanonicalCategory } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 // Helper to sanitize product document to client ServiceItem format
 function mapProductToServiceItem(doc: any) {
+  const productId = doc.productId || doc._id.toString();
+  const canonicalCat = getCanonicalCategory({ id: productId, category: doc.category, title: doc.title });
+
   return {
-    id: doc.productId || doc._id.toString(),
+    id: productId,
     _id: doc._id.toString(),
     title: doc.title,
-    category: doc.category,
+    category: canonicalCat,
     subtitle: doc.subtitle || "",
     operator: doc.operator || "",
     price: Number(doc.price),
@@ -45,15 +49,54 @@ function mapProductToServiceItem(doc: any) {
   };
 }
 
-// GET /api/products - Fetch all products from MongoDB Atlas (with auto-seeding fallback)
+// GET /api/products - Fetch all products from MongoDB Atlas (with initial seeding fallback)
 export async function GET(req: Request) {
   try {
     await connectDB();
 
-    // Auto-seed static SERVICES cards ONLY IF database product count is 0
-    const count = await (Product as any).countDocuments();
-    if (count === 0) {
-      console.log("Seeding initial products to MongoDB Atlas...");
+    // 1. One-time initial seeding for empty database or missing default static products ($setOnInsert)
+    const existingCount = await (Product as any).countDocuments();
+
+    if (existingCount === 0) {
+      // Seed default SERVICES into MongoDB if DB is completely empty
+      const initialDocs = (SERVICES as any[]).map((item) => ({
+        productId: item.id,
+        title: item.title,
+        category: item.category,
+        subtitle: item.subtitle || item.badge || "",
+        operator: item.operator || "",
+        price: item.price,
+        originalPrice: item.originalPrice || Math.round(item.price * 1.2),
+        duration: item.validity || item.duration || "7 Days",
+        rating: item.rating || 4.8,
+        reviews: item.reviews || 120,
+        tag: item.badge || item.tag || "",
+        badge: item.badge || item.subtitle || "",
+        badgeColor: item.badgeColor || "",
+        logo: item.logo || item.image || "",
+        image: item.image || item.logo || "",
+        logoType: item.logoType || "",
+        icon: item.icon || "Sparkles",
+        inStock: item.inStock !== false && item.stock !== "Stock Out" && item.stock !== "Out of Stock",
+        stock: item.stock || (item.inStock === false ? "Out of Stock" : "In Stock"),
+        features: item.features || [],
+        popular: !!item.popular,
+        usdPrice: item.usdPrice || "",
+        unit: item.unit || "",
+        delivery: item.delivery || "Instant Auto-Delivery",
+        description: item.description || "",
+        overview: item.overview || "",
+        minQuantity: item.minQuantity,
+        maxQuantity: item.maxQuantity,
+        terms: item.terms || "",
+        priceNote: item.priceNote || "",
+      }));
+
+      if (initialDocs.length > 0) {
+        await (Product as any).insertMany(initialDocs, { ordered: false });
+      }
+    } else {
+      // If DB has documents, ensure missing default SERVICES are added using $setOnInsert (never overwriting existing edits or deleting custom cards)
       const seedOperations = (SERVICES as any[]).map((item) => ({
         updateOne: {
           filter: { productId: item.id },

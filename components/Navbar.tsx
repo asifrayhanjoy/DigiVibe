@@ -180,35 +180,8 @@ function Navbar({
           })}
         </nav>
 
-        {/* SEARCH BAR (Desktop) */}
-        <div className="hidden lg:flex flex-1 max-w-[220px] xl:max-w-xs mx-1 xl:mx-2">
-          <button
-            onClick={handleSearch}
-            className="w-full flex items-center justify-between px-3 py-1.5 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/40 rounded-xl text-slate-400 text-xs transition-all duration-200 shadow-inner group"
-          >
-            <div className="flex items-center gap-2 truncate">
-              <Search className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform shrink-0" />
-              <span className="group-hover:text-slate-200 transition-colors truncate">
-                {dict.nav.searchPlaceholder}
-              </span>
-            </div>
-            <kbd className="hidden xl:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-slate-800 border border-slate-700 rounded shrink-0">
-              <span>Ctrl</span> K
-            </kbd>
-          </button>
-        </div>
-
         {/* RIGHT ACTIONS HEADER BAR */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Search icon (Desktop/Tablet small) */}
-          <button
-            onClick={handleSearch}
-            className="p-2 lg:hidden text-slate-300 hover:text-cyan-400 bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl transition-all"
-            aria-label="Search"
-            title="Search Services"
-          >
-            <Search className="w-4 h-4" />
-          </button>
 
           {/* LANGUAGE SWITCHER DROPDOWN (Visible Desktop / Tablet) */}
           <div className="relative hidden sm:block">

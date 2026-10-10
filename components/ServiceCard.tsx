@@ -32,7 +32,8 @@ import {
   ArrowRight,
   Heart,
   Cpu,
-  Pencil
+  Pencil,
+  Trash2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ServiceItem } from "@/types";
@@ -68,7 +69,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 // High-resolution SVGs for Brand Logos
-const BrandLogoSvg = memo(function BrandLogoSvg({ logoType, title }: { logoType?: string; title: string }) {
+export const BrandLogoSvg = memo(function BrandLogoSvg({ logoType, title }: { logoType?: string; title: string }) {
   const type = (logoType || title).toLowerCase();
 
   if (type.includes("youtube")) {
@@ -146,6 +147,62 @@ const BrandLogoSvg = memo(function BrandLogoSvg({ logoType, title }: { logoType?
     );
   }
 
+  if (type.includes("pinterest")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="48" fill="#E60023" />
+        <path d="M50 16C31.2 16 16 31.2 16 50C16 64.5 25.1 76.9 38 81.9C37.7 79.2 37.5 75 38.2 72.1L42.5 53.9C42.5 53.9 41.4 51.7 41.4 48.4C41.4 43.2 44.4 39.3 48.2 39.3C51.4 39.3 53 41.7 53 44.5C53 47.7 51 52.4 49.8 57.2C48.9 61 51.7 64.1 55.4 64.1C62.1 64.1 67.2 57 67.2 46.8C67.2 37.8 60.7 31.5 50 31.5C37.6 31.5 30.4 40.8 30.4 50.4C30.4 54.1 31.8 58.1 33.6 60.3C34 60.8 34.1 61.3 34 61.8L32.7 67.1C32.5 67.9 31.9 68.2 31.1 67.8C25.9 65.4 22.7 57.8 22.7 50.1C22.7 34.5 34 20.3 50.6 20.3C64 20.3 74.4 29.8 74.4 46.2C74.4 59.5 66 70.1 54.4 70.1C50.5 70.1 46.8 68 45.6 65.6L43.2 74.8C42.3 78.3 39.8 83.2 38.3 85.7C42 86.9 46 87.5 50 87.5C70.7 87.5 87.5 70.7 87.5 50C87.5 29.3 70.7 12.5 50 12.5Z" fill="#FFF" />
+      </svg>
+    );
+  }
+
+  if (type.includes("twitter") || type.includes("tweet") || type.includes("x.com")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
+        <rect width="100" height="100" rx="24" fill="#000000" />
+        <path d="M72 24H82.5L59.5 50.3L86.5 86H65.3L48.7 64.3L29.7 86H19.2L43.8 57.8L18 24H39.7L54.7 43.8L72 24ZM68.3 79.7H74.1L36.5 30H30.3L68.3 79.7Z" fill="#FFFFFF" />
+      </svg>
+    );
+  }
+
+  if (type.includes("twitch")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
+        <rect width="100" height="100" rx="24" fill="#9146FF" />
+        <path d="M22 18L16 34V82H34V94L46 82H58L82 58V18H22ZM76 54L64 66H48L38 76V66H28V24H76V54Z" fill="#FFFFFF" />
+        <rect x="58" y="34" width="8" height="18" fill="#9146FF" />
+        <rect x="42" y="34" width="8" height="18" fill="#9146FF" />
+      </svg>
+    );
+  }
+
+  if (type.includes("whatsapp") || type.includes("wa")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="48" fill="#25D366" />
+        <path d="M50 18C32.3 18 18 32.3 18 50C18 56.1 19.7 61.8 22.7 66.7L19 81L33.7 77.3C38.4 80 44 82 50 82C67.7 82 82 67.7 82 50C82 32.3 67.7 18 50 18ZM66.5 61.2C65.8 63.2 62.8 65 60.5 65.5C58.8 65.8 56.6 66.1 49.3 63C40 59.2 34 49.7 33.5 49C33 48.3 29.8 44 29.8 39.5C29.8 35 32.1 32.8 33 31.8C33.7 31 34.8 30.6 35.8 30.6C36.4 30.6 37 30.6 37.5 30.7C38.6 30.7 39.2 30.9 39.9 32.6C40.8 34.7 43 40.1 43.3 40.7C43.6 41.3 43.8 42.1 43.4 42.9C43 43.7 42.6 44.3 42 45C41.4 45.7 40.7 46.5 41.3 47.5C41.9 48.5 44 52 47.1 54.8C51.1 58.4 54.3 59.6 55.4 60.1C56.3 60.5 57.2 60.4 57.8 59.7C58.6 58.8 59.6 57.4 60.6 56C61.3 55 62.2 54.9 63.1 55.2C64 55.5 68.8 57.9 69.8 58.4C70.8 58.9 71.5 59.2 71.7 59.7C71.9 60.2 71.9 61.2 66.5 61.2Z" fill="#FFF" />
+      </svg>
+    );
+  }
+
+  if (type.includes("spotify")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="48" fill="#1DB954" />
+        <path d="M71 67.5C70 69 68 69.5 66.5 68.5C55 61.5 40.7 60 24 63.8C22.3 64.2 20.7 63.1 20.3 61.5C19.9 59.8 21 58.2 22.6 57.8C41 53.6 56.8 55.3 69.8 63.3C71.2 64.2 71.6 66.2 71 67.5ZM77.2 54.8C75.9 56.7 73.3 57.3 71.4 56.1C58.3 48.1 38.5 45.8 23.1 50.4C20.9 51.1 18.5 49.9 17.8 47.7C17.1 45.5 18.3 43.1 20.5 42.4C38.1 37.1 60 39.6 74.9 48.8C76.8 50 77.4 52.8 77.2 54.8ZM77.8 41.7C62.1 32.4 36.1 31.5 21 36.1C18.4 36.9 15.6 35.4 14.8 32.8C14 30.2 15.5 27.4 18.1 26.6C35.5 21.3 64.3 22.3 82.5 33.1C84.9 34.5 85.7 37.6 84.3 40C82.9 42.4 79.8 43.1 77.8 41.7Z" fill="#FFF" />
+      </svg>
+    );
+  }
+
+  if (type.includes("kawai") || type.includes("kwai")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
+        <rect width="100" height="100" rx="24" fill="#FF5E00" />
+        <path d="M50 20C33.4 20 20 33.4 20 50C20 66.6 33.4 80 50 80C66.6 80 80 66.6 80 50C80 33.4 66.6 20 50 20ZM42 62L32 52L37.6 46.4L42 50.8L62.4 30.4L68 36L42 62Z" fill="#FFFFFF" />
+      </svg>
+    );
+  }
+
   if (type.includes("facebook") || type.includes("fb")) {
     return (
       <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
@@ -214,7 +271,29 @@ const BrandLogoSvg = memo(function BrandLogoSvg({ logoType, title }: { logoType?
     );
   }
 
-  if (type.includes("hotmail") || type.includes("outlook") || type.includes("mail")) {
+  if (type.includes("gmail")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
+        <rect width="100" height="100" rx="20" fill="#FFF" />
+        <path d="M20 70V30C20 26 23 23 27 23H32L50 42L68 23H73C77 23 80 26 80 30V70H70V40L50 56L30 40V70H20Z" fill="#EA4335" />
+        <path d="M20 30L50 52L80 30V34L50 56L20 34V30Z" fill="#4285F4" />
+        <path d="M20 70H30V40L20 32V70Z" fill="#34A853" />
+        <path d="M70 70H80V32L70 40V70Z" fill="#FBBC04" />
+      </svg>
+    );
+  }
+
+  if (type.includes("hotmail")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="48" fill="#FF5E00" />
+        <path d="M22 32L50 54L78 32V68H22V32Z" fill="#FFF" />
+        <path d="M22 32H78L50 54L22 32Z" fill="#FFE5D9" />
+      </svg>
+    );
+  }
+
+  if (type.includes("outlook") || type.includes("mail")) {
     return (
       <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
         <rect width="100" height="100" rx="20" fill="#0078D4" />
@@ -442,10 +521,11 @@ interface ServiceCardProps {
   onAddToCart?: (service: ServiceItem) => void;
   onBuyNow?: (service: ServiceItem) => void;
   onEdit?: (service: ServiceItem) => void;
+  onDelete?: (service: ServiceItem) => void;
   isHighlighted?: boolean;
 }
 
-function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, onEdit, isHighlighted }: ServiceCardProps) {
+function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, onEdit, onDelete, isHighlighted }: ServiceCardProps) {
   const service = inputService || product;
   const { locale } = useLanguage();
   const { user } = useAuth();
@@ -565,20 +645,34 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
         {/* 1. TOP BANNER LOGO CONTAINER */}
         <div className="relative w-full h-32 sm:h-36 rounded-xl bg-slate-950/80 border border-white/10 p-2 mb-3.5 group-hover:border-cyan-500/30 transition-all flex items-center justify-center">
           <div className="w-full h-full rounded-lg bg-white/95 p-3 flex items-center justify-center shadow-inner relative overflow-hidden">
-            {/* ADMIN EDIT BUTTON */}
+            {/* ADMIN CONTROLS (EDIT & DELETE BUTTONS) */}
             {isAdmin && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onEdit) onEdit(service);
-                }}
-                className="absolute top-1.5 left-1.5 px-2 py-0.5 text-[10px] font-black bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 rounded-full shadow flex items-center gap-1 z-20 transition-all hover:scale-105 active:scale-95 cursor-pointer border border-amber-300/60"
-                title="Edit Card (Admin Only)"
-              >
-                <Pencil className="w-3 h-3 stroke-[2.5]" />
-                <span>Edit</span>
-              </button>
+              <div className="absolute top-1.5 left-1.5 flex items-center gap-1 z-20">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onEdit) onEdit(service);
+                  }}
+                  className="px-2 py-0.5 text-[10px] font-black bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 rounded-full shadow flex items-center gap-1 transition-all hover:scale-105 active:scale-95 cursor-pointer border border-amber-300/60"
+                  title="Edit Card (Admin Only)"
+                >
+                  <Pencil className="w-3 h-3 stroke-[2.5]" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onDelete) onDelete(service);
+                  }}
+                  className="px-2 py-0.5 text-[10px] font-black bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white rounded-full shadow flex items-center gap-1 transition-all hover:scale-105 active:scale-95 cursor-pointer border border-rose-400/60"
+                  title="Delete Card (Admin Only)"
+                >
+                  <Trash2 className="w-3 h-3 stroke-[2.5]" />
+                  <span>Delete</span>
+                </button>
+              </div>
             )}
 
             {hasSvgLogo ? (
@@ -672,19 +766,23 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
 
       {/* 5. BOTTOM PRICING & ACTION BUTTONS */}
       <div className="pt-2.5 border-t border-slate-800/80 mt-2">
-        <div className="flex items-baseline justify-between mb-2">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-xl sm:text-2xl font-black text-white tracking-tight font-sans">
-              ৳{service.price}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-xl sm:text-2xl font-black text-amber-500 tracking-tight font-sans">
+              ৳{Number(service.price).toFixed(2)}
             </span>
-            {calcOriginalPrice > service.price && (
+            {service.usdPrice ? (
+              <span className="text-xs text-slate-400 font-medium font-sans">
+                ({service.usdPrice})
+              </span>
+            ) : calcOriginalPrice > service.price ? (
               <span className="text-[10px] sm:text-xs text-slate-500 line-through font-normal">
                 ৳{calcOriginalPrice}
               </span>
-            )}
+            ) : null}
           </div>
 
-          {discountPercent > 0 && (
+          {discountPercent > 0 && !service.usdPrice && (
             <span className="px-1.5 py-0.5 text-[9px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded uppercase">
               -{discountPercent}% {isBn ? "ছাড়" : "OFF"}
             </span>
@@ -695,20 +793,20 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={handleAdd}
-            className="flex items-center justify-center gap-1 py-1.5 px-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-bold text-xs rounded-lg border border-slate-700/80 hover:border-cyan-500/40 transition-all active:scale-95"
+            className="flex items-center justify-center gap-1 py-1.5 px-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-bold text-xs rounded-lg border border-slate-700/80 hover:border-cyan-500/40 transition-all active:scale-95 cursor-pointer"
             title="Add to Cart"
           >
             <ShoppingCart className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">{isBn ? "কার্ট" : "Cart"}</span>
+            <span>{isBn ? "কার্ট" : "Cart"}</span>
           </button>
 
           {!isSoldOut ? (
             <button
               onClick={handleBuy}
-              className="flex items-center justify-center gap-1 py-1.5 px-2 bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 font-black text-xs rounded-lg shadow-md shadow-cyan-500/20 transition-all hover:scale-[1.02] active:scale-95"
+              className="flex items-center justify-center gap-1 py-1.5 px-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-lg shadow-md shadow-amber-500/20 transition-all hover:scale-[1.03] active:scale-95 cursor-pointer"
             >
-              <span>{isBn ? "কিনুন" : "Buy Now"}</span>
-              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              <Zap className="w-3.5 h-3.5 fill-slate-950 stroke-none" />
+              <span>{isBn ? "কিনুন" : "BUY"}</span>
             </button>
           ) : (
             <button

@@ -393,7 +393,7 @@ export async function apiFetchAllOrders(): Promise<any[]> {
  */
 export async function apiUpdateOrderStatus(
   orderId: string,
-  status: "Completed" | "Pending" | "Rejected",
+  status: "Completed" | "Pending" | "Rejected" | string,
   deliveryNotes?: string,
   deliveryFiles?: any[],
   customCredentials?: string
@@ -404,15 +404,15 @@ export async function apiUpdateOrderStatus(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ orderId, status, deliveryNotes, deliveryFiles, customCredentials }),
     });
-    if (res.ok) {
-      const data = await res.json();
+    const data = await res.json();
+    if (res.ok && data.success) {
       return { success: true, message: data.message || `Order ${orderId} updated to ${status}.`, order: data.order };
     }
-  } catch (err) {
+    return { success: false, message: data.message || `Failed to update order ${orderId} status.` };
+  } catch (err: any) {
     console.error("Error updating order status in MongoDB Atlas:", err);
+    return { success: false, message: err?.message || `Failed to update order ${orderId} status.` };
   }
-
-  return { success: false, message: `Failed to update order ${orderId} status.` };
 }
 
 /**

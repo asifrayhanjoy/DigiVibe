@@ -11,19 +11,19 @@ import RightDock from "@/components/RightDock";
 import BackgroundSlider from "@/components/BackgroundSlider";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
+import VPNProductGrid from "@/components/VPNProductGrid";
 
-const CheckoutModal = dynamic(() => import("@/components/CheckoutModal"), { ssr: false });
-const SearchModal = dynamic(() => import("@/components/SearchModal"), { ssr: false });
-const AdminProductModal = dynamic(() => import("@/components/AdminProductModal"), { ssr: false });
 import { SERVICES } from "@/data/services";
 import { CategoryId, CartItem, ServiceItem } from "@/types";
 import { SlidersHorizontal, ArrowUpDown, Sparkles, Info, Server, Headphones, Plus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { getCanonicalCategory } from "@/lib/categories";
 
-import VPNProductGrid from "@/components/VPNProductGrid";
-import SimOfferGrid from "@/components/SimOfferGrid";
+const CheckoutModal = dynamic(() => import("@/components/CheckoutModal"), { ssr: false });
+const SearchModal = dynamic(() => import("@/components/SearchModal"), { ssr: false });
+const AdminProductModal = dynamic(() => import("@/components/AdminProductModal"), { ssr: false });
 
 function ServicesContent() {
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
@@ -101,6 +101,27 @@ function ServicesContent() {
     setIsAdminModalOpen(true);
   }, []);
 
+  const handleDeleteProduct = useCallback(async (service: ServiceItem) => {
+    if (!window.confirm(`Are you sure you want to delete "${service.title}"? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/products/${encodeURIComponent(service.id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Card Deleted 🗑️", `"${service.title}" has been deleted.`);
+        fetchServicesFromDB();
+      } else {
+        showToast("Delete Failed ❌", data.message || "Could not delete product.");
+      }
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      showToast("Delete Error ❌", err.message || "Failed to delete product.");
+    }
+  }, [fetchServicesFromDB]);
+
   const handleSaveSuccess = useCallback((savedProduct: ServiceItem) => {
     showToast(
       adminModalMode === "edit" ? "Card Updated! ✨" : "Card Created! 🎉",
@@ -123,23 +144,23 @@ function ServicesContent() {
 
     // 1. Sync active category with URL parameter if explicitly provided
     if (urlCat) {
-      setActiveCategory(urlCat as CategoryId);
+      const canonical = getCanonicalCategory({ category: urlCat });
+      setActiveCategory((prev) => (prev !== canonical ? canonical : prev));
     }
 
     // 2. Sync search query with URL parameter if explicitly provided
     if (urlQuery) {
-      setSearchQuery(urlQuery);
+      setSearchQuery((prev) => (prev !== urlQuery ? urlQuery : prev));
     }
 
     // 3. Handle product ID scroll & highlighting
     if (urlId) {
-      setHighlightedId(urlId);
+      setHighlightedId((prev) => (prev !== urlId ? urlId : prev));
       const matched = servicesList.find((s) => s.id === urlId);
       if (matched) {
-        setSearchQuery(matched.title);
-        if (matched.category) {
-          setActiveCategory(matched.category as CategoryId);
-        }
+        setSearchQuery((prev) => (prev !== matched.title ? matched.title : prev));
+        const canonical = getCanonicalCategory(matched);
+        setActiveCategory((prev) => (prev !== canonical ? canonical : prev));
       }
       const paramKey = `id-${urlId}`;
       if (hasScrolledRef.current !== paramKey) {
@@ -165,14 +186,14 @@ function ServicesContent() {
     }
   }, [searchParams, servicesList]);
 
-  // Filter & Sort
+  // Strict Filter & Sort
   const processedServices = useMemo(() => {
     let list = servicesList.filter((service) => {
-      const matchesCategory = activeCategory === "all" || service.category === activeCategory;
+      const itemCategory = getCanonicalCategory(service);
+      const matchesCategory = activeCategory === "all" || itemCategory === activeCategory;
       const matchesSearch =
         searchQuery.trim() === "" ||
-        service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        service.category.toLowerCase().includes(searchQuery.toLowerCase());
+        service.title.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
 
@@ -300,22 +321,24 @@ function ServicesContent() {
             Digital Tools & Subscriptions Catalog
           </h1>
           <p className="text-xs text-slate-400 mt-1 max-w-lg mx-auto">
-            Browse VPNs, SIM bundles, ChatGPT Plus, YouTube Premium, IP Proxies and PVA Emails.
+            Browse VPNs, ChatGPT Plus, YouTube Premium, IP Proxies, SMM Growth and PVA Emails.
           </p>
         </div>
       </div>
 
       {/* Categories & Sorting Toolbar */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 w-full">
         <CategoryTabs
           activeCategory={activeCategory}
           onSelectCategory={handleSelectCategory}
           getCategoryCount={(catId) =>
-            catId === "all" ? servicesList.length : servicesList.filter((s) => s.category === catId).length
+            catId === "all"
+              ? servicesList.length
+              : servicesList.filter((s) => getCanonicalCategory(s) === catId).length
           }
         />
 
-        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 my-6 p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3.5 mt-2.5 mb-3 sm:mt-3 sm:mb-3.5 p-3 sm:p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
           {/* Total Product Count & Admin Add Button */}
           <div className="flex flex-wrap items-center gap-3 font-semibold text-xs sm:text-sm text-slate-300">
             <div className="flex items-center gap-2.5">
@@ -338,7 +361,7 @@ function ServicesContent() {
           </div>
 
           {/* Sort Selector */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold bg-slate-950 border border-slate-800 hover:border-cyan-500/40 focus-within:border-cyan-400 rounded-xl px-3.5 py-2 transition-all duration-300 shadow-inner">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold bg-slate-950 border border-slate-800 hover:border-cyan-500/40 focus-within:border-cyan-400 rounded-xl px-3.5 py-1.5 transition-all duration-300 shadow-inner">
             <ArrowUpDown className="w-4 h-4 text-cyan-400 shrink-0" />
             <span className="text-slate-400 whitespace-nowrap">Sort By:</span>
             <select
@@ -376,11 +399,11 @@ function ServicesContent() {
         {activeCategory === "ip" && (
           <>
             {/* Filter Buttons (All, GB, IP) */}
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-2.5 mb-2.5">
               <button
                 type="button"
                 onClick={() => setProxySubFilter("all")}
-                className={`px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   proxySubFilter === "all"
                     ? "bg-slate-900/90 text-amber-300 border border-amber-500 shadow-md shadow-amber-500/10"
                     : "bg-slate-900/40 text-slate-400 border border-slate-700/60 hover:border-slate-600 hover:text-slate-200"
@@ -391,7 +414,7 @@ function ServicesContent() {
               <button
                 type="button"
                 onClick={() => setProxySubFilter("gb")}
-                className={`px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   proxySubFilter === "gb"
                     ? "bg-slate-900/90 text-amber-300 border border-amber-500 shadow-md shadow-amber-500/10"
                     : "bg-slate-900/40 text-slate-400 border border-slate-700/60 hover:border-slate-600 hover:text-slate-200"
@@ -402,7 +425,7 @@ function ServicesContent() {
               <button
                 type="button"
                 onClick={() => setProxySubFilter("ip")}
-                className={`px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   proxySubFilter === "ip"
                     ? "bg-slate-900/90 text-amber-300 border border-amber-500 shadow-md shadow-amber-500/10"
                     : "bg-slate-900/40 text-slate-400 border border-slate-700/60 hover:border-slate-600 hover:text-slate-200"
@@ -413,23 +436,23 @@ function ServicesContent() {
             </div>
 
             {/* Headline Notice */}
-            <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-slate-900 border border-amber-500/30 flex items-center justify-between gap-4 shadow-lg shadow-amber-500/5 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="mb-3 sm:mb-3.5 p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-slate-900 border border-amber-500/30 flex items-center justify-between gap-3.5 shadow-lg shadow-amber-500/5 animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 p-2 flex items-center justify-center text-amber-400 shrink-0">
-                  <Sparkles className="w-5 h-5 fill-amber-400/20" />
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 p-1.5 flex items-center justify-center text-amber-400 shrink-0">
+                  <Sparkles className="w-4 h-4 fill-amber-400/20" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-extrabold text-amber-300 tracking-wide font-sans">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-amber-300 tracking-wide font-sans">
                     আপনি কত GB নিবেন তার উপর নির্ভর করবে Price গুলো/ IP বা proxy কেনার আগে Admin সাথে আলোচনা করে নিতে হবে
                   </h3>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">
+                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">
                     Prices depend on how many GB you choose on the product card./ IP or proxy should be discussed with the admin before purchasing
                   </p>
                 </div>
               </div>
               <Link
                 href={`/${locale}/support`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-black bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 hover:text-white border border-amber-500/40 hover:border-amber-400 rounded-full uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-black bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 hover:text-white border border-amber-500/40 hover:border-amber-400 rounded-full uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
               >
                 <span>📞 Contact Admin</span>
               </Link>
@@ -440,13 +463,13 @@ function ServicesContent() {
         {activeCategory === "smm" && (
           <>
             {/* Filter Buttons */}
-            <div className="flex items-center gap-3 mb-6 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex items-center gap-2.5 mb-2.5 overflow-x-auto pb-1 scrollbar-none">
               <button
                 type="button"
                 onClick={() => setSmmSubFilter("all")}
-                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
                   smmSubFilter === "all"
-                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-4 ring-sky-400/10 shadow-lg shadow-sky-500/10"
+                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-2 ring-sky-400/20 shadow-md shadow-sky-500/10"
                     : "bg-slate-900/40 text-slate-300 border border-slate-700/60 hover:border-slate-500 hover:text-white"
                 }`}
               >
@@ -455,9 +478,9 @@ function ServicesContent() {
               <button
                 type="button"
                 onClick={() => setSmmSubFilter("lifetime")}
-                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
                   smmSubFilter === "lifetime"
-                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-4 ring-sky-400/10 shadow-lg shadow-sky-500/10"
+                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-2 ring-sky-400/20 shadow-md shadow-sky-500/10"
                     : "bg-slate-900/40 text-slate-300 border border-slate-700/60 hover:border-slate-500 hover:text-white"
                 }`}
               >
@@ -466,9 +489,9 @@ function ServicesContent() {
               <button
                 type="button"
                 onClick={() => setSmmSubFilter("30day")}
-                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
                   smmSubFilter === "30day"
-                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-4 ring-sky-400/10 shadow-lg shadow-sky-500/10"
+                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-2 ring-sky-400/20 shadow-md shadow-sky-500/10"
                     : "bg-slate-900/40 text-slate-300 border border-slate-700/60 hover:border-slate-500 hover:text-white"
                 }`}
               >
@@ -477,9 +500,9 @@ function ServicesContent() {
               <button
                 type="button"
                 onClick={() => setSmmSubFilter("norefill")}
-                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
                   smmSubFilter === "norefill"
-                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-4 ring-sky-400/10 shadow-lg shadow-sky-500/10"
+                    ? "bg-slate-900/90 text-amber-400 border-2 border-sky-400/90 ring-2 ring-sky-400/20 shadow-md shadow-sky-500/10"
                     : "bg-slate-900/40 text-slate-300 border border-slate-700/60 hover:border-slate-500 hover:text-white"
                 }`}
               >
@@ -488,23 +511,23 @@ function ServicesContent() {
             </div>
 
             {/* Headline Notice */}
-            <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-purple-500/15 via-amber-500/10 to-slate-900 border border-purple-500/30 flex items-center justify-between gap-4 shadow-lg shadow-purple-500/5 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="mb-3 sm:mb-3.5 p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-purple-500/15 via-amber-500/10 to-slate-900 border border-purple-500/30 flex items-center justify-between gap-3.5 shadow-lg shadow-purple-500/5 animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 p-2 flex items-center justify-center text-purple-400 shrink-0 mt-0.5">
-                  <Sparkles className="w-5 h-5 fill-purple-400/20" />
+                <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/40 p-1.5 flex items-center justify-center text-purple-400 shrink-0 mt-0.5">
+                  <Sparkles className="w-4 h-4 fill-purple-400/20" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-extrabold text-purple-200 tracking-wide font-sans leading-relaxed">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-purple-200 tracking-wide font-sans leading-snug">
                     এখানে যে প্রাইসগুলো দেওয়া হয়েছে তা নির্দিষ্ট পরিমাণের জন্য। আপনি কতগুলো ফলোয়ার, লাইক, ভিউ বা মেম্বার নিতে চান তার উপর ভিত্তি করে প্রাইস কম-বেশি হতে পারে। সর্বোচ্চ বা নিজের পছন্দমতো পরিমাণে অর্ডার করতে চাইলে অ্যাডমিনের সাথে আলোচনা সাপেক্ষ (Contact Admin) ফিক্স করে নিতে হবে।
                   </h3>
-                  <p className="text-xs text-slate-400 font-medium mt-1">
+                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">
                     Prices shown are for default quantities. Custom quantities require contacting admin to fix final pricing.
                   </p>
                 </div>
               </div>
               <Link
                 href={`/${locale}/support`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-black bg-purple-500/20 hover:bg-purple-500/40 text-purple-300 hover:text-white border border-purple-500/40 hover:border-purple-400 rounded-full uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-black bg-purple-500/20 hover:bg-purple-500/40 text-purple-300 hover:text-white border border-purple-500/40 hover:border-purple-400 rounded-full uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
               >
                 <span>📞 Contact Admin</span>
               </Link>
@@ -544,13 +567,7 @@ function ServicesContent() {
             onAddToCart={handleAddToCart}
             onBuyNow={handleBuyNow}
             onEditProduct={handleOpenEditModal}
-          />
-        ) : activeCategory === "sim" ? (
-          <SimOfferGrid
-            simOffers={processedServices}
-            onAddToCart={handleAddToCart}
-            onBuyNow={handleBuyNow}
-            onEditOffer={handleOpenEditModal}
+            onDeleteProduct={handleDeleteProduct}
           />
         ) : displayedServices.length === 0 && !isAdmin ? (
           <div className="glass-panel p-12 text-center rounded-3xl border border-slate-800 my-8">
@@ -581,13 +598,14 @@ function ServicesContent() {
               </div>
             )}
 
-            {displayedServices.map((service) => (
+            {displayedServices.map((service, index) => (
               <ServiceCard
-                key={service.id}
+                key={`${service.id || service._id || 'prod'}-${index}`}
                 service={service}
                 onAddToCart={handleAddToCart}
                 onBuyNow={handleBuyNow}
                 onEdit={handleOpenEditModal}
+                onDelete={handleDeleteProduct}
                 isHighlighted={highlightedId === service.id || (!!searchQuery && searchQuery.trim().length >= 2 && service.title.toLowerCase().includes(searchQuery.toLowerCase()))}
               />
             ))}

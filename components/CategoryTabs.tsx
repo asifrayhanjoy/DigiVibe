@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, memo } from "react";
 import {
   LayoutGrid,
   ShieldCheck,
@@ -105,12 +105,20 @@ function CategoryTabs({
       {/* Unified Glassmorphism Background Container Bar */}
       <div className="relative w-full rounded-2xl sm:rounded-full bg-slate-950/75 border border-slate-800/90 backdrop-blur-2xl p-1.5 sm:p-2 shadow-2xl overflow-hidden group">
         
+        {/* Scroll Gradient Masks */}
+        {canScrollLeft && (
+          <div className="absolute left-0 top-0 bottom-0 z-10 w-10 bg-gradient-to-r from-slate-950/90 via-slate-950/50 to-transparent pointer-events-none rounded-l-2xl sm:rounded-l-full" />
+        )}
+        {canScrollRight && (
+          <div className="absolute right-0 top-0 bottom-0 z-10 w-10 bg-gradient-to-l from-slate-950/90 via-slate-950/50 to-transparent pointer-events-none rounded-r-2xl sm:rounded-r-full" />
+        )}
+
         {/* Left Scroll Button */}
         {canScrollLeft && (
           <button
             onClick={() => scrollByOffset(-240)}
             aria-label="Scroll Left"
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-900 border border-cyan-500/40 text-cyan-400 shadow-xl backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-900/90 border border-cyan-500/40 text-cyan-400 shadow-xl backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
           >
             <ChevronLeft className="w-4 h-4 stroke-[3]" />
           </button>
@@ -121,20 +129,20 @@ function CategoryTabs({
           <button
             onClick={() => scrollByOffset(240)}
             aria-label="Scroll Right"
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-900 border border-cyan-500/40 text-cyan-400 shadow-xl backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-900/90 border border-cyan-500/40 text-cyan-400 shadow-xl backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
           >
             <ChevronRight className="w-4 h-4 stroke-[3]" />
           </button>
         )}
 
-        {/* Scroll Container (No Left Clipping) */}
+        {/* Scroll Container (Expanded Leftward Alignment) */}
         <div
           ref={scrollRef}
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeaveOrUp}
           onMouseUp={handleMouseLeaveOrUp}
           onMouseMove={handleMouseMove}
-          className="flex items-center justify-start gap-2.5 sm:gap-3 overflow-x-auto scrollbar-none scroll-smooth touch-pan-x overscroll-x-contain py-1.5 px-4 sm:px-8 cursor-grab active:cursor-grabbing select-none w-full"
+          className="flex items-center justify-start gap-2.5 sm:gap-3 overflow-x-auto scrollbar-none scroll-smooth touch-pan-x overscroll-x-contain py-1.5 pl-2.5 sm:pl-3.5 pr-10 sm:pr-12 cursor-grab active:cursor-grabbing select-none w-full"
         >
           {CATEGORIES.map((cat) => {
             const Icon = ICON_MAP[cat.icon] || LayoutGrid;
@@ -168,5 +176,4 @@ function CategoryTabs({
   );
 }
 
-import React from "react";
-export default React.memo(CategoryTabs);
+export default memo(CategoryTabs);

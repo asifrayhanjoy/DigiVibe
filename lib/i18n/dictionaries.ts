@@ -5,11 +5,10 @@ export const DICTIONARIES = {
     nav: {
       home: "Home",
       services: "All Services",
-      sim: "SIM Offers",
       proxies: "IP & Proxies",
       smm: "SMM Growth",
       support: "24/7 Support",
-      searchPlaceholder: "Search VPN, Subscriptions, SIM...",
+      searchPlaceholder: "Search VPN, Subscriptions, AI Tools...",
       cart: "Cart",
       login: "Login",
       signup: "Sign Up",
@@ -21,7 +20,7 @@ export const DICTIONARIES = {
       headlinePrefix: "All Your",
       headlineHighlight: "Digital Needs",
       headlineSuffix: "in One Place",
-      subheadline: "Buy VPN, YouTube Premium, ChatGPT Plus, SIM Bundles, IP Proxies, and Verified Email Accounts at unbeatable prices instantly.",
+      subheadline: "Buy VPN, YouTube Premium, ChatGPT Plus, IP Proxies, SMM Growth, and Verified Email Accounts at unbeatable prices instantly.",
       searchBtn: "Search",
       popular: "Popular:",
       stats: {
@@ -38,7 +37,6 @@ export const DICTIONARIES = {
     categories: {
       all: "All Services",
       vpn: "VPN Services",
-      sim: "SIM Offers",
       subscriptions: "Subscriptions",
       ip: "IP & Proxy",
       smm: "SMM Growth",
@@ -78,11 +76,10 @@ export const DICTIONARIES = {
     nav: {
       home: "হোম",
       services: "সকল সার্ভিস",
-      sim: "সিম অফার",
       proxies: "আইপি ও প্রক্সি",
       smm: "এসএমএম গ্রোথ",
       support: "২৪/৭ সাপোর্ট",
-      searchPlaceholder: "সার্চ করুন VPN, সাবস্ক্রিপশন, সিম...",
+      searchPlaceholder: "সার্চ করুন VPN, সাবস্ক্রিপশন, টুলস...",
       cart: "কার্ট",
       login: "লগইন",
       signup: "সাইন আপ",
@@ -94,7 +91,7 @@ export const DICTIONARIES = {
       headlinePrefix: "সকল",
       headlineHighlight: "ডিজিটাল সার্ভিস",
       headlineSuffix: "এক ছাদের নিচে",
-      subheadline: "VPN, YouTube Premium, ChatGPT Plus, SIM ডাইভ প্যাক, IP Proxy এবং Verified Email এক ক্লিকেই কিনুন সবচেয়ে সাশ্রয়ী মূল্যে।",
+      subheadline: "VPN, YouTube Premium, ChatGPT Plus, IP Proxy এবং Verified Email এক ক্লিকেই কিনুন সবচেয়ে সাশ্রয়ী মূল্যে।",
       searchBtn: "সার্চ",
       popular: "জনপ্রিয়:",
       stats: {
@@ -111,10 +108,9 @@ export const DICTIONARIES = {
     categories: {
       all: "সকল সার্ভিস",
       vpn: "🔐 ভিপিএন সার্ভিস",
-      sim: "📱 সিম অফার (BD)",
       subscriptions: "⭐ প্রিমিয়াম সাবস্ক্রিপশন",
       ip: "🌐 আইপি ও প্রক্সি",
-      smm: "📈 সোশ্যাল মিডিয়া ಗ್ರোথ",
+      smm: "📈 সোশ্যাল মিডিয়া গ্রোথ",
       email: "📧 ভেরিফাইড ইমেইল"
     },
     cart: {

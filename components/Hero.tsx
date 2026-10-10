@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Search, Zap, Sparkles } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
@@ -17,6 +17,19 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
   const { locale, dict } = useLanguage();
   const { requireAuth } = useAuth();
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Global Ctrl+K / Cmd+K Keyboard Shortcut Listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleHeroSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +80,7 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
           </span>
         </h1>
 
-        {/* SINGLE PROMINENT CENTRAL SEARCH BAR */}
+        {/* SINGLE PROMINENT CENTRAL HERO SEARCH BAR */}
         <div className="mt-8 max-w-2xl mx-auto">
           <form
             onSubmit={handleHeroSearchSubmit}
@@ -75,17 +88,24 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
           >
             <Search className="w-5 h-5 text-cyan-400 ml-3.5 shrink-0 group-hover:scale-110 transition-transform" />
             <input
+              ref={inputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tools e.g. NordVPN, ChatGPT, GP Offer..."
+              placeholder="Search VPN, Subscriptions, AI Tools, IP Proxies..."
               className="w-full bg-transparent px-3.5 py-2.5 text-slate-100 placeholder-slate-400 text-sm sm:text-base focus:outline-none font-medium"
             />
+
+            {/* Ctrl K Shortcut Chip */}
+            <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-extrabold text-slate-400 bg-slate-950/90 border border-slate-700/80 rounded-lg shrink-0 mr-2 shadow-inner">
+              <span>Ctrl</span> K
+            </kbd>
+
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="mr-2 text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-full bg-slate-800"
+                className="mr-2 text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-full bg-slate-800 transition-colors"
               >
                 Clear
               </button>

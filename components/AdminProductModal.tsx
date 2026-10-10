@@ -233,7 +233,6 @@ export default function AdminProductModal({
               >
                 <option value="subscriptions">subscriptions (AI Tools)</option>
                 <option value="vpn">vpn (VPN Services)</option>
-                <option value="sim">sim (SIM Offers)</option>
                 <option value="ip">ip (IP & Proxies)</option>
                 <option value="smm">smm (SMM Growth)</option>
                 <option value="email">email (Email Accounts)</option>

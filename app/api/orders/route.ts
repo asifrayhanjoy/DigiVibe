@@ -140,13 +140,27 @@ export async function PUT(request: Request) {
       );
     }
 
-    const updateFields: any = { status };
+    // Normalize status enum values ("Completed", "Rejected", "Pending")
+    let normalizedStatus = status;
+    const lowerStatus = String(status).trim().toLowerCase();
+    if (["completed", "approved", "delivered", "paid", "success"].includes(lowerStatus)) {
+      normalizedStatus = "Completed";
+    } else if (["rejected", "failed", "cancelled", "canceled", "refunded"].includes(lowerStatus)) {
+      normalizedStatus = "Rejected";
+    } else if (["pending", "processing"].includes(lowerStatus)) {
+      normalizedStatus = "Pending";
+    }
+
+    const updateFields: any = { status: normalizedStatus };
     if (deliveryNotes !== undefined) updateFields.deliveryNotes = deliveryNotes;
     if (deliveryFiles !== undefined) updateFields.deliveryFiles = deliveryFiles;
     if (customCredentials !== undefined) updateFields.customCredentials = customCredentials;
 
+    const isObjectId = typeof orderId === "string" && Boolean(orderId.match(/^[0-9a-fA-F]{24}$/));
+    const filter = isObjectId ? { $or: [{ orderId: orderId }, { _id: orderId }] } : { orderId: orderId };
+
     const updatedOrder: any = await (Order as any).findOneAndUpdate(
-      { orderId: orderId },
+      filter,
       { $set: updateFields },
       { new: true }
     );
@@ -156,6 +170,11 @@ export async function PUT(request: Request) {
         { success: false, message: `Order #${orderId} not found` },
         { status: 404 }
       );
+    }
+
+    // If order is rejected, clean up any previously generated assets for this order
+    if (normalizedStatus === "Rejected") {
+      await (Asset as any).deleteMany({ orderId: updatedOrder.orderId });
     }
 
     // If order approved (Completed), create/update active digital assets in MongoDB if items exist
