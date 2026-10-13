@@ -3,13 +3,16 @@
 import { useState, useEffect } from "react";
 import { X, Sparkles, Plus, Trash2, Check, Image as ImageIcon, Save, AlertCircle } from "lucide-react";
 import { ServiceItem } from "@/types";
+import { getCanonicalCategory } from "@/lib/categories";
 
 interface AdminProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSaveSuccess: (product: any) => void;
+  onSaveSuccess: (product: any, returnUrl?: string, targetCategory?: string) => void;
   mode: "add" | "edit";
   initialData?: ServiceItem | null;
+  currentCategory?: string;
+  returnUrl?: string;
 }
 
 export default function AdminProductModal({
@@ -18,6 +21,8 @@ export default function AdminProductModal({
   onSaveSuccess,
   mode,
   initialData,
+  currentCategory,
+  returnUrl,
 }: AdminProductModalProps) {
   const [formData, setFormData] = useState({
     id: "",
@@ -50,10 +55,11 @@ export default function AdminProductModal({
     if (isOpen) {
       setErrorMessage("");
       if (mode === "edit" && initialData) {
+        const canonicalCat = getCanonicalCategory(initialData);
         setFormData({
           id: initialData.id || "",
           title: initialData.title || "",
-          category: initialData.category || "subscriptions",
+          category: canonicalCat !== "all" ? canonicalCat : "subscriptions",
           subtitle: initialData.subtitle || initialData.badge || "",
           price: initialData.price || 0,
           originalPrice: initialData.originalPrice || Math.round((initialData.price || 0) * 1.2),
@@ -77,11 +83,14 @@ export default function AdminProductModal({
             : ["Full Replacement Warranty Support", "High Speed Instant Delivery", "100% Guaranteed Genuine"]
         );
       } else {
-        // Default values for ADD mode
+        // Default values for ADD mode (dynamically defaults to currentCategory if present)
+        const defaultCat = currentCategory && currentCategory !== "all"
+          ? getCanonicalCategory({ category: currentCategory })
+          : "subscriptions";
         setFormData({
           id: "",
           title: "",
-          category: "subscriptions",
+          category: defaultCat !== "all" ? defaultCat : "subscriptions",
           subtitle: "24h warranty",
           price: 100,
           originalPrice: 150,
@@ -107,7 +116,7 @@ export default function AdminProductModal({
         ]);
       }
     }
-  }, [isOpen, mode, initialData]);
+  }, [isOpen, mode, initialData, currentCategory]);
 
   if (!isOpen) return null;
 
@@ -160,7 +169,22 @@ export default function AdminProductModal({
         throw new Error(data.message || "Failed to save product.");
       }
 
-      onSaveSuccess(data.product);
+      const savedProduct = data.product || payload;
+      const targetCategory = getCanonicalCategory(savedProduct);
+
+      // Determine smart return URL preserving exact category path
+      let targetReturnUrl = returnUrl;
+      if (!targetReturnUrl) {
+        if (currentCategory && currentCategory !== "all") {
+          targetReturnUrl = `/en/services?cat=${currentCategory}&id=${savedProduct.id}#product-${savedProduct.id}`;
+        } else if (targetCategory && targetCategory !== "all") {
+          targetReturnUrl = `/en/services?cat=${targetCategory}&id=${savedProduct.id}#product-${savedProduct.id}`;
+        } else {
+          targetReturnUrl = `/en/services?id=${savedProduct.id}#product-${savedProduct.id}`;
+        }
+      }
+
+      onSaveSuccess(savedProduct, targetReturnUrl, targetCategory);
       onClose();
     } catch (err: any) {
       setErrorMessage(err.message || "An unexpected error occurred while saving.");

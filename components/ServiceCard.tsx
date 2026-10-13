@@ -39,6 +39,7 @@ import { useRouter } from "next/navigation";
 import { ServiceItem } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
+import { getCanonicalCategory } from "@/lib/categories";
 
 const ICON_MAP: Record<string, any> = {
   Shield,
@@ -71,6 +72,90 @@ const ICON_MAP: Record<string, any> = {
 // High-resolution SVGs for Brand Logos
 export const BrandLogoSvg = memo(function BrandLogoSvg({ logoType, title }: { logoType?: string; title: string }) {
   const type = (logoType || title).toLowerCase();
+
+  if (type.includes("lovable")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 200 200" fill="none">
+        <defs>
+          <linearGradient id="lovableCardGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+            <stop offset="0%" stopColor="#FF385C" />
+            <stop offset="35%" stopColor="#FF5252" />
+            <stop offset="65%" stopColor="#DE3FA8" />
+            <stop offset="100%" stopColor="#7952F5" />
+          </linearGradient>
+        </defs>
+        <path d="M100,168 C62,136 28,106 28,68 C28,40 48,22 74,22 C89,22 100,31 100,31 C100,31 111,22 126,22 C152,22 172,40 172,68 C172,106 138,136 100,168 Z" fill="url(#lovableCardGrad)" />
+      </svg>
+    );
+  }
+
+  if (type.includes("prime") || type.includes("amazon")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 200 200" fill="none">
+        <rect width="200" height="200" rx="36" fill="#00A8E1" />
+        <g fill="#FFFFFF">
+          <path d="M46,82 L46,120 L53,120 L53,104 C55.5,106.5 59,107.5 63,107.5 C71,107.5 77,101 77,93 C77,84.5 71,78.5 63,78.5 C59,78.5 55.5,79.5 53,82 L53,82 L53,82 L53,79.5 L46,79.5 L46,82 Z M61,85 C65.5,85 69,88.5 69,93 C69,97.5 65.5,101 61,101 C56.5,101 53,97.5 53,93 C53,88.5 56.5,85 61,85 Z" />
+          <path d="M80,79.5 L80,107 L87,107 L87,91.5 C88.5,88.5 92.5,86.5 96.5,87 L96.5,79.5 C92.5,79.5 88.5,81.5 87,85 L87,79.5 L80,79.5 Z" />
+          <path d="M101,72 C103.5,72 105.5,70 105.5,67.5 C105.5,65 103.5,63 101,63 C98.5,63 96.5,65 96.5,67.5 C96.5,70 98.5,72 101,72 Z M97.5,79.5 L97.5,107 L104.5,107 L104.5,79.5 L97.5,79.5 Z" />
+          <path d="M110,79.5 L110,107 L117,107 L117,92 C118,87.5 121.5,85.5 125,85.5 C128.5,85.5 131,87.5 131,92 L131,107 L138,107 L138,92 C139,87.5 142.5,85.5 146,85.5 C149.5,85.5 152,87.5 152,92 L152,107 L159,107 L159,90 C159,82.5 154.5,78.5 148,78.5 C143,78.5 139.5,81 137.5,84.5 C135.5,81 132,78.5 127,78.5 C122.5,78.5 119,81 117,84.5 L117,79.5 L110,79.5 Z" />
+          <path d="M174,93 C174,84.5 168.5,78.5 160.5,78.5 C152.5,78.5 146.5,85 146.5,93.5 C146.5,102 152.5,107.5 161,107.5 C166.5,107.5 171,105 173.5,100.5 L168,97.5 C166.5,99.5 164,101 161,101 C157.5,101 154.5,98.5 154,95 L174,95 C174,94.5 174,93.5 174,93 Z M154,90 C154.5,87 157,84.5 160.5,84.5 C164,84.5 166.5,87 167,90 L154,90 Z" />
+        </g>
+        <g fill="#FFFFFF" opacity="0.95">
+          <path d="M56,118 L62,136 L68,118 L74,118 L65.5,142 L58.5,142 L50,118 L56,118 Z" />
+          <path d="M78,113 C79.7,113 81,111.7 81,110 C81,108.3 79.7,107 78,107 C76.3,107 75,108.3 75,110 C75,111.7 76.3,113 78,113 Z M75.5,118 L80.5,118 L80.5,142 L75.5,142 L75.5,118 Z" />
+          <path d="M96,111 L96,119 C94.5,117.5 92,117 89.5,117 C83.5,117 79,122.5 79,130 C79,137.5 83.5,143 89.5,143 C92,143 94.5,142 96,140.5 L96,142 L101,142 L101,111 L96,111 Z M90.5,122 C94,122 96.5,125 96.5,130 C96.5,135 94,138 90.5,138 C87,138 84.5,135 84.5,130 C84.5,125 87,122 90.5,122 Z" />
+          <path d="M117,130 C117,122.5 112.5,117 106,117 C99.5,117 95,122.5 95,130 C95,137.5 100,143 106.5,143 C111,143 114.5,141 116.5,137.5 L112.5,135 C111,137 109,138.5 106.5,138.5 C103.5,138.5 101,136.5 100.5,132.5 L117,132.5 C117,131.5 117,130.5 117,130 Z M100.5,127.5 C101,124.5 103,122 106,122 C109,122 111,124.5 111.5,127.5 L100.5,127.5 Z" />
+          <path d="M119,130 C119,122.5 124,117 130.5,117 C137,117 142,122.5 142,130 C142,137.5 137,143 130.5,143 C124,143 119,137.5 119,130 Z M124.5,130 C124.5,135.5 127,138.5 130.5,138.5 C134,138.5 136.5,135.5 136.5,130 C136.5,124.5 134,121.5 130.5,121.5 C127,121.5 124.5,124.5 124.5,130 Z" />
+        </g>
+        <path d="M48,154 C82,176 126,172 154,146 C155,145 153.5,144 152.5,145 C126.5,168 85,171 50,151 C48.5,150 47,152.5 48,154 Z" fill="#FFFFFF" />
+        <path d="M152,143 L159,145 C160,145.5 159.5,147 158.5,147.5 L151.5,150 C150.5,150.5 150,149.5 150.5,148.5 L152,143 Z" fill="#FFFFFF" />
+      </svg>
+    );
+  }
+
+  if (type.includes("muse")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 200 200" fill="none">
+        <path d="M42,142 C38,142 34,138 36,132 C42,108 55,68 68,54 C74,48 81,46 87,49 C93,52 96,59 95,68 C98,60 104,54 112,54 C120,54 126,60 125,72 C132,60 142,54 153,55 C166,57 172,69 167,88 C160,112 153,136 150,142 C148,146 142,148 137,145 C132,142 131,135 133,128 C137,114 145,86 145,77 C145,73 142,71 138,71 C130,71 123,83 118,102 C113,121 110,138 107,143 C105,147 99,149 94,146 C89,143 88,136 90,129 C95,112 103,84 103,75 C103,71 100,69 96,69 C88,69 78,85 71,114 C67,130 63,142 56,142 C51,142 46,142 42,142 Z" fill="#1A73E8" />
+      </svg>
+    );
+  }
+
+  if (type.includes("duolingo")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 200 200" fill="none">
+        <rect width="200" height="200" rx="36" fill="#58CC02" />
+        <circle cx="68" cy="98" r="38" fill="#FFFFFF" />
+        <circle cx="132" cy="98" r="38" fill="#FFFFFF" />
+        <circle cx="68" cy="98" r="23" fill="#4B4B4B" />
+        <circle cx="132" cy="98" r="23" fill="#4B4B4B" />
+        <circle cx="62" cy="90" r="8" fill="#FFFFFF" />
+        <circle cx="126" cy="90" r="8" fill="#FFFFFF" />
+        <path d="M84,102 C84,102 91,126 100,126 C109,126 116,102 116,102 Z" fill="#FF9600" />
+        <path d="M88,102 C88,102 94,116 100,116 C106,116 112,102 112,102 Z" fill="#FFC800" />
+      </svg>
+    );
+  }
+
+  if (type.includes("androidstudio") || type.includes("android studio")) {
+    return (
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 200 200" fill="none">
+        <path d="M100,10 C108,10 114,16 122,18 C130,20 138,18 145,23 C152,28 155,36 161,42 C167,48 175,51 179,59 C183,67 180,75 182,84 C184,93 190,99 190,108 C190,117 184,123 182,132 C180,141 183,149 179,157 C175,165 167,168 161,174 C155,180 152,188 145,193 C138,198 130,196 122,198 C114,200 108,206 100,206 C92,206 86,200 78,198 C70,196 62,198 55,193 C48,188 45,180 39,174 C33,168 25,165 21,157 C17,149 20,141 18,132 C16,123 10,117 10,108 C10,99 16,93 18,84 C20,75 17,67 21,59 C25,51 33,48 39,42 C45,36 48,28 55,23 C62,18 70,20 78,18 C86,16 92,10 100,10 Z" fill="#FFFFFF" transform="scale(0.9) translate(11, 11)" />
+        <g transform="translate(122, 58) rotate(15)">
+          <path d="M6,22 C6,10 16,0 28,0 C40,0 50,10 50,22 Z" fill="#3DDC84" />
+          <circle cx="18" cy="12" r="3" fill="#FFFFFF" />
+          <circle cx="38" cy="12" r="3" fill="#FFFFFF" />
+          <line x1="16" y1="2" x2="8" y2="-8" stroke="#3DDC84" strokeWidth="3" strokeLinecap="round" />
+          <line x1="40" y1="2" x2="48" y2="-8" stroke="#3DDC84" strokeWidth="3" strokeLinecap="round" />
+        </g>
+        <circle cx="100" cy="46" r="14" fill="#0079D3" />
+        <circle cx="100" cy="46" r="8" fill="#FFFFFF" />
+        <path d="M92,54 C82,80 56,120 46,146 C44,151 47,156 52,156 C56,156 59,153 61,148 C72,122 96,86 102,60 Z" fill="#1976D2" />
+        <path d="M108,54 C118,80 144,120 154,146 C156,151 153,156 148,156 C144,156 141,153 139,148 C128,122 104,86 98,60 Z" fill="#2196F3" />
+        <path d="M68,110 C86,122 114,122 132,110" stroke="#42A5F5" strokeWidth="8" strokeLinecap="round" fill="none" />
+      </svg>
+    );
+  }
 
   if (type.includes("youtube")) {
     return (
@@ -264,21 +349,30 @@ export const BrandLogoSvg = memo(function BrandLogoSvg({ logoType, title }: { lo
 
   if (type.includes("textnow") || type.includes("text now")) {
     return (
-      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
-        <circle cx="50" cy="50" r="48" fill="#6B21A8" />
-        <path d="M28 42C28 35 34 30 42 30H58C66 30 72 35 72 42V54C72 61 66 66 58 66H42L32 74V64C29 62 28 58 28 54V42Z" fill="#FFF" />
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 200 200" fill="none">
+        <defs>
+          <linearGradient id="textNowGradCard" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#9333EA" />
+            <stop offset="100%" stopColor="#6B21A8" />
+          </linearGradient>
+        </defs>
+        <circle cx="100" cy="100" r="92" fill="url(#textNowGradCard)" />
+        <path d="M46,84 C46,74 54,66 66,66 L134,66 C146,66 154,74 154,84 L154,88 C154,92 150,96 144,96 L132,96 C124,96 120,90 114,88 C106,86 94,86 86,88 C80,90 76,96 68,96 L56,96 C50,96 46,92 46,88 L46,84 Z M42,104 C42,100 46,98 52,98 L148,98 C154,98 158,100 158,104 C158,124 140,140 120,140 L84,140 C76,140 68,146 64,152 C62,154 58,152 58,148 L58,138 C48,132 42,118 42,104 Z" fill="#FFFFFF" />
       </svg>
     );
   }
 
   if (type.includes("gmail")) {
     return (
-      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 100 100" fill="none">
-        <rect width="100" height="100" rx="20" fill="#FFF" />
-        <path d="M20 70V30C20 26 23 23 27 23H32L50 42L68 23H73C77 23 80 26 80 30V70H70V40L50 56L30 40V70H20Z" fill="#EA4335" />
-        <path d="M20 30L50 52L80 30V34L50 56L20 34V30Z" fill="#4285F4" />
-        <path d="M20 70H30V40L20 32V70Z" fill="#34A853" />
-        <path d="M70 70H80V32L70 40V70Z" fill="#FBBC04" />
+      <svg className="w-14 h-14 sm:w-16 sm:h-16 max-h-[85%] max-w-[85%] drop-shadow-md" viewBox="0 0 200 200" fill="none">
+        <circle cx="100" cy="100" r="92" fill="#FFFFFF" />
+        <g transform="translate(38, 48) scale(1.24)">
+          <path d="M8,76 L8,24 C8,15.2 15.2,8 24,8 L32,8 L50,26 L68,8 L76,8 C84.8,8 92,15.2 92,24 L92,76 L76,76 L76,38 L50,58 L24,38 L24,76 L8,76 Z" fill="#EA4335" />
+          <path d="M8,24 C8,15.2 15.2,8 24,8 L32,8 L8,28 L8,24 Z" fill="#4285F4" />
+          <path d="M68,8 L76,8 C84.8,8 92,15.2 92,24 L92,28 L68,8 Z" fill="#FBBC04" />
+          <path d="M8,28 L8,76 L24,76 L24,38 L8,28 Z" fill="#34A853" />
+          <path d="M76,38 L76,76 L92,76 L92,28 L76,38 Z" fill="#4285F4" />
+        </g>
       </svg>
     );
   }
@@ -518,6 +612,7 @@ export const BrandLogoSvg = memo(function BrandLogoSvg({ logoType, title }: { lo
 interface ServiceCardProps {
   service?: ServiceItem & { title_bn?: string; description_bn?: string; logoType?: string; usdPrice?: string; subtitle?: string };
   product?: ServiceItem & { title_bn?: string; description_bn?: string; logoType?: string; usdPrice?: string; subtitle?: string };
+  currentCategory?: string;
   onAddToCart?: (service: ServiceItem) => void;
   onBuyNow?: (service: ServiceItem) => void;
   onEdit?: (service: ServiceItem) => void;
@@ -525,7 +620,7 @@ interface ServiceCardProps {
   isHighlighted?: boolean;
 }
 
-function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, onEdit, onDelete, isHighlighted }: ServiceCardProps) {
+function ServiceCard({ service: inputService, product, currentCategory, onAddToCart, onBuyNow, onEdit, onDelete, isHighlighted }: ServiceCardProps) {
   const service = inputService || product;
   const { locale } = useLanguage();
   const { user } = useAuth();
@@ -596,7 +691,7 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
       .filter((feat) => !/500 days|30 days|90d|180d|365d/i.test(feat) || /replacement|full fresh|guaranteed/i.test(feat));
   }, [service.category, service.features]);
 
-  const hasSvgLogo = isSubscription || !!service.logoType || service.category?.toLowerCase() === "ip" || service.category?.toLowerCase() === "smm";
+  const hasSvgLogo = isSubscription || !!service.logoType || service.category?.toLowerCase() === "ip" || service.category?.toLowerCase() === "smm" || service.category?.toLowerCase() === "email";
 
   const cleanBadge = useMemo(() => {
     const rawBadge = service.badge || service.subtitle || "";
@@ -614,8 +709,11 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
   const router = useRouter();
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Navigate to product detail page
-    router.push(`/${locale}/services/${service.id}`);
+    // Navigate to product detail page preserving category context
+    const cat = currentCategory && currentCategory !== "all"
+      ? getCanonicalCategory({ category: currentCategory })
+      : getCanonicalCategory(service);
+    router.push(`/${locale}/services/${service.id}?cat=${cat}`);
   };
 
   const handleAdd = useCallback((e: React.MouseEvent) => {
@@ -699,19 +797,19 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
             {/* Heart Favorite Button */}
             <button
               onClick={(e) => { e.stopPropagation(); setIsFavorite(!isFavorite); }}
-              className="absolute bottom-1.5 left-1.5 w-6 h-6 rounded-full bg-slate-950/70 hover:bg-slate-900 text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center backdrop-blur-md z-10 border border-slate-800"
+              className={`absolute ${isSoldOut ? "top-1.5 right-1.5" : "bottom-1.5 left-1.5"} w-6 h-6 rounded-full bg-slate-950/70 hover:bg-slate-900 text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center backdrop-blur-md z-10 border border-slate-800`}
               aria-label="Add to Favorites"
             >
               <Heart className={`w-3 h-3 ${isFavorite ? "fill-rose-500 text-rose-500" : ""}`} />
             </button>
 
-            {/* FLOATING TOP-RIGHT BADGE CHIP */}
+            {/* FLOATING BADGE CHIP */}
             {!isSoldOut ? (
               <span className="absolute top-1.5 right-1.5 px-2 py-0.5 text-[10px] font-extrabold bg-[#0f172a]/95 text-cyan-400 border border-cyan-500/40 rounded-full backdrop-blur-md shadow flex items-center gap-1 z-10">
                 ⚡ {cleanBadge}
               </span>
             ) : (
-              <span className="absolute top-1.5 right-1.5 px-2 py-0.5 text-[10px] font-extrabold bg-rose-500/90 text-white rounded-full uppercase backdrop-blur-md shadow z-10">
+              <span className="absolute top-1.5 left-1.5 px-2.5 py-0.5 text-[10px] font-extrabold bg-rose-600 text-white rounded-full uppercase backdrop-blur-md shadow z-10">
                 SOLD OUT
               </span>
             )}
@@ -728,9 +826,15 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
           </span>
         </div>
 
-        <h3 className="text-sm sm:text-base font-extrabold text-white group-hover:text-cyan-300 transition-colors leading-snug line-clamp-1 tracking-tight">
+        <h3 className="text-sm sm:text-base font-extrabold text-white group-hover:text-cyan-300 transition-colors leading-snug line-clamp-2 tracking-tight">
           {displayTitle}
         </h3>
+
+        {service.subtitle && (
+          <p className="text-xs text-slate-400 font-medium mt-1 line-clamp-1">
+            {service.subtitle}
+          </p>
+        )}
 
         {/* 3. RATING & STOCK STATUS ROW */}
         <div className="my-1.5 flex items-center justify-between text-[11px] text-slate-400">
@@ -811,9 +915,9 @@ function ServiceCard({ service: inputService, product, onAddToCart, onBuyNow, on
           ) : (
             <button
               disabled
-              className="flex items-center justify-center gap-1 py-1.5 px-2 bg-slate-800 text-rose-400 font-bold text-xs rounded-lg border border-rose-500/30 cursor-not-allowed"
+              className="flex items-center justify-center gap-1 py-1.5 px-2.5 bg-gradient-to-r from-rose-600 to-red-600 text-white font-extrabold text-xs rounded-lg shadow-md shadow-rose-600/30 cursor-not-allowed uppercase"
             >
-              <span>{isBn ? "স্টক শেষ" : "Out"}</span>
+              <span>{isBn ? "স্টক শেষ" : "STOCK OUT"}</span>
             </button>
           )}
         </div>

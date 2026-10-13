@@ -9,6 +9,9 @@ export function getCanonicalCategory(item: { id?: string; category?: string; tit
   const cat = (item.category || "").toLowerCase().trim();
   const title = (item.title || "").toLowerCase();
 
+  // 0. Handle 'all' category explicitly
+  if (cat === "all" || id === "all") return "all";
+
   // 1. Strict ID Prefix Isolation (100% reliable for reference catalog items)
   if (id.startsWith("vpn-")) return "vpn";
   if (id.startsWith("sub-")) return "subscriptions";
@@ -20,9 +23,9 @@ export function getCanonicalCategory(item: { id?: string; category?: string; tit
   // 2. Strict Category Property Mapping
   if (cat === "vpn" || cat.includes("vpn")) return "vpn";
   if (cat === "subscriptions" || cat === "sub" || cat.includes("ai") || cat.includes("subscription") || cat.includes("tool")) return "subscriptions";
-  if (cat === "ip" || cat.includes("proxy")) return "ip";
+  if (cat === "ip" || cat.includes("proxy") || cat.includes("proxies")) return "ip";
   if (cat === "smm" || cat.includes("smm") || cat.includes("social")) return "smm";
-  if (cat === "email" || cat.includes("email") || cat.includes("mail") || cat.includes("gmail") || cat.includes("account")) return "email";
+  if (cat === "email" || cat.includes("email") || cat.includes("mail") || cat.includes("gmail") || cat.includes("account") || cat.includes("accounts")) return "email";
   if (cat === "telegram") return "telegram";
   if (cat === "hosting") return "hosting";
 

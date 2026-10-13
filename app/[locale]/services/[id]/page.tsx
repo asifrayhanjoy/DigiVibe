@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, use } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, useMemo, use, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -15,6 +15,7 @@ import { SERVICES } from "@/data/services";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { getCanonicalCategory } from "@/lib/categories";
 import {
   ShieldCheck,
   Star,
@@ -37,12 +38,13 @@ import {
   AlertCircle
 } from "lucide-react";
 
-export default function ServiceDetailPage({ params }: { params: Promise<{ locale: string; id: string }> | { locale: string; id: string } }) {
+function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string; id: string }> | { locale: string; id: string } }) {
   const resolvedParams = use(params as any) as { locale: string; id: string };
   const locale = resolvedParams?.locale || "en";
   const serviceId = resolvedParams?.id;
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { dict } = useLanguage();
   const { user, requireAuth } = useAuth();
   const { addToCart, openCart } = useCart();
@@ -59,6 +61,25 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
   const [quantity, setQuantity] = useState<number>(1);
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+
+  // Smart Origin Category State Detection
+  const catParam = searchParams?.get("cat") || searchParams?.get("category");
+  const originCategory = useMemo(() => {
+    if (catParam) {
+      return getCanonicalCategory({ category: catParam });
+    }
+    if (service) {
+      return getCanonicalCategory(service);
+    }
+    return "all";
+  }, [catParam, service]);
+
+  const returnUrl = useMemo(() => {
+    if (originCategory && originCategory !== "all") {
+      return `/${locale}/services?cat=${originCategory}`;
+    }
+    return `/${locale}/services`;
+  }, [locale, originCategory]);
 
   // Modals
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
@@ -165,11 +186,11 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
           <h1 className="text-2xl sm:text-3xl font-black text-white">Product Not Found</h1>
           <p className="text-sm text-slate-400 mt-2 mb-6">The service card you are looking for may have been removed or updated.</p>
           <Link
-            href={`/${locale}/services`}
+            href={returnUrl}
             className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm rounded-xl transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to All Services</span>
+            <span>Back to {originCategory && originCategory !== "all" ? `${originCategory.toUpperCase()} Services` : "All Services"}</span>
           </Link>
         </div>
         <Footer />
@@ -188,7 +209,9 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mb-6 font-semibold">
           <Link href={`/${locale}`} className="hover:text-cyan-400 transition-colors">Home</Link>
           <span>/</span>
-          <Link href={`/${locale}/services`} className="hover:text-cyan-400 transition-colors">Catalog</Link>
+          <Link href={returnUrl} className="hover:text-cyan-400 transition-colors">
+            {originCategory && originCategory !== "all" ? `${originCategory.charAt(0).toUpperCase() + originCategory.slice(1)} Catalog` : "Catalog"}
+          </Link>
           <span>/</span>
           <span className="text-cyan-400 font-bold capitalize">{service.category}</span>
           <span>/</span>
@@ -458,8 +481,8 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
                 <Sparkles className="w-5 h-5 text-cyan-400" />
                 <span>Recommended Products</span>
               </h2>
-              <Link href={`/${locale}/services`} className="text-xs font-bold text-cyan-400 hover:underline">
-                View All Catalog →
+              <Link href={returnUrl} className="text-xs font-bold text-cyan-400 hover:underline">
+                View All {originCategory && originCategory !== "all" ? `${originCategory.toUpperCase()} ` : ""}Catalog →
               </Link>
             </div>
 
@@ -468,10 +491,11 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
                 <ServiceCard
                   key={prod.id}
                   service={prod}
+                  currentCategory={originCategory}
                   onAddToCart={() => addToCart(prod)}
                   onBuyNow={() => {
                     requireAuth(() => {
-                      router.push(`/${locale}/services/${prod.id}`);
+                      router.push(`/${locale}/services/${prod.id}?cat=${getCanonicalCategory(prod)}`);
                     });
                   }}
                 />
@@ -503,20 +527,40 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ locale
           onClose={() => setIsAdminModalOpen(false)}
           mode="edit"
           initialData={service}
-          onSaveSuccess={(updated) => {
+          currentCategory={originCategory}
+          returnUrl={returnUrl}
+          onSaveSuccess={(updated, targetReturnUrl, targetCategory) => {
             setService(updated);
             showToast("Product Updated! ✨", `"${updated.title}" has been saved to the database.`);
             setIsAdminModalOpen(false);
-            if (updated.id && updated.id !== service.id) {
-              router.replace(`/${locale}/services/${updated.id}`);
-            } else {
-              fetchProductDetail();
-            }
+
+            // Smart Redirect back to exact category path
+            const destCategory = (originCategory && originCategory !== "all")
+              ? originCategory
+              : (targetCategory && targetCategory !== "all" ? targetCategory : getCanonicalCategory(updated));
+
+            const targetPath = destCategory && destCategory !== "all"
+              ? `/${locale}/services?cat=${destCategory}&id=${updated.id}#product-${updated.id}`
+              : `/${locale}/services?id=${updated.id}#product-${updated.id}`;
+
+            router.push(targetPath);
           }}
         />
       )}
 
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
     </div>
+  );
+}
+
+export default function ServiceDetailPage(props: { params: Promise<{ locale: string; id: string }> | { locale: string; id: string } }) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-8 text-center font-bold text-cyan-400">
+        Loading product details...
+      </div>
+    }>
+      <ServiceDetailPageContent {...props} />
+    </Suspense>
   );
 }

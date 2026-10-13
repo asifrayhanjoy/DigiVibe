@@ -55,6 +55,7 @@ export const VPNProductGrid = ({
           <ProductCard
             key={product.id}
             product={product}
+            currentCategory="vpn"
             onAddToCart={onAddToCart}
             onBuyNow={onBuyNow}
             onEdit={onEditProduct}

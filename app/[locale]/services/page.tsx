@@ -122,7 +122,7 @@ function ServicesContent() {
     }
   }, [fetchServicesFromDB]);
 
-  const handleSaveSuccess = useCallback((savedProduct: ServiceItem) => {
+  const handleSaveSuccess = useCallback((savedProduct: ServiceItem, returnUrl?: string, targetCategory?: string) => {
     showToast(
       adminModalMode === "edit" ? "Card Updated! ✨" : "Card Created! 🎉",
       `"${savedProduct.title}" has been saved to the database.`
@@ -131,7 +131,30 @@ function ServicesContent() {
       setHighlightedId(savedProduct.id);
     }
     fetchServicesFromDB();
-  }, [adminModalMode, fetchServicesFromDB]);
+
+    // Smart Category Preservation & Redirection:
+    // Retain currently browsed category or target category without dropping back to generic view
+    const destinationCat: CategoryId = (activeCategory && activeCategory !== "all")
+      ? activeCategory
+      : (targetCategory && targetCategory !== "all" ? (targetCategory as CategoryId) : getCanonicalCategory(savedProduct));
+
+    if (destinationCat && destinationCat !== "all") {
+      setActiveCategory(destinationCat);
+      const targetPath = `/${locale}/services?cat=${destinationCat}&id=${savedProduct.id}#product-${savedProduct.id}`;
+      router.push(targetPath);
+    } else {
+      setActiveCategory("all");
+      const targetPath = `/${locale}/services?id=${savedProduct.id}#product-${savedProduct.id}`;
+      router.push(targetPath);
+    }
+
+    setTimeout(() => {
+      const el = document.getElementById(`product-${savedProduct.id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 400);
+  }, [adminModalMode, fetchServicesFromDB, activeCategory, locale, router]);
 
   const hasScrolledRef = useRef<string>("");
 
@@ -292,7 +315,11 @@ function ServicesContent() {
     setSearchQuery("");
     if (cat === "ip") setProxySubFilter("all");
     if (cat === "smm") setSmmSubFilter("all");
-  }, []);
+
+    // Dynamically synchronize the URL with the chosen category tab
+    const targetPath = cat === "all" ? `/${locale}/services` : `/${locale}/services?cat=${cat}`;
+    router.replace(targetPath, { scroll: false });
+  }, [locale, router]);
 
   return (
     <div className="min-h-screen text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
@@ -602,6 +629,7 @@ function ServicesContent() {
               <ServiceCard
                 key={`${service.id || service._id || 'prod'}-${index}`}
                 service={service}
+                currentCategory={activeCategory}
                 onAddToCart={handleAddToCart}
                 onBuyNow={handleBuyNow}
                 onEdit={handleOpenEditModal}
@@ -613,7 +641,7 @@ function ServicesContent() {
         )}
       </main>
 
-      <Footer onSelectCategory={(cat) => setActiveCategory(cat as CategoryId)} />
+      <Footer onSelectCategory={(cat) => handleSelectCategory(cat as CategoryId)} />
 
       <CheckoutModal
         isOpen={isCheckoutOpen}
@@ -659,6 +687,8 @@ function ServicesContent() {
         onClose={() => setIsAdminModalOpen(false)}
         mode={adminModalMode}
         initialData={selectedProductToEdit}
+        currentCategory={activeCategory}
+        returnUrl={activeCategory !== "all" ? `/${locale}/services?cat=${activeCategory}` : `/${locale}/services`}
         onSaveSuccess={handleSaveSuccess}
       />
 

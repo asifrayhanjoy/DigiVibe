@@ -143,6 +143,10 @@ export async function GET(req: Request) {
       }
     }
 
+    // Explicitly guarantee legacy purged email items are removed from database
+    const purgedEmailIds = ["email-fr-outlook", "email-hotmail-trust", "email-outlook-fresh"];
+    await (Product as any).deleteMany({ productId: { $in: purgedEmailIds } });
+
     let products = await (Product as any).find().sort({ createdAt: -1 }).lean();
 
     const mappedProducts = products.map(mapProductToServiceItem);
