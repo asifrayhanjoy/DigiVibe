@@ -8,9 +8,10 @@ export const CATEGORIES = [
   { id: "vpn", label: "VPN Services", labelEn: "VPN Services", labelBn: "ভিপিএন সার্ভিস", icon: "ShieldCheck", count: 39 },
   { id: "subscriptions", label: "AI Tools", labelEn: "AI Tools", labelBn: "এআই ও সাবস্ক্রিপশন", icon: "Sparkles", count: 6 },
   { id: "ip", label: "IP & Proxies", labelEn: "IP & Proxies", labelBn: "আইপি ও প্রক্সি", icon: "Globe", count: 13 },
-  { id: "smm", label: "SMM Growth", labelEn: "SMM Growth", labelBn: "এসএমএম গ্রোথ", icon: "TrendingUp", count: 20 },
+  { id: "smm", label: "Social Media Service", labelEn: "Social Media Service", labelBn: "সোশ্যাল মিডিয়া সার্ভিস", icon: "TrendingUp", count: 20 },
   { id: "email", label: "Email / Accounts", labelEn: "Email / Accounts", labelBn: "ইমেইল ও অ্যাকাউন্টস", icon: "Mail", count: 10 },
   { id: "telegram", label: "Telegram", labelEn: "Telegram", labelBn: "টেলিগ্রাম", icon: "Send", count: 2 },
+  { id: "advanced", label: "Advanced Service", labelEn: "Advanced Service", labelBn: "অ্যাডভান্সড সার্ভিস", icon: "Cpu", count: 2 },
   { id: "hosting", label: "Hosting", labelEn: "Hosting", labelBn: "হোস্টিং", icon: "Server", count: 0 },
 ];
 
@@ -29,7 +30,8 @@ export const SERVICES = [
     usdPrice: vpn.usdPrice || "",
     validity: vpn.duration || "7 Days",
     delivery: "Instant Auto-Delivery",
-    stock: vpn.inStock === false ? "Stock Out" : (vpn.stock || "In Stock"),
+    inStock: vpn.inStock !== false && vpn.stock !== "Stock Out" && vpn.stock !== "Out of Stock" && vpn.stock !== "Sold Out",
+    stock: vpn.stock || (vpn.inStock === false ? "Stock Out" : "In Stock"),
     icon: "ShieldCheck",
     logo: vpn.logo,
     image: vpn.image || vpn.logo,
@@ -1180,8 +1182,78 @@ export const SERVICES = [
     ],
     overview: "⚠️ Safety Notice: Do not perform spamming or bulk messaging immediately upon login. Keep session active properly.",
     popular: false
+  },
+  // --- ADVANCED SERVICES ---
+  {
+    id: "adv-custom-workflow-automation",
+    title: "🤖 Custom Workflow & API Automation",
+    category: "advanced",
+    subtitle: "Tailored Python & Node.js Bot Architecture",
+    badge: "Custom Setup ⚙️",
+    rating: 4.9,
+    reviews: 62,
+    price: 2500,
+    originalPrice: 3200,
+    usdPrice: "$22.00",
+    duration: "Lifetime",
+    validity: "Lifetime",
+    delivery: "Admin Consultation & Delivery",
+    stock: "In Stock",
+    inStock: true,
+    icon: "Cpu",
+    logoType: "custom",
+    features: [
+      "Custom Automation Architecture for Telegram / WhatsApp",
+      "Automated Web Scraping & Data Extraction Pipeline",
+      "Full Source Code Deployment & Configuration",
+      "Dedicated 1-on-1 Admin Consultation Included"
+    ],
+    overview: "Custom-built digital automation workflows tailored to your agency or business scaling requirements.",
+    popular: true
+  },
+  {
+    id: "adv-enterprise-rdp-server",
+    title: "⚡ Dedicated Enterprise RDP / VPS Server",
+    category: "advanced",
+    subtitle: "High-Speed 10Gbps Windows / Linux Server",
+    badge: "Enterprise VIP 🚀",
+    rating: 5.0,
+    reviews: 84,
+    price: 1200,
+    originalPrice: 1500,
+    usdPrice: "$10.50",
+    duration: "30 Days",
+    validity: "30 Days",
+    delivery: "Instant Setup (Within 10 Mins)",
+    stock: "In Stock",
+    inStock: true,
+    icon: "Cpu",
+    logoType: "custom",
+    features: [
+      "10Gbps Port & Dedicated Clean Residential IP",
+      "16GB RAM + 8 Core High-Performance CPU",
+      "Full Administrator / Root Access Granted",
+      "24/7 Dedicated Server Monitoring & Replacement"
+    ],
+    overview: "Enterprise-grade Remote Desktop Protocol server optimized for automation, browsing, and heavy multi-threading operations.",
+    popular: true
   }
 ];
+
+// Strictly enforce A-Z universal alphabetical hierarchy across the catalog
+function cleanTitleForSort(title) {
+  if (!title) return "";
+  const stripped = title.replace(/^[^\p{L}\p{N}]+/gu, "").trim();
+  return stripped || title.trim();
+}
+
+SERVICES.sort((a, b) => {
+  const keyA = cleanTitleForSort(a?.title);
+  const keyB = cleanTitleForSort(b?.title);
+  const cmp = keyA.localeCompare(keyB, undefined, { sensitivity: "base", numeric: true });
+  if (cmp !== 0) return cmp;
+  return (a?.title || "").localeCompare(b?.title || "", undefined, { numeric: true });
+});
 
 export const TESTIMONIALS = [
   {
@@ -1259,10 +1331,10 @@ export const TESTIMONIALS = [
     name: "Anika Rahman",
     role: "Social Media Manager",
     location: "Comilla, Bangladesh",
-    comment: "SMM Growth প্যাক দিয়ে ক্লায়েন্টের ফেসবুক পেজে নন-ড্রপ ফলোয়ার বাড়াতে পেরেছি। রিয়েল ও সেফ সার্ভিস।",
+    comment: "Social Media Service প্যাক দিয়ে ক্লায়েন্টের ফেসবুক পেজে নন-ড্রপ ফলোয়ার বাড়াতে পেরেছি। রিয়েল ও সেফ সার্ভিস।",
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-    serviceBought: "Facebook Page SMM Growth"
+    serviceBought: "Facebook Page Social Media Service"
   },
   {
     id: 9,

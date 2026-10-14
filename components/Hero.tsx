@@ -122,11 +122,11 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
           {/* Quick Category Tags */}
           <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
             <span className="font-semibold text-slate-500">Popular:</span>
-            {["NordVPN", "ChatGPT Plus", "YouTube 4K", "GP 50GB", "Residential IP"].map((tag) => (
+            {["NordVPN", "ChatGPT Plus", "YouTube 4K", "Residential IP"].map((tag) => (
               <button
                 key={tag}
                 onClick={() => handleTagClick(tag)}
-                className="px-3 py-1 rounded-full bg-slate-900/70 border border-white/10 hover:border-cyan-400 hover:text-cyan-300 text-slate-300 transition-all text-xs font-semibold backdrop-blur-md"
+                className="px-3 py-1 rounded-full bg-slate-900/70 border border-white/10 hover:border-cyan-400 hover:text-cyan-300 text-slate-300 transition-all text-xs font-semibold backdrop-blur-md cursor-pointer hover:scale-105 active:scale-95"
               >
                 {tag}
               </button>

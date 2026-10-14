@@ -1047,11 +1047,11 @@ async function syncSmmGrowthDb() {
 
     // Verify SMM items in MongoDB Atlas
     const totalSmmInDb = await collection.countDocuments({
-      category: { $in: ['smm', 'SMM', 'SMM Growth'] }
+      category: { $in: ['smm', 'SMM', 'SMM Growth', 'Social Media Service'] }
     });
 
     const dbItems = await collection.find({
-      category: { $in: ['smm', 'SMM', 'SMM Growth'] }
+      category: { $in: ['smm', 'SMM', 'SMM Growth', 'Social Media Service'] }
     }).toArray();
 
     console.log('\n==================================================');

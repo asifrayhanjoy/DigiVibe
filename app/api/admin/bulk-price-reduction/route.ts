@@ -16,8 +16,10 @@ export async function POST() {
       Subscriptions: "AI Tools",
       ip: "IP & Proxies",
       IP: "IP & Proxies",
-      smm: "SMM Growth",
-      SMM: "SMM Growth",
+      smm: "Social Media Service",
+      SMM: "Social Media Service",
+      "SMM Growth": "Social Media Service",
+      "Social Media Service": "Social Media Service",
       telegram: "Telegram",
       Telegram: "Telegram",
     };
@@ -64,7 +66,7 @@ export async function POST() {
       "SIM Offers": 0,
       "AI Tools": 0,
       "IP & Proxies": 0,
-      "SMM Growth": 0,
+      "Social Media Service": 0,
       Telegram: 0,
     };
 
@@ -115,8 +117,10 @@ export async function GET() {
       Subscriptions: "AI Tools",
       ip: "IP & Proxies",
       IP: "IP & Proxies",
-      smm: "SMM Growth",
-      SMM: "SMM Growth",
+      smm: "Social Media Service",
+      SMM: "Social Media Service",
+      "SMM Growth": "Social Media Service",
+      "Social Media Service": "Social Media Service",
       telegram: "Telegram",
       Telegram: "Telegram",
     };
@@ -129,7 +133,7 @@ export async function GET() {
       "SIM Offers": 0,
       "AI Tools": 0,
       "IP & Proxies": 0,
-      "SMM Growth": 0,
+      "Social Media Service": 0,
       Telegram: 0,
     };
 

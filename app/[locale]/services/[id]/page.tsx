@@ -16,6 +16,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { getCanonicalCategory } from "@/lib/categories";
+import { sortAlphabetically } from "@/lib/sorting";
 import {
   ShieldCheck,
   Star,
@@ -152,12 +153,18 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
 
   const relatedProducts = useMemo(() => {
     if (!service) return [];
-    return allProducts
-      .filter((p) => p.id !== service.id && (p.category === service.category || p.popular))
-      .slice(0, 4);
+    const list = allProducts
+      .filter((p) => p.id !== service.id && (p.category === service.category || p.popular));
+    return sortAlphabetically(list).slice(0, 4);
   }, [allProducts, service]);
 
-  const isSoldOut = service?.stock === "Out of Stock" || service?.stock === "Stock Out" || service?.inStock === false;
+  const isSoldOut = 
+    service?.inStock === false ||
+    (service as any)?.inStock === "false" ||
+    service?.stock === "Out of Stock" || 
+    service?.stock === "Stock Out" || 
+    service?.stock === "Sold Out" ||
+    service?.badge === "SOLD OUT";
   const discountPercent = service && service.originalPrice && service.originalPrice > service.price
     ? Math.round(((service.originalPrice - service.price) / service.originalPrice) * 100)
     : 0;
@@ -226,10 +233,18 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
             <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
             {/* Top Badges */}
-            <div className="flex items-center justify-between gap-2 mb-4 z-10 relative">
-              <span className="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
-                {service.category}
-              </span>
+            <div className="flex items-center justify-between gap-2 mb-4 z-10 relative flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+                  {service.category}
+                </span>
+                {(service.duration || service.validity) && (
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-900/90 text-cyan-300 border border-cyan-500/40 flex items-center gap-1.5 shadow-sm">
+                    <Clock className="w-3.5 h-3.5 text-cyan-400 stroke-[2.5]" />
+                    <span>{service.duration || service.validity}</span>
+                  </span>
+                )}
+              </div>
               {discountPercent > 0 && (
                 <span className="px-3.5 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 animate-pulse">
                   ⚡ {discountPercent}% OFF
@@ -530,7 +545,15 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
           currentCategory={originCategory}
           returnUrl={returnUrl}
           onSaveSuccess={(updated, targetReturnUrl, targetCategory) => {
-            setService(updated);
+            setService((prev: any) => ({
+              ...prev,
+              ...updated,
+              duration: updated.duration || updated.validity || prev?.duration || "7 Days",
+              validity: updated.validity || updated.duration || prev?.validity || "7 Days",
+              inStock: updated.inStock,
+              stock: updated.stock,
+            }));
+            router.refresh();
             showToast("Product Updated! ✨", `"${updated.title}" has been saved to the database.`);
             setIsAdminModalOpen(false);
 
@@ -540,8 +563,8 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
               : (targetCategory && targetCategory !== "all" ? targetCategory : getCanonicalCategory(updated));
 
             const targetPath = destCategory && destCategory !== "all"
-              ? `/${locale}/services?cat=${destCategory}&id=${updated.id}#product-${updated.id}`
-              : `/${locale}/services?id=${updated.id}#product-${updated.id}`;
+              ? `/${locale}/services?cat=${destCategory}#product-${updated.id}`
+              : `/${locale}/services#product-${updated.id}`;
 
             router.push(targetPath);
           }}

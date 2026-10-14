@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Globe, Zap, Wifi, Smartphone, Radio, Sparkles } from 'lucide-react';
 import ServiceCard from './ServiceCard';
+import { sortAlphabetically } from '@/lib/sorting';
 
 export interface SimFilterBarProps {
   selectedOperator: string;
@@ -78,9 +79,10 @@ export const SimOfferGrid = ({
   };
 
   const filteredOffers = React.useMemo(() => {
-    return selectedOperator === 'All'
+    const list = selectedOperator === 'All'
       ? simOffers
       : simOffers.filter((item) => getOperatorType(item) === selectedOperator);
+    return sortAlphabetically(list);
   }, [simOffers, selectedOperator]);
 
   return (

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { useMemo } from "react";
 import { Search, X, Zap, ArrowRight } from "lucide-react";
 import { ServiceItem } from "@/types";
+import { sortAlphabetically } from "@/lib/sorting";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -23,6 +25,9 @@ export default function SearchModal({
   onSelectService,
   onSearchSubmit
 }: SearchModalProps) {
+  const sortedResults = useMemo(() => {
+    return sortAlphabetically(searchResults);
+  }, [searchResults]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
@@ -80,12 +85,12 @@ export default function SearchModal({
 
         {/* Results List */}
         <div className="max-h-96 overflow-y-auto p-4 space-y-2">
-          {searchResults.length === 0 ? (
+          {sortedResults.length === 0 ? (
             <div className="py-12 text-center text-slate-500 text-xs">
               No matching digital services found for "{searchQuery}".
             </div>
           ) : (
-            searchResults.map((item) => (
+            sortedResults.map((item) => (
               <div
                 key={item.id}
                 onClick={() => {

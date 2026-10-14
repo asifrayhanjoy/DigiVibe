@@ -64,8 +64,10 @@ async function runBulkPriceReduction() {
       Subscriptions: 'AI Tools',
       ip: 'IP & Proxies',
       IP: 'IP & Proxies',
-      smm: 'SMM Growth',
-      SMM: 'SMM Growth',
+      smm: 'Social Media Service',
+      SMM: 'Social Media Service',
+      'SMM Growth': 'Social Media Service',
+      'Social Media Service': 'Social Media Service',
       telegram: 'Telegram',
       Telegram: 'Telegram'
     };
@@ -86,7 +88,7 @@ async function runBulkPriceReduction() {
       'SIM Offers': 0,
       'AI Tools': 0,
       'IP & Proxies': 0,
-      'SMM Growth': 0,
+      'Social Media Service': 0,
       'Telegram': 0
     };
 

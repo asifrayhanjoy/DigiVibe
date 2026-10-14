@@ -13,7 +13,8 @@ import {
   Server,
   FileText,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Cpu
 } from "lucide-react";
 import { CATEGORIES } from "@/data/services";
 import { CategoryId } from "@/types";
@@ -28,6 +29,7 @@ const ICON_MAP: Record<string, any> = {
   TrendingUp,
   Mail,
   Send,
+  Cpu,
   Server,
   FileText,
 };

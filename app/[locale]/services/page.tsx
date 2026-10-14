@@ -15,25 +15,47 @@ import VPNProductGrid from "@/components/VPNProductGrid";
 
 import { SERVICES } from "@/data/services";
 import { CategoryId, CartItem, ServiceItem } from "@/types";
-import { SlidersHorizontal, ArrowUpDown, Sparkles, Info, Server, Headphones, Plus } from "lucide-react";
+import { SlidersHorizontal, ArrowUpDown, Sparkles, Info, Server, Headphones, Plus, Cpu } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { getCanonicalCategory } from "@/lib/categories";
+import { compareAlphabetical, sortAlphabetically } from "@/lib/sorting";
 
 const CheckoutModal = dynamic(() => import("@/components/CheckoutModal"), { ssr: false });
 const SearchModal = dynamic(() => import("@/components/SearchModal"), { ssr: false });
 const AdminProductModal = dynamic(() => import("@/components/AdminProductModal"), { ssr: false });
 
 function ServicesContent() {
-  const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlCatParam = searchParams?.get("cat") || searchParams?.get("category");
+  const initialCategory: CategoryId = urlCatParam ? getCanonicalCategory({ category: urlCatParam }) : "all";
+
+  const [activeCategory, setActiveCategory] = useState<CategoryId>(initialCategory);
   const [proxySubFilter, setProxySubFilter] = useState<"all" | "gb" | "ip">("all");
   const [smmSubFilter, setSmmSubFilter] = useState<"all" | "lifetime" | "30day" | "norefill">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<"featured" | "price-low" | "price-high" | "popular" | "newest">("featured");
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
-  const [servicesList, setServicesList] = useState<ServiceItem[]>(SERVICES);
+  const [servicesList, setServicesList] = useState<ServiceItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("digivibe_deleted_products");
+        if (stored) {
+          const deletedSet = new Set<string>(JSON.parse(stored));
+          return sortAlphabetically(
+            SERVICES.filter((p) => {
+              const pId = p.id || (p as any).productId || (p as any)._id;
+              return !deletedSet.has(pId) && !deletedSet.has(p.id);
+            })
+          );
+        }
+      } catch (e) {}
+    }
+    return sortAlphabetically(SERVICES);
+  });
   const [isLoadingServices, setIsLoadingServices] = useState<boolean>(true);
 
   // Admin Modal States
@@ -49,8 +71,6 @@ function ServicesContent() {
   const { locale, dict } = useLanguage();
   const { user, isAuthenticated, isLoading, requireAuth } = useAuth();
   const { cart, addToCart, openCart: contextOpenCart, clearCart } = useCart();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const isAdmin = user?.role === "admin" || (user?.email || "").toLowerCase() === "mdasifrayhanjoy2@gmail.com";
 
@@ -68,14 +88,32 @@ function ServicesContent() {
     };
   }, []);
 
-  // Fetch Database-driven Product Cards
+  // Fetch Database-driven Product Cards (Safely synchronized with MongoDB Atlas)
   const fetchServicesFromDB = useCallback(async () => {
     try {
       setIsLoadingServices(true);
       const res = await fetch("/api/products", { cache: "no-store" });
       const data = await res.json();
-      if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-        setServicesList(data.products);
+      if (data.success && Array.isArray(data.products)) {
+        const deletedSet = new Set<string>(Array.isArray(data.deletedIds) ? data.deletedIds : []);
+
+        // Sync with localStorage
+        if (typeof window !== "undefined") {
+          try {
+            const localStored: string[] = JSON.parse(localStorage.getItem("digivibe_deleted_products") || "[]");
+            const combined = Array.from(new Set([...localStored, ...deletedSet]));
+            localStorage.setItem("digivibe_deleted_products", JSON.stringify(combined));
+            combined.forEach((id) => deletedSet.add(id));
+          } catch (e) {}
+        }
+
+        // Filter out any deleted products from data.products
+        const validProducts = data.products.filter((p: ServiceItem) => {
+          const key = p.id || (p as any).productId || (p as any)._id;
+          return !deletedSet.has(key) && !deletedSet.has((p as any).productId) && !deletedSet.has((p as any)._id);
+        });
+
+        setServicesList(sortAlphabetically(validProducts));
       }
     } catch (err) {
       console.error("Failed to fetch database products:", err);
@@ -102,23 +140,62 @@ function ServicesContent() {
   }, []);
 
   const handleDeleteProduct = useCallback(async (service: ServiceItem) => {
-    if (!window.confirm(`Are you sure you want to delete "${service.title}"? This action cannot be undone.`)) {
+    if (!service) return;
+    const targetTitle = service.title || "this product";
+    if (!window.confirm(`Are you sure you want to delete "${targetTitle}"? This action cannot be undone.`)) {
       return;
     }
+
+    const targetId = service.id || (service as any).productId || (service as any)._id;
+    if (!targetId) {
+      showToast("Delete Error ❌", "Product identifier not found.");
+      return;
+    }
+
+    // 1. Instant Optimistic State Update: immediately remove from servicesList
+    setServicesList((prev) =>
+      prev.filter((item) => {
+        const itemId = item.id || (item as any).productId || (item as any)._id;
+        return itemId !== targetId && itemId !== service.id && itemId !== (service as any)._id;
+      })
+    );
+
+    // 2. Persist to localStorage immediately to prevent flash on reload
+    if (typeof window !== "undefined") {
+      try {
+        const stored: string[] = JSON.parse(localStorage.getItem("digivibe_deleted_products") || "[]");
+        if (!stored.includes(targetId)) stored.push(targetId);
+        if (service.id && !stored.includes(service.id)) stored.push(service.id);
+        if ((service as any)._id && !stored.includes((service as any)._id)) stored.push((service as any)._id);
+        localStorage.setItem("digivibe_deleted_products", JSON.stringify(stored));
+      } catch (e) {}
+    }
+
+    // 3. Make DELETE API call to backend
     try {
-      const res = await fetch(`/api/products/${encodeURIComponent(service.id)}`, {
+      const res = await fetch(`/api/products/${encodeURIComponent(targetId)}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: targetId,
+          productId: service.id || (service as any).productId,
+          _id: (service as any)._id,
+        }),
       });
       const data = await res.json();
       if (data.success) {
-        showToast("Card Deleted 🗑️", `"${service.title}" has been deleted.`);
+        showToast("Card Deleted 🗑️", `"${targetTitle}" has been deleted.`);
         fetchServicesFromDB();
       } else {
         showToast("Delete Failed ❌", data.message || "Could not delete product.");
+        fetchServicesFromDB();
       }
     } catch (err: any) {
       console.error("Delete error:", err);
       showToast("Delete Error ❌", err.message || "Failed to delete product.");
+      fetchServicesFromDB();
     }
   }, [fetchServicesFromDB]);
 
@@ -130,30 +207,67 @@ function ServicesContent() {
     if (savedProduct?.id) {
       setHighlightedId(savedProduct.id);
     }
-    fetchServicesFromDB();
 
-    // Smart Category Preservation & Redirection:
-    // Retain currently browsed category or target category without dropping back to generic view
+    // Clean up from localStorage deleted products if restored or created
+    if (typeof window !== "undefined") {
+      try {
+        const targetId = savedProduct.id || (savedProduct as any).productId || (savedProduct as any)._id;
+        const stored: string[] = JSON.parse(localStorage.getItem("digivibe_deleted_products") || "[]");
+        const filtered = stored.filter((id) => id !== targetId && id !== savedProduct.id && id !== (savedProduct as any)._id);
+        localStorage.setItem("digivibe_deleted_products", JSON.stringify(filtered));
+      } catch (e) {}
+    }
+
+    // 1. Instant Optimistic State Update: update ONLY the matching card in servicesList
+    setServicesList((prevList) => {
+      const targetId = savedProduct.id || (savedProduct as any).productId || (savedProduct as any)._id;
+      const idx = prevList.findIndex(
+        (item) => item.id === targetId || (item as any)._id === targetId || (item as any).productId === targetId
+      );
+      if (idx !== -1) {
+        const nextList = [...prevList];
+        nextList[idx] = {
+          ...nextList[idx],
+          ...savedProduct,
+          duration: savedProduct.duration || savedProduct.validity || nextList[idx].duration || "7 Days",
+          validity: savedProduct.validity || savedProduct.duration || nextList[idx].validity || "7 Days",
+          inStock: savedProduct.inStock,
+          stock: savedProduct.stock,
+        };
+        return sortAlphabetically(nextList);
+      }
+      return sortAlphabetically([savedProduct, ...prevList]);
+    });
+
+    // 2. Clear any search filter so the full product list in the category remains visible
+    setSearchQuery("");
+
+    // 3. Preserve category tab & update URL cleanly without destructive &id= filter parameter
     const destinationCat: CategoryId = (activeCategory && activeCategory !== "all")
       ? activeCategory
       : (targetCategory && targetCategory !== "all" ? (targetCategory as CategoryId) : getCanonicalCategory(savedProduct));
 
     if (destinationCat && destinationCat !== "all") {
       setActiveCategory(destinationCat);
-      const targetPath = `/${locale}/services?cat=${destinationCat}&id=${savedProduct.id}#product-${savedProduct.id}`;
-      router.push(targetPath);
+      const targetPath = `/${locale}/services?cat=${destinationCat}`;
+      router.replace(targetPath, { scroll: false });
     } else {
       setActiveCategory("all");
-      const targetPath = `/${locale}/services?id=${savedProduct.id}#product-${savedProduct.id}`;
-      router.push(targetPath);
+      const targetPath = `/${locale}/services`;
+      router.replace(targetPath, { scroll: false });
     }
 
+    // 4. Trigger cache revalidation and background DB sync
+    router.refresh();
+    fetchServicesFromDB();
+
+    // 5. Smoothly scroll into view and highlight the edited product card
     setTimeout(() => {
       const el = document.getElementById(`product-${savedProduct.id}`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-    }, 400);
+    }, 200);
   }, [adminModalMode, fetchServicesFromDB, activeCategory, locale, router]);
 
   const hasScrolledRef = useRef<string>("");
@@ -171,19 +285,20 @@ function ServicesContent() {
       setActiveCategory((prev) => (prev !== canonical ? canonical : prev));
     }
 
-    // 2. Sync search query with URL parameter if explicitly provided
+    // 2. Sync search query with URL parameter ONLY if explicitly provided as search query
     if (urlQuery) {
       setSearchQuery((prev) => (prev !== urlQuery ? urlQuery : prev));
     }
 
-    // 3. Handle product ID scroll & highlighting
+    // 3. Handle product ID scroll & highlighting WITHOUT mutating or restricting searchQuery
     if (urlId) {
       setHighlightedId((prev) => (prev !== urlId ? urlId : prev));
-      const matched = servicesList.find((s) => s.id === urlId);
-      if (matched) {
-        setSearchQuery((prev) => (prev !== matched.title ? matched.title : prev));
+      const matched = servicesList.find((s) => s.id === urlId || (s as any)._id === urlId || (s as any).productId === urlId);
+      if (matched && !urlCat) {
         const canonical = getCanonicalCategory(matched);
-        setActiveCategory((prev) => (prev !== canonical ? canonical : prev));
+        if (canonical && canonical !== "all") {
+          setActiveCategory((prev) => (prev !== canonical ? canonical : prev));
+        }
       }
       const paramKey = `id-${urlId}`;
       if (hasScrolledRef.current !== paramKey) {
@@ -228,16 +343,13 @@ function ServicesContent() {
       list.sort((a, b) => {
         if (a.popular && !b.popular) return -1;
         if (!a.popular && b.popular) return 1;
-        return (b.reviews || 0) - (a.reviews || 0);
+        return compareAlphabetical(a, b);
       });
     } else if (sortBy === "newest") {
       list.sort((a, b) => (b.id > a.id ? 1 : -1));
-    } else if (sortBy === "featured") {
-      list.sort((a, b) => {
-        if (a.popular && !b.popular) return -1;
-        if (!a.popular && b.popular) return 1;
-        return 0;
-      });
+    } else {
+      // Default & Featured: Strict Universal A-Z Alphabetical Ordering across all categories
+      list.sort(compareAlphabetical);
     }
 
     return list;
@@ -348,7 +460,7 @@ function ServicesContent() {
             Digital Tools & Subscriptions Catalog
           </h1>
           <p className="text-xs text-slate-400 mt-1 max-w-lg mx-auto">
-            Browse VPNs, ChatGPT Plus, YouTube Premium, IP Proxies, SMM Growth and PVA Emails.
+            Browse VPNs, ChatGPT Plus, YouTube Premium, IP Proxies, Social Media Service and PVA Emails.
           </p>
         </div>
       </div>
@@ -397,7 +509,7 @@ function ServicesContent() {
               className="bg-slate-950 text-cyan-300 text-xs sm:text-sm font-bold focus:outline-none cursor-pointer pr-1 border-none"
             >
               <option value="featured" className="bg-slate-900 text-slate-200">
-                🌟 Featured / Recommended
+                🔤 Alphabetical (A to Z)
               </option>
               <option value="price-low" className="bg-slate-900 text-slate-200">
                 📉 Price: Low to High
@@ -560,6 +672,30 @@ function ServicesContent() {
               </Link>
             </div>
           </>
+        )}
+
+        {activeCategory === "advanced" && (
+          <div className="mb-3 sm:mb-3.5 p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-cyan-500/15 via-indigo-500/10 to-slate-900 border border-cyan-500/30 flex items-center justify-between gap-3.5 shadow-lg shadow-cyan-500/5 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 p-1.5 flex items-center justify-center text-cyan-400 shrink-0">
+                <Cpu className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs sm:text-sm font-extrabold text-cyan-300 tracking-wide font-sans">
+                  Advanced Service Catalog ⚙️
+                </h3>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                  Enterprise-grade digital solutions, high-performance RDP servers, and custom automation.
+                </p>
+              </div>
+            </div>
+            <Link
+              href={`/${locale}/support`}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-black bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 hover:text-white border border-cyan-500/40 hover:border-cyan-400 rounded-full uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
+            >
+              <span>📞 Contact Admin</span>
+            </Link>
+          </div>
         )}
 
         {activeCategory === "hosting" ? (

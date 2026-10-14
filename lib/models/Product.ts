@@ -10,6 +10,7 @@ const ProductSchema = new Schema(
     price: { type: Number, required: true },
     originalPrice: { type: Number },
     duration: { type: String, default: "7 Days" },
+    validity: { type: String, default: "7 Days" },
     rating: { type: Number, default: 4.8 },
     reviews: { type: Number, default: 120 },
     tag: { type: String },

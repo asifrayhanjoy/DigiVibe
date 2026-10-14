@@ -6,7 +6,7 @@ export const DICTIONARIES = {
       home: "Home",
       services: "All Services",
       proxies: "IP & Proxies",
-      smm: "SMM Growth",
+      smm: "Social Media Service",
       support: "24/7 Support",
       searchPlaceholder: "Search VPN, Subscriptions, AI Tools...",
       cart: "Cart",
@@ -20,7 +20,7 @@ export const DICTIONARIES = {
       headlinePrefix: "All Your",
       headlineHighlight: "Digital Needs",
       headlineSuffix: "in One Place",
-      subheadline: "Buy VPN, YouTube Premium, ChatGPT Plus, IP Proxies, SMM Growth, and Verified Email Accounts at unbeatable prices instantly.",
+      subheadline: "Buy VPN, YouTube Premium, ChatGPT Plus, IP Proxies, Social Media Service, and Verified Email Accounts at unbeatable prices instantly.",
       searchBtn: "Search",
       popular: "Popular:",
       stats: {
@@ -39,8 +39,11 @@ export const DICTIONARIES = {
       vpn: "VPN Services",
       subscriptions: "Subscriptions",
       ip: "IP & Proxy",
-      smm: "SMM Growth",
-      email: "Verified Emails"
+      smm: "Social Media Service",
+      email: "Verified Emails",
+      telegram: "Telegram",
+      advanced: "Advanced Service",
+      hosting: "Hosting"
     },
     cart: {
       title: "Your Shopping Cart",
@@ -77,7 +80,7 @@ export const DICTIONARIES = {
       home: "হোম",
       services: "সকল সার্ভিস",
       proxies: "আইপি ও প্রক্সি",
-      smm: "এসএমএম গ্রোথ",
+      smm: "সোশ্যাল মিডিয়া সার্ভিস",
       support: "২৪/৭ সাপোর্ট",
       searchPlaceholder: "সার্চ করুন VPN, সাবস্ক্রিপশন, টুলস...",
       cart: "কার্ট",
@@ -110,8 +113,11 @@ export const DICTIONARIES = {
       vpn: "🔐 ভিপিএন সার্ভিস",
       subscriptions: "⭐ প্রিমিয়াম সাবস্ক্রিপশন",
       ip: "🌐 আইপি ও প্রক্সি",
-      smm: "📈 সোশ্যাল মিডিয়া গ্রোথ",
-      email: "📧 ভেরিফাইড ইমেইল"
+      smm: "📈 সোশ্যাল মিডিয়া সার্ভিস",
+      email: "📧 ভেরিফাইড ইমেইল",
+      telegram: "✈️ টেলিগ্রাম",
+      advanced: "⚙️ অ্যাডভান্সড সার্ভিস",
+      hosting: "🗄️ হোস্টিং"
     },
     cart: {
       title: "আপনার শপিং কার্ট",

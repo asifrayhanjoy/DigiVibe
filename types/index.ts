@@ -1,6 +1,6 @@
 // TypeScript Definitions for DigiVibe Enterprise Digital Service Platform
 
-export type CategoryId = "all" | "vpn" | "subscriptions" | "ip" | "smm" | "email" | "telegram" | "hosting";
+export type CategoryId = "all" | "vpn" | "subscriptions" | "ip" | "smm" | "email" | "telegram" | "advanced" | "advanced-service" | "hosting";
 
 export interface Category {
   id: CategoryId | string;

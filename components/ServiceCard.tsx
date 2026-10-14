@@ -33,7 +33,8 @@ import {
   Heart,
   Cpu,
   Pencil,
-  Trash2
+  Trash2,
+  Clock
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ServiceItem } from "@/types";
@@ -648,7 +649,14 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
   const displayTitle = isBn ? service.title_bn || service.title : service.title;
   
   const isSubscription = service.category?.toLowerCase() === "subscriptions";
-  const isSoldOut = service.stock === "Sold Out" || service.badge === "Sold Out ❌" || service.badge === "SOLD OUT" || (service as any).inStock === false;
+  const isSoldOut = 
+    service.inStock === false ||
+    (service as any).inStock === "false" ||
+    service.stock === "Stock Out" ||
+    service.stock === "Out of Stock" ||
+    service.stock === "Sold Out" ||
+    service.badge === "Sold Out ❌" ||
+    service.badge === "SOLD OUT";
 
   const displayLogo = useMemo(() => {
     if (logoError) return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(service.title)}`;
@@ -675,6 +683,12 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
         "High Speed Zero-Logging Servers",
         "Multi-Device Platform Support",
         "Full Replacement Warranty"
+      ],
+      advanced: [
+        "100% Guaranteed Genuine Advanced Service",
+        "Dedicated VIP High-Priority Allocation",
+        "Instant Automated Order Processing",
+        "Full Replacement Warranty Support"
       ],
       default: [
         "100% Genuine Guaranteed Service",
@@ -797,7 +811,7 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
             {/* Heart Favorite Button */}
             <button
               onClick={(e) => { e.stopPropagation(); setIsFavorite(!isFavorite); }}
-              className={`absolute ${isSoldOut ? "top-1.5 right-1.5" : "bottom-1.5 left-1.5"} w-6 h-6 rounded-full bg-slate-950/70 hover:bg-slate-900 text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center backdrop-blur-md z-10 border border-slate-800`}
+              className="absolute bottom-1.5 left-1.5 w-6 h-6 rounded-full bg-slate-950/70 hover:bg-slate-900 text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center backdrop-blur-md z-10 border border-slate-800"
               aria-label="Add to Favorites"
             >
               <Heart className={`w-3 h-3 ${isFavorite ? "fill-rose-500 text-rose-500" : ""}`} />
@@ -809,21 +823,27 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
                 ⚡ {cleanBadge}
               </span>
             ) : (
-              <span className="absolute top-1.5 left-1.5 px-2.5 py-0.5 text-[10px] font-extrabold bg-rose-600 text-white rounded-full uppercase backdrop-blur-md shadow z-10">
-                SOLD OUT
+              <span className="absolute top-1.5 right-1.5 px-2.5 py-0.5 text-[10px] font-extrabold bg-rose-600 text-white rounded-full uppercase backdrop-blur-md shadow z-10 tracking-wider">
+                STOCK OUT
               </span>
             )}
           </div>
         </div>
 
-        {/* 2. CATEGORY ICON & TITLE */}
-        <div className="flex items-center gap-1.5 mb-1.5">
+        {/* 2. CATEGORY ICON, CATEGORY BADGE & DURATION/VALIDITY BADGE */}
+        <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
           <div className="w-5 h-5 rounded-md bg-cyan-950/80 border border-cyan-500/30 p-1 flex items-center justify-center text-cyan-400 shrink-0">
             <IconComponent className="w-3 h-3 stroke-[2.2]" />
           </div>
-          <span className="px-2 py-0.2 text-[9px] font-extrabold uppercase tracking-wider bg-slate-900/90 text-slate-300 border border-slate-700/60 rounded">
-            {(service.category || "Subscriptions").toUpperCase()}
+          <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-slate-900/90 text-slate-300 border border-slate-700/60 rounded">
+            {service.category === "advanced" ? "ADVANCED SERVICE" : (service.category || "Subscriptions").toUpperCase()}
           </span>
+          {(service.duration || service.validity) && (
+            <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 rounded flex items-center gap-1 shadow-sm">
+              <Clock className="w-2.5 h-2.5 stroke-[2.5] text-cyan-400" />
+              <span>{service.duration || service.validity}</span>
+            </span>
+          )}
         </div>
 
         <h3 className="text-sm sm:text-base font-extrabold text-white group-hover:text-cyan-300 transition-colors leading-snug line-clamp-2 tracking-tight">

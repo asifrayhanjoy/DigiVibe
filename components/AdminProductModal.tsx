@@ -56,16 +56,30 @@ export default function AdminProductModal({
       setErrorMessage("");
       if (mode === "edit" && initialData) {
         const canonicalCat = getCanonicalCategory(initialData);
+        const isAvail = 
+          initialData.inStock !== false && 
+          (initialData as any).inStock !== "false" &&
+          initialData.stock !== "Out of Stock" && 
+          initialData.stock !== "Stock Out" && 
+          initialData.stock !== "Sold Out" &&
+          initialData.badge !== "SOLD OUT";
+
+        const resolvedInitialStock = isAvail
+          ? "In Stock"
+          : (initialData.stock === "Sold Out" ? "Sold Out" : (initialData.stock === "Out of Stock" ? "Out of Stock" : "Stock Out"));
+
+        const productId = initialData.id || (initialData as any)._id || (initialData as any).productId || "";
+
         setFormData({
-          id: initialData.id || "",
+          id: productId,
           title: initialData.title || "",
           category: canonicalCat !== "all" ? canonicalCat : "subscriptions",
           subtitle: initialData.subtitle || initialData.badge || "",
           price: initialData.price || 0,
           originalPrice: initialData.originalPrice || Math.round((initialData.price || 0) * 1.2),
           badge: initialData.badge || initialData.subtitle || "",
-          stock: initialData.stock || (initialData.inStock === false ? "Out of Stock" : "In Stock"),
-          inStock: initialData.inStock !== false && initialData.stock !== "Out of Stock" && initialData.stock !== "Stock Out" && initialData.stock !== "Sold Out",
+          stock: resolvedInitialStock,
+          inStock: isAvail,
           rating: initialData.rating || 4.9,
           reviews: initialData.reviews || 120,
           logo: (initialData as any).logo || (initialData as any).image || "",
@@ -75,7 +89,7 @@ export default function AdminProductModal({
           popular: !!initialData.popular,
           unit: initialData.unit || "",
           delivery: initialData.delivery || "Instant Auto-Delivery",
-          duration: initialData.validity || (initialData as any).duration || "7 Days",
+          duration: (initialData as any).duration || (initialData as any).validity || initialData.validity || "7 Days",
         });
         setFeatures(
           Array.isArray(initialData.features) && initialData.features.length > 0
@@ -106,7 +120,7 @@ export default function AdminProductModal({
           popular: true,
           unit: "",
           delivery: "Instant Auto-Delivery",
-          duration: "30 Days",
+          duration: "7 Days",
         });
         setFeatures([
           "Access to GPT-4o, GPT-4 Turbo & DALL-E 3",
@@ -146,16 +160,32 @@ export default function AdminProductModal({
     setErrorMessage("");
 
     try {
+      const isAvailable = Boolean(formData.inStock) && 
+        formData.stock !== "Out of Stock" && 
+        formData.stock !== "Stock Out" && 
+        formData.stock !== "Sold Out";
+      const resolvedStock = isAvailable
+        ? "In Stock"
+        : (formData.stock === "Sold Out" ? "Sold Out" : (formData.stock === "Out of Stock" ? "Out of Stock" : "Stock Out"));
+
+      const targetId = formData.id || (initialData as any)?.id || (initialData as any)?.productId || (initialData as any)?._id || "";
+      const targetDuration = (formData.duration || "7 Days").trim();
+
       const payload = {
         ...formData,
+        id: targetId,
+        productId: targetId,
+        inStock: isAvailable,
+        stock: resolvedStock,
         features,
         badge: formData.badge || formData.subtitle,
         tag: formData.badge,
-        validity: formData.duration,
+        duration: targetDuration,
+        validity: targetDuration,
       };
 
-      const url = mode === "edit" && formData.id ? `/api/products/${encodeURIComponent(formData.id)}` : "/api/products";
-      const method = mode === "edit" && formData.id ? "PUT" : "POST";
+      const url = mode === "edit" && targetId ? `/api/products/${encodeURIComponent(targetId)}` : "/api/products";
+      const method = mode === "edit" && targetId ? "PUT" : "POST";
 
       const res = await fetch(url, {
         method,
@@ -169,19 +199,23 @@ export default function AdminProductModal({
         throw new Error(data.message || "Failed to save product.");
       }
 
-      const savedProduct = data.product || payload;
+      const savedProduct = {
+        ...payload,
+        ...(data.product || {}),
+        duration: targetDuration,
+        validity: targetDuration,
+        inStock: isAvailable,
+        stock: resolvedStock,
+      };
       const targetCategory = getCanonicalCategory(savedProduct);
 
       // Determine smart return URL preserving exact category path
       let targetReturnUrl = returnUrl;
       if (!targetReturnUrl) {
-        if (currentCategory && currentCategory !== "all") {
-          targetReturnUrl = `/en/services?cat=${currentCategory}&id=${savedProduct.id}#product-${savedProduct.id}`;
-        } else if (targetCategory && targetCategory !== "all") {
-          targetReturnUrl = `/en/services?cat=${targetCategory}&id=${savedProduct.id}#product-${savedProduct.id}`;
-        } else {
-          targetReturnUrl = `/en/services?id=${savedProduct.id}#product-${savedProduct.id}`;
-        }
+        const cat = currentCategory && currentCategory !== "all" 
+          ? currentCategory 
+          : (targetCategory && targetCategory !== "all" ? targetCategory : "");
+        targetReturnUrl = cat ? `/en/services?cat=${cat}` : "/en/services";
       }
 
       onSaveSuccess(savedProduct, targetReturnUrl, targetCategory);
@@ -258,9 +292,10 @@ export default function AdminProductModal({
                 <option value="subscriptions">subscriptions (AI Tools)</option>
                 <option value="vpn">vpn (VPN Services)</option>
                 <option value="ip">ip (IP & Proxies)</option>
-                <option value="smm">smm (SMM Growth)</option>
+                <option value="smm">smm (Social Media Service)</option>
                 <option value="email">email (Email Accounts)</option>
                 <option value="telegram">telegram (Telegram)</option>
+                <option value="advanced">advanced (Advanced Service)</option>
                 <option value="hosting">hosting (Hosting)</option>
               </select>
             </div>
@@ -295,29 +330,136 @@ export default function AdminProductModal({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Stock Status
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-slate-300">
+                  Stock Status <span className="text-cyan-400">*</span>
+                </label>
+                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                  formData.inStock 
+                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" 
+                    : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${formData.inStock ? "bg-emerald-400 animate-pulse" : "bg-rose-500"}`}></span>
+                  <span>{formData.inStock ? "In Stock" : (formData.stock || "Stock Out")}</span>
+                </span>
+              </div>
+
+              {/* Direct Quick Toggle Buttons (In Stock / Stock Out) */}
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({
+                      ...formData,
+                      stock: "In Stock",
+                      inStock: true,
+                    });
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    formData.inStock
+                      ? "bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500 shadow-md shadow-emerald-500/20 scale-[1.02]"
+                      : "bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-300"
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>In Stock</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({
+                      ...formData,
+                      stock: "Stock Out",
+                      inStock: false,
+                    });
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    !formData.inStock
+                      ? "bg-rose-500/20 text-rose-300 border-2 border-rose-500 shadow-md shadow-rose-500/20 scale-[1.02]"
+                      : "bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-300"
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  <span>Stock Out</span>
+                </button>
+              </div>
+
+              {/* Status Details Dropdown */}
               <select
                 value={formData.stock}
                 onChange={(e) => {
                   const val = e.target.value;
+                  const isAvail = val === "In Stock";
                   setFormData({
                     ...formData,
                     stock: val,
-                    inStock: val === "In Stock",
+                    inStock: isAvail,
                   });
                 }}
-                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl text-xs sm:text-sm font-bold focus:outline-none transition-colors text-emerald-400"
+                className={`w-full px-4 py-2.5 bg-slate-950 border rounded-xl text-xs sm:text-sm font-bold focus:outline-none transition-colors ${
+                  formData.inStock 
+                    ? "border-emerald-500/40 text-emerald-400 focus:border-emerald-400" 
+                    : "border-rose-500/40 text-rose-400 focus:border-rose-400"
+                }`}
               >
-                <option value="In Stock" className="text-emerald-400">In Stock (Available)</option>
-                <option value="Out of Stock" className="text-rose-400">Out of Stock (Stock Out)</option>
-                <option value="Sold Out" className="text-rose-400">Sold Out</option>
+                <option value="In Stock" className="text-emerald-400 bg-slate-900">In Stock (Available)</option>
+                <option value="Stock Out" className="text-rose-400 bg-slate-900">Stock Out (Unavailable)</option>
+                <option value="Out of Stock" className="text-rose-400 bg-slate-900">Out of Stock</option>
+                <option value="Sold Out" className="text-rose-400 bg-slate-900">Sold Out</option>
               </select>
             </div>
           </div>
 
-          {/* Row 3: Subtitle/Badge & LogoType/Image */}
+          {/* Row 3: Validity / Duration (Service Period) */}
+          <div className="bg-slate-900/60 p-3.5 sm:p-4 rounded-2xl border border-slate-800/80 shadow-inner">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-slate-200">
+                Validity / Duration <span className="text-cyan-400">*</span>
+              </label>
+              {formData.duration && (
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 flex items-center gap-1 shadow-sm">
+                  <span>⏱️ Active:</span>
+                  <span className="font-extrabold text-cyan-200">{formData.duration}</span>
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+              <div className="sm:col-span-1">
+                <input
+                  type="text"
+                  required
+                  value={formData.duration}
+                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  placeholder="e.g. 7 Days, 30 Days, 1 Month"
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl text-xs sm:text-sm text-cyan-300 font-bold placeholder-slate-500 focus:outline-none transition-colors"
+                />
+              </div>
+
+              {/* Quick Select Preset Pills */}
+              <div className="sm:col-span-2 flex items-center gap-1.5 flex-wrap">
+                {["3 Days", "7 Days", "14 Days", "30 Days", "1 Month", "6 Months", "1 Year", "Lifetime"].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, duration: preset })}
+                    className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all cursor-pointer ${
+                      formData.duration === preset
+                        ? "bg-cyan-500 text-slate-950 border-cyan-400 shadow-md shadow-cyan-500/20 font-black scale-105"
+                        : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white"
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-2 font-medium">
+              💡 Controls card duration badge & category duration filter tabs (e.g. 3 Days, 7 Days, 14 Days, 30 Days).
+            </p>
+          </div>
+
+          {/* Row 4: Subtitle/Badge & LogoType/Image */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1.5">

@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
+import DeletedProduct from "@/lib/models/DeletedProduct";
 import { SERVICES } from "@/data/services";
 import { getCanonicalCategory } from "@/lib/categories";
+import { compareAlphabetical } from "@/lib/sorting";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -21,7 +23,8 @@ function mapProductToServiceItem(doc: any) {
     operator: doc.operator || "",
     price: Number(doc.price),
     originalPrice: doc.originalPrice ? Number(doc.originalPrice) : Math.round(Number(doc.price) * 1.2),
-    duration: doc.duration || "7 Days",
+    duration: doc.duration || doc.validity || "7 Days",
+    validity: doc.validity || doc.duration || "7 Days",
     rating: doc.rating ? Number(doc.rating) : 4.8,
     reviews: doc.reviews ? Number(doc.reviews) : 120,
     badge: doc.badge || doc.tag || doc.subtitle || "",
@@ -31,8 +34,8 @@ function mapProductToServiceItem(doc: any) {
     image: doc.image || doc.logo || "",
     logoType: doc.logoType || "",
     icon: doc.icon || "Sparkles",
-    inStock: doc.inStock !== false && doc.stock !== "Out of Stock" && doc.stock !== "Stock Out" && doc.stock !== "Sold Out",
-    stock: doc.stock || (doc.inStock === false ? "Out of Stock" : "In Stock"),
+    inStock: doc.inStock !== false && (doc as any).inStock !== "false" && doc.stock !== "Out of Stock" && doc.stock !== "Stock Out" && doc.stock !== "Sold Out",
+    stock: doc.stock || (doc.inStock === false ? "Stock Out" : "In Stock"),
     features: Array.isArray(doc.features) ? doc.features : [],
     popular: !!doc.popular,
     usdPrice: doc.usdPrice || "",
@@ -54,12 +57,25 @@ export async function GET(req: Request) {
   try {
     await connectDB();
 
+    // 0. Query DeletedProduct collection to get all permanently deleted product IDs
+    const deletedDocs = await (DeletedProduct as any).find().lean();
+    const deletedIds = new Set<string>(
+      deletedDocs.map((d: any) => d.productId?.toString()).filter(Boolean)
+    );
+
+    // Also include purged email items
+    const purgedEmailIds = ["email-fr-outlook", "email-hotmail-trust", "email-outlook-fresh"];
+    purgedEmailIds.forEach((id) => deletedIds.add(id));
+
+    // Filter out ANY deleted products from default static SERVICES
+    const activeSeedServices = (SERVICES as any[]).filter((item) => !deletedIds.has(item.id));
+
     // 1. One-time initial seeding for empty database or missing default static products ($setOnInsert)
     const existingCount = await (Product as any).countDocuments();
 
     if (existingCount === 0) {
-      // Seed default SERVICES into MongoDB if DB is completely empty
-      const initialDocs = (SERVICES as any[]).map((item) => ({
+      // Seed default SERVICES into MongoDB if DB is completely empty (excluding any deleted ones)
+      const initialDocs = activeSeedServices.map((item) => ({
         productId: item.id,
         title: item.title,
         category: item.category,
@@ -77,8 +93,8 @@ export async function GET(req: Request) {
         image: item.image || item.logo || "",
         logoType: item.logoType || "",
         icon: item.icon || "Sparkles",
-        inStock: item.inStock !== false && item.stock !== "Stock Out" && item.stock !== "Out of Stock",
-        stock: item.stock || (item.inStock === false ? "Out of Stock" : "In Stock"),
+        inStock: item.inStock !== false && (item as any).inStock !== "false" && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out",
+        stock: item.stock || (item.inStock === false ? "Stock Out" : "In Stock"),
         features: item.features || [],
         popular: !!item.popular,
         usdPrice: item.usdPrice || "",
@@ -96,8 +112,8 @@ export async function GET(req: Request) {
         await (Product as any).insertMany(initialDocs, { ordered: false });
       }
     } else {
-      // If DB has documents, ensure missing default SERVICES are added using $setOnInsert (never overwriting existing edits or deleting custom cards)
-      const seedOperations = (SERVICES as any[]).map((item) => ({
+      // If DB has documents, ensure missing default SERVICES are added using $setOnInsert (skipping deleted items)
+      const seedOperations = activeSeedServices.map((item) => ({
         updateOne: {
           filter: { productId: item.id },
           update: {
@@ -119,8 +135,8 @@ export async function GET(req: Request) {
               image: item.image || item.logo || "",
               logoType: item.logoType || "",
               icon: item.icon || "Sparkles",
-              inStock: item.inStock !== false && item.stock !== "Stock Out" && item.stock !== "Out of Stock",
-              stock: item.stock || (item.inStock === false ? "Out of Stock" : "In Stock"),
+              inStock: item.inStock !== false && (item as any).inStock !== "false" && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out",
+              stock: item.stock || (item.inStock === false ? "Stock Out" : "In Stock"),
               features: item.features || [],
               popular: !!item.popular,
               usdPrice: item.usdPrice || "",
@@ -143,19 +159,38 @@ export async function GET(req: Request) {
       }
     }
 
-    // Explicitly guarantee legacy purged email items are removed from database
-    const purgedEmailIds = ["email-fr-outlook", "email-hotmail-trust", "email-outlook-fresh"];
-    await (Product as any).deleteMany({ productId: { $in: purgedEmailIds } });
+    // Explicitly guarantee any purged or deleted items are purged from Product collection
+    if (deletedIds.size > 0) {
+      const deletedArr = Array.from(deletedIds);
+      const objectIdDeletes = deletedArr.filter((id) => id.match(/^[0-9a-fA-F]{24}$/));
+      await (Product as any).deleteMany({
+        $or: [
+          { productId: { $in: deletedArr } },
+          ...(objectIdDeletes.length > 0 ? [{ _id: { $in: objectIdDeletes } }] : []),
+        ],
+      });
+    }
 
-    let products = await (Product as any).find().sort({ createdAt: -1 }).lean();
+    const deletedArr = Array.from(deletedIds);
+    const objectIdDeletes = deletedArr.filter((id) => id.match(/^[0-9a-fA-F]{24}$/));
+    const excludeFilter = deletedArr.length > 0
+      ? {
+          productId: { $nin: deletedArr },
+          ...(objectIdDeletes.length > 0 ? { _id: { $nin: objectIdDeletes } } : {}),
+        }
+      : {};
+
+    let products = await (Product as any).find(excludeFilter).sort({ createdAt: -1 }).lean();
 
     const mappedProducts = products.map(mapProductToServiceItem);
+    mappedProducts.sort(compareAlphabetical);
 
     return NextResponse.json(
       {
         success: true,
         count: mappedProducts.length,
         products: mappedProducts,
+        deletedIds: Array.from(deletedIds),
       },
       {
         headers: {
@@ -212,6 +247,7 @@ export async function POST(req: Request) {
       maxQuantity,
       terms,
       priceNote,
+      validity,
     } = body;
 
     if (!title || !category || price === undefined) {
@@ -224,8 +260,12 @@ export async function POST(req: Request) {
     const generatedId = `service-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const productId = body.productId || body.id || generatedId;
 
-    const isAvailable = inStock !== false && stock !== "Out of Stock" && stock !== "Stock Out" && stock !== "Sold Out";
-    const finalStock = stock || (isAvailable ? "In Stock" : "Out of Stock");
+    const isAvailable = inStock !== false && inStock !== "false" && stock !== "Out of Stock" && stock !== "Stock Out" && stock !== "Sold Out";
+    const finalStock = !isAvailable
+      ? (stock === "Sold Out" ? "Sold Out" : (stock === "Out of Stock" ? "Out of Stock" : "Stock Out"))
+      : "In Stock";
+
+    const targetDuration = (duration || validity || "7 Days").toString().trim();
 
     const newProduct = await (Product as any).create({
       productId,
@@ -235,7 +275,8 @@ export async function POST(req: Request) {
       operator: operator || "",
       price: Number(price),
       originalPrice: originalPrice ? Number(originalPrice) : Math.round(Number(price) * 1.2),
-      duration: duration || "7 Days",
+      duration: targetDuration,
+      validity: targetDuration,
       rating: rating ? Number(rating) : 4.8,
       reviews: reviews ? Number(reviews) : 120,
       badge: badge || tag || "",
@@ -261,6 +302,10 @@ export async function POST(req: Request) {
     });
 
     const mapped = mapProductToServiceItem(newProduct.toObject());
+
+    try {
+      await (DeletedProduct as any).deleteMany({ productId });
+    } catch (e) {}
 
     return NextResponse.json({
       success: true,

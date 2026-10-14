@@ -18,11 +18,13 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { SERVICES } from "@/data/services";
 import { CategoryId } from "@/types";
+import { sortAlphabetically } from "@/lib/sorting";
+import { getCanonicalCategory } from "@/lib/categories";
 
 export default function HomePage() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [servicesList, setServicesList] = useState(SERVICES);
+  const [servicesList, setServicesList] = useState(() => sortAlphabetically(SERVICES));
   const { locale } = useLanguage();
   const { requireAuth } = useAuth();
   const router = useRouter();
@@ -32,7 +34,7 @@ export default function HomePage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-          setServicesList(data.products);
+          setServicesList(sortAlphabetically(data.products));
         }
       })
       .catch((err) => console.error("Error loading home page products:", err));
@@ -83,7 +85,7 @@ export default function HomePage() {
             handleProtectedNavigate(`/${locale}/services?cat=${cat}`);
           }}
           getCategoryCount={(catId) =>
-            catId === "all" ? servicesList.length : servicesList.filter((s) => s.category === catId).length
+            catId === "all" ? servicesList.length : servicesList.filter((s) => getCanonicalCategory(s) === catId).length
           }
         />
       </div>
@@ -132,7 +134,13 @@ export default function HomePage() {
         onClose={() => setIsSearchModalOpen(false)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        searchResults={servicesList.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.category.toLowerCase().includes(searchQuery.toLowerCase()))}
+        searchResults={sortAlphabetically(
+          servicesList.filter(
+            (s) =>
+              s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              s.category.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        )}
         onSelectService={(service) => {
           handleProtectedNavigate(`/${locale}/services?id=${service.id}&query=${encodeURIComponent(service.title)}#product-${service.id}`);
         }}
