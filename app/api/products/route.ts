@@ -11,12 +11,44 @@ export const revalidate = 0;
 
 // Helper to sanitize product document to client ServiceItem format
 function mapProductToServiceItem(doc: any) {
-  const productId = doc.productId || doc._id.toString();
-  const canonicalCat = getCanonicalCategory({ id: productId, category: doc.category, title: doc.title });
+  const productId = (doc.productId || doc.id || (doc._id ? doc._id.toString() : "")).toString().trim();
+  const docId = doc._id ? doc._id.toString() : productId;
+  const canonicalCat = getCanonicalCategory({ id: productId || docId, category: doc.category, title: doc.title });
+
+  const rawInStock = doc.inStock;
+  const rawStock = (doc.stock || "").toString().trim();
+  const rawStatus = (doc.status || doc.stockStatus || "").toString().trim().toLowerCase();
+
+  const isAvailable =
+    rawInStock !== false &&
+    rawInStock !== "false" &&
+    rawStock !== "Stock Out" &&
+    rawStock !== "Out of Stock" &&
+    rawStock !== "Sold Out" &&
+    rawStatus !== "stock-out" &&
+    rawStatus !== "out-of-stock";
+
+  const resolvedStock = isAvailable
+    ? "In Stock"
+    : (rawStock === "Sold Out" ? "Sold Out" : (rawStock === "Out of Stock" ? "Out of Stock" : "Stock Out"));
+
+  const resolvedStatus = isAvailable ? "in-stock" : "stock-out";
+
+  // Clean badge: if available, it should never say SOLD OUT
+  let resolvedBadge = (doc.badge || doc.tag || doc.subtitle || "").toString().trim();
+  if (isAvailable && (resolvedBadge === "SOLD OUT" || resolvedBadge === "Sold Out ❌" || resolvedBadge.toLowerCase() === "sold out")) {
+    resolvedBadge = doc.subtitle && doc.subtitle !== "SOLD OUT" && doc.subtitle !== "Sold Out ❌" ? doc.subtitle : "";
+  }
+
+  let resolvedTag = (doc.tag || doc.badge || "").toString().trim();
+  if (isAvailable && (resolvedTag === "SOLD OUT" || resolvedTag === "Sold Out ❌" || resolvedTag.toLowerCase() === "sold out")) {
+    resolvedTag = "";
+  }
 
   return {
-    id: productId,
-    _id: doc._id.toString(),
+    id: productId || docId,
+    _id: docId,
+    productId: productId || docId,
     title: doc.title,
     category: canonicalCat,
     subtitle: doc.subtitle || "",
@@ -27,15 +59,18 @@ function mapProductToServiceItem(doc: any) {
     validity: doc.validity || doc.duration || "7 Days",
     rating: doc.rating ? Number(doc.rating) : 4.8,
     reviews: doc.reviews ? Number(doc.reviews) : 120,
-    badge: doc.badge || doc.tag || doc.subtitle || "",
-    tag: doc.tag || doc.badge || "",
+    badge: resolvedBadge,
+    tag: resolvedTag,
     badgeColor: doc.badgeColor || "",
-    logo: doc.logo || doc.image || "",
-    image: doc.image || doc.logo || "",
-    logoType: doc.logoType || "",
+    logo: (doc.imageUrl || doc.image || doc.logo || "").toString().trim(),
+    image: (doc.imageUrl || doc.image || doc.logo || "").toString().trim(),
+    imageUrl: (doc.imageUrl || doc.image || doc.logo || "").toString().trim(),
+    logoType: doc.logoType !== undefined && doc.logoType !== null ? doc.logoType : "",
     icon: doc.icon || "Sparkles",
-    inStock: doc.inStock !== false && (doc as any).inStock !== "false" && doc.stock !== "Out of Stock" && doc.stock !== "Stock Out" && doc.stock !== "Sold Out",
-    stock: doc.stock || (doc.inStock === false ? "Stock Out" : "In Stock"),
+    inStock: isAvailable,
+    stock: resolvedStock,
+    status: resolvedStatus,
+    stockStatus: resolvedStatus,
     features: Array.isArray(doc.features) ? doc.features : [],
     popular: !!doc.popular,
     usdPrice: doc.usdPrice || "",
@@ -47,6 +82,7 @@ function mapProductToServiceItem(doc: any) {
     maxQuantity: doc.maxQuantity,
     terms: doc.terms || "",
     priceNote: doc.priceNote || "",
+    smmPriceMigrated: !!doc.smmPriceMigrated,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -95,6 +131,8 @@ export async function GET(req: Request) {
         icon: item.icon || "Sparkles",
         inStock: item.inStock !== false && (item as any).inStock !== "false" && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out",
         stock: item.stock || (item.inStock === false ? "Stock Out" : "In Stock"),
+        status: (item.inStock !== false && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out") ? "in-stock" : "stock-out",
+        stockStatus: (item.inStock !== false && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out") ? "in-stock" : "stock-out",
         features: item.features || [],
         popular: !!item.popular,
         usdPrice: item.usdPrice || "",
@@ -106,6 +144,7 @@ export async function GET(req: Request) {
         maxQuantity: item.maxQuantity,
         terms: item.terms || "",
         priceNote: item.priceNote || "",
+        smmPriceMigrated: !!item.smmPriceMigrated,
       }));
 
       if (initialDocs.length > 0) {
@@ -137,6 +176,8 @@ export async function GET(req: Request) {
               icon: item.icon || "Sparkles",
               inStock: item.inStock !== false && (item as any).inStock !== "false" && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out",
               stock: item.stock || (item.inStock === false ? "Stock Out" : "In Stock"),
+              status: (item.inStock !== false && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out") ? "in-stock" : "stock-out",
+              stockStatus: (item.inStock !== false && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out") ? "in-stock" : "stock-out",
               features: item.features || [],
               popular: !!item.popular,
               usdPrice: item.usdPrice || "",
@@ -148,6 +189,7 @@ export async function GET(req: Request) {
               maxQuantity: item.maxQuantity,
               terms: item.terms || "",
               priceNote: item.priceNote || "",
+              smmPriceMigrated: !!item.smmPriceMigrated,
             },
           },
           upsert: true,
@@ -169,6 +211,58 @@ export async function GET(req: Request) {
           ...(objectIdDeletes.length > 0 ? [{ _id: { $in: objectIdDeletes } }] : []),
         ],
       });
+    }
+
+    // Database Migration: Ensure every product in "Social Media Service" has the +5.00 BDT increase applied
+    try {
+      const unmigratedSmm = await (Product as any).find({
+        $and: [
+          {
+            $or: [
+              { category: "smm" },
+              { category: "social" },
+              { category: /social/i },
+              { category: /smm/i },
+              { productId: /^smm-/i },
+              { id: /^smm-/i },
+            ],
+          },
+          { smmPriceMigrated: { $ne: true } },
+        ],
+      }).lean();
+
+      if (unmigratedSmm.length > 0) {
+        const usdRate = 127;
+        const migrationOps = unmigratedSmm.map((prod: any) => {
+          const currentPrice = Number(prod.price) || 0;
+          const newPrice = currentPrice + 5;
+          const newOriginalPrice = prod.originalPrice
+            ? Number(prod.originalPrice) + 5
+            : Math.round(newPrice * 1.2);
+          const newUsdPrice = `$${(newPrice / usdRate).toFixed(2)}`;
+
+          return {
+            updateOne: {
+              filter: { _id: prod._id },
+              update: {
+                $set: {
+                  price: newPrice,
+                  originalPrice: newOriginalPrice,
+                  usdPrice: newUsdPrice,
+                  smmPriceMigrated: true,
+                  updatedAt: new Date().toISOString(),
+                },
+              },
+            },
+          };
+        });
+
+        if (migrationOps.length > 0) {
+          await (Product as any).bulkWrite(migrationOps);
+        }
+      }
+    } catch (migErr) {
+      console.error("SMM price auto-migration warning:", migErr);
     }
 
     const deletedArr = Array.from(deletedIds);
@@ -232,6 +326,7 @@ export async function POST(req: Request) {
       badgeColor,
       logo,
       image,
+      imageUrl,
       logoType,
       icon,
       inStock,
@@ -264,8 +359,23 @@ export async function POST(req: Request) {
     const finalStock = !isAvailable
       ? (stock === "Sold Out" ? "Sold Out" : (stock === "Out of Stock" ? "Out of Stock" : "Stock Out"))
       : "In Stock";
+    const finalStatus = isAvailable ? "in-stock" : "stock-out";
+
+    let cleanBadge = (badge || tag || "").toString().trim();
+    let cleanTag = (tag || badge || "").toString().trim();
+    if (isAvailable) {
+      if (cleanBadge === "SOLD OUT" || cleanBadge === "Sold Out ❌" || cleanBadge.toLowerCase() === "sold out") {
+        cleanBadge = "";
+      }
+      if (cleanTag === "SOLD OUT" || cleanTag === "Sold Out ❌" || cleanTag.toLowerCase() === "sold out") {
+        cleanTag = "";
+      }
+    }
 
     const targetDuration = (duration || validity || "7 Days").toString().trim();
+    const rawImage = imageUrl !== undefined ? imageUrl : (image !== undefined ? image : logo);
+    const customImg = typeof rawImage === "string" ? rawImage.trim() : (rawImage || "");
+    const targetLogoType = typeof logoType === "string" ? logoType.trim() : (logoType || "");
 
     const newProduct = await (Product as any).create({
       productId,
@@ -279,15 +389,18 @@ export async function POST(req: Request) {
       validity: targetDuration,
       rating: rating ? Number(rating) : 4.8,
       reviews: reviews ? Number(reviews) : 120,
-      badge: badge || tag || "",
-      tag: tag || badge || "",
+      badge: cleanBadge,
+      tag: cleanTag,
       badgeColor: badgeColor || "",
-      logo: logo || image || "",
-      image: image || logo || "",
-      logoType: logoType || "",
+      logo: customImg,
+      image: customImg,
+      imageUrl: customImg,
+      logoType: targetLogoType,
       icon: icon || "Sparkles",
       inStock: isAvailable,
       stock: finalStock,
+      status: finalStatus,
+      stockStatus: finalStatus,
       features: Array.isArray(features) ? features : [],
       popular: !!popular,
       usdPrice: usdPrice || "",

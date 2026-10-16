@@ -18,10 +18,13 @@ const ProductSchema = new Schema(
     badgeColor: { type: String },
     logo: { type: String },
     image: { type: String },
+    imageUrl: { type: String },
     logoType: { type: String },
     icon: { type: String, default: "Sparkles" },
     inStock: { type: Boolean, default: true },
     stock: { type: String, default: "In Stock" },
+    status: { type: String, default: "in-stock" },
+    stockStatus: { type: String, default: "in-stock" },
     features: [{ type: String }],
     popular: { type: Boolean, default: false },
     usdPrice: { type: String },
@@ -33,8 +36,9 @@ const ProductSchema = new Schema(
     maxQuantity: { type: Number },
     terms: { type: String },
     priceNote: { type: String },
+    smmPriceMigrated: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 );
 
 export default mongoose.models.Product || mongoose.model("Product", ProductSchema);

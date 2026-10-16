@@ -12,7 +12,9 @@ interface AdminProductModalProps {
   mode: "add" | "edit";
   initialData?: ServiceItem | null;
   currentCategory?: string;
+  categoryParam?: string;
   returnUrl?: string;
+  locale?: string;
 }
 
 export default function AdminProductModal({
@@ -22,10 +24,13 @@ export default function AdminProductModal({
   mode,
   initialData,
   currentCategory,
+  categoryParam,
   returnUrl,
+  locale = "en",
 }: AdminProductModalProps) {
   const [formData, setFormData] = useState({
     id: "",
+    _id: "",
     title: "",
     category: "subscriptions",
     subtitle: "",
@@ -34,10 +39,13 @@ export default function AdminProductModal({
     badge: "",
     stock: "In Stock",
     inStock: true,
+    status: "in-stock",
+    stockStatus: "in-stock",
     rating: 4.9,
     reviews: 120,
     logo: "",
     image: "",
+    imageUrl: "",
     logoType: "",
     icon: "Sparkles",
     popular: false,
@@ -56,40 +64,65 @@ export default function AdminProductModal({
       setErrorMessage("");
       if (mode === "edit" && initialData) {
         const canonicalCat = getCanonicalCategory(initialData);
-        const isAvail = 
-          initialData.inStock !== false && 
-          (initialData as any).inStock !== "false" &&
-          initialData.stock !== "Out of Stock" && 
-          initialData.stock !== "Stock Out" && 
-          initialData.stock !== "Sold Out" &&
-          initialData.badge !== "SOLD OUT";
+        const rawInStock = initialData.inStock;
+        const rawStock = (initialData.stock || "").toString().trim();
+        const rawStatus = ((initialData as any).status || (initialData as any).stockStatus || "").toString().trim().toLowerCase();
+
+        const isAvail =
+          rawInStock !== false &&
+          (rawInStock as any) !== "false" &&
+          rawStock !== "Out of Stock" &&
+          rawStock !== "Stock Out" &&
+          rawStock !== "Sold Out" &&
+          rawStatus !== "stock-out" &&
+          rawStatus !== "out-of-stock";
 
         const resolvedInitialStock = isAvail
           ? "In Stock"
-          : (initialData.stock === "Sold Out" ? "Sold Out" : (initialData.stock === "Out of Stock" ? "Out of Stock" : "Stock Out"));
+          : (rawStock === "Sold Out" ? "Sold Out" : (rawStock === "Out of Stock" ? "Out of Stock" : "Stock Out"));
 
-        const productId = initialData.id || (initialData as any)._id || (initialData as any).productId || "";
+        const productId = (initialData.id || (initialData as any).productId || (initialData as any)._id || "").toString().trim();
+        const docId = ((initialData as any)._id || initialData.id || "").toString().trim();
+
+        let rawBadge = (initialData.badge || initialData.subtitle || "").toString().trim();
+        if (isAvail && (rawBadge === "SOLD OUT" || rawBadge === "Sold Out ❌" || rawBadge.toLowerCase() === "sold out")) {
+          rawBadge = "";
+        }
+        let rawSubtitle = (initialData.subtitle || "").toString().trim();
+        if (isAvail && (rawSubtitle === "SOLD OUT" || rawSubtitle === "Sold Out ❌" || rawSubtitle.toLowerCase() === "sold out")) {
+          rawSubtitle = "";
+        }
+
+        const resolvedImg = ((initialData as any).imageUrl || initialData.image || initialData.logo || "").toString().trim();
+        const resolvedLogoType = (initialData as any).logoType !== undefined && (initialData as any).logoType !== null
+          ? (initialData as any).logoType
+          : "";
+        const resolvedDuration = ((initialData as any).duration || (initialData as any).validity || initialData.validity || "7 Days").toString().trim();
 
         setFormData({
           id: productId,
+          _id: docId,
           title: initialData.title || "",
           category: canonicalCat !== "all" ? canonicalCat : "subscriptions",
-          subtitle: initialData.subtitle || initialData.badge || "",
+          subtitle: rawSubtitle || rawBadge,
           price: initialData.price || 0,
           originalPrice: initialData.originalPrice || Math.round((initialData.price || 0) * 1.2),
-          badge: initialData.badge || initialData.subtitle || "",
+          badge: rawBadge || rawSubtitle,
           stock: resolvedInitialStock,
           inStock: isAvail,
+          status: isAvail ? "in-stock" : "stock-out",
+          stockStatus: isAvail ? "in-stock" : "stock-out",
           rating: initialData.rating || 4.9,
           reviews: initialData.reviews || 120,
-          logo: (initialData as any).logo || (initialData as any).image || "",
-          image: (initialData as any).image || (initialData as any).logo || "",
-          logoType: (initialData as any).logoType || "",
+          logo: resolvedImg,
+          image: resolvedImg,
+          imageUrl: resolvedImg,
+          logoType: resolvedLogoType,
           icon: initialData.icon || "Sparkles",
           popular: !!initialData.popular,
           unit: initialData.unit || "",
           delivery: initialData.delivery || "Instant Auto-Delivery",
-          duration: (initialData as any).duration || (initialData as any).validity || initialData.validity || "7 Days",
+          duration: resolvedDuration,
         });
         setFeatures(
           Array.isArray(initialData.features) && initialData.features.length > 0
@@ -103,6 +136,7 @@ export default function AdminProductModal({
           : "subscriptions";
         setFormData({
           id: "",
+          _id: "",
           title: "",
           category: defaultCat !== "all" ? defaultCat : "subscriptions",
           subtitle: "24h warranty",
@@ -111,10 +145,13 @@ export default function AdminProductModal({
           badge: "Popular 🔥",
           stock: "In Stock",
           inStock: true,
+          status: "in-stock",
+          stockStatus: "in-stock",
           rating: 5.0,
           reviews: 100,
           logo: "",
           image: "",
+          imageUrl: "",
           logoType: "chatgpt",
           icon: "Sparkles",
           popular: true,
@@ -167,21 +204,39 @@ export default function AdminProductModal({
       const resolvedStock = isAvailable
         ? "In Stock"
         : (formData.stock === "Sold Out" ? "Sold Out" : (formData.stock === "Out of Stock" ? "Out of Stock" : "Stock Out"));
+      const resolvedStatus = isAvailable ? "in-stock" : "stock-out";
 
-      const targetId = formData.id || (initialData as any)?.id || (initialData as any)?.productId || (initialData as any)?._id || "";
+      const targetId = (formData.id || (initialData as any)?.id || (initialData as any)?.productId || (initialData as any)?._id || "").toString().trim();
+      const targetDocId = (formData._id || (initialData as any)?._id || (initialData as any)?.id || "").toString().trim();
       const targetDuration = (formData.duration || "7 Days").trim();
+
+      let resolvedBadge = (formData.badge || formData.subtitle || "").toString().trim();
+      if (isAvailable && (resolvedBadge === "SOLD OUT" || resolvedBadge === "Sold Out ❌" || resolvedBadge.toLowerCase() === "sold out")) {
+        resolvedBadge = "";
+      }
+
+      const customImg = (formData.imageUrl || formData.logo || formData.image || "").toString().trim();
+      const resolvedLogoType = typeof formData.logoType === "string" ? formData.logoType.trim() : (formData.logoType || "");
 
       const payload = {
         ...formData,
         id: targetId,
+        _id: targetDocId,
         productId: targetId,
         inStock: isAvailable,
         stock: resolvedStock,
+        status: resolvedStatus,
+        stockStatus: resolvedStatus,
         features,
-        badge: formData.badge || formData.subtitle,
-        tag: formData.badge,
+        badge: resolvedBadge,
+        subtitle: (formData.subtitle || resolvedBadge).toString().trim(),
+        tag: resolvedBadge,
         duration: targetDuration,
         validity: targetDuration,
+        logo: customImg,
+        image: customImg,
+        imageUrl: customImg,
+        logoType: resolvedLogoType,
       };
 
       const url = mode === "edit" && targetId ? `/api/products/${encodeURIComponent(targetId)}` : "/api/products";
@@ -202,20 +257,34 @@ export default function AdminProductModal({
       const savedProduct = {
         ...payload,
         ...(data.product || {}),
+        id: targetId,
+        _id: targetDocId,
+        productId: targetId,
         duration: targetDuration,
         validity: targetDuration,
         inStock: isAvailable,
         stock: resolvedStock,
+        status: resolvedStatus,
+        stockStatus: resolvedStatus,
+        badge: resolvedBadge,
+        subtitle: (formData.subtitle || resolvedBadge).toString().trim(),
+        tag: resolvedBadge,
+        logo: customImg,
+        image: customImg,
+        imageUrl: customImg,
+        logoType: resolvedLogoType,
+        features: Array.isArray(features) ? [...features] : [],
       };
       const targetCategory = getCanonicalCategory(savedProduct);
 
-      // Determine smart return URL preserving exact category path
+      // Determine smart return URL preserving exact category path and locale
       let targetReturnUrl = returnUrl;
       if (!targetReturnUrl) {
-        const cat = currentCategory && currentCategory !== "all" 
+        const activeLocale = locale || "en";
+        const cat = categoryParam || (currentCategory && currentCategory !== "all" 
           ? currentCategory 
-          : (targetCategory && targetCategory !== "all" ? targetCategory : "");
-        targetReturnUrl = cat ? `/en/services?cat=${cat}` : "/en/services";
+          : (targetCategory && targetCategory !== "all" ? targetCategory : ""));
+        targetReturnUrl = cat && cat !== "all" ? `/${activeLocale}/services?cat=${cat}` : `/${activeLocale}/services`;
       }
 
       onSaveSuccess(savedProduct, targetReturnUrl, targetCategory);
@@ -349,10 +418,16 @@ export default function AdminProductModal({
                 <button
                   type="button"
                   onClick={() => {
+                    const newBadge = (formData.badge === "SOLD OUT" || formData.badge === "Sold Out ❌" || formData.badge?.toLowerCase() === "sold out") ? "" : formData.badge;
+                    const newSubtitle = (formData.subtitle === "SOLD OUT" || formData.subtitle === "Sold Out ❌" || formData.subtitle?.toLowerCase() === "sold out") ? "" : formData.subtitle;
                     setFormData({
                       ...formData,
                       stock: "In Stock",
                       inStock: true,
+                      status: "in-stock",
+                      stockStatus: "in-stock",
+                      badge: newBadge,
+                      subtitle: newSubtitle,
                     });
                   }}
                   className={`py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
@@ -371,6 +446,8 @@ export default function AdminProductModal({
                       ...formData,
                       stock: "Stock Out",
                       inStock: false,
+                      status: "stock-out",
+                      stockStatus: "stock-out",
                     });
                   }}
                   className={`py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
@@ -390,10 +467,16 @@ export default function AdminProductModal({
                 onChange={(e) => {
                   const val = e.target.value;
                   const isAvail = val === "In Stock";
+                  const newBadge = isAvail && (formData.badge === "SOLD OUT" || formData.badge === "Sold Out ❌" || formData.badge?.toLowerCase() === "sold out") ? "" : formData.badge;
+                  const newSubtitle = isAvail && (formData.subtitle === "SOLD OUT" || formData.subtitle === "Sold Out ❌" || formData.subtitle?.toLowerCase() === "sold out") ? "" : formData.subtitle;
                   setFormData({
                     ...formData,
                     stock: val,
                     inStock: isAvail,
+                    status: isAvail ? "in-stock" : "stock-out",
+                    stockStatus: isAvail ? "in-stock" : "stock-out",
+                    badge: newBadge,
+                    subtitle: newSubtitle,
                   });
                 }}
                 className={`w-full px-4 py-2.5 bg-slate-950 border rounded-xl text-xs sm:text-sm font-bold focus:outline-none transition-colors ${
@@ -510,9 +593,17 @@ export default function AdminProductModal({
               </label>
               <input
                 type="text"
-                value={formData.logo}
-                onChange={(e) => setFormData({ ...formData, logo: e.target.value, image: e.target.value })}
-                placeholder="e.g. /images/vpns/nordvpn.svg"
+                value={formData.imageUrl || formData.logo || formData.image || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({
+                    ...formData,
+                    logo: val,
+                    image: val,
+                    imageUrl: val,
+                  });
+                }}
+                placeholder="e.g. https://... or /images/vpns/nordvpn.svg"
                 className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
               />
             </div>

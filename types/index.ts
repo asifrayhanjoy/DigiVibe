@@ -4,6 +4,8 @@ export type CategoryId = "all" | "vpn" | "subscriptions" | "ip" | "smm" | "email
 
 export interface Category {
   id: CategoryId | string;
+  slug?: string;
+  label?: string;
   labelEn: string;
   labelBn: string;
   icon: string;
@@ -31,10 +33,14 @@ export interface ServiceItem {
   description?: string;
   logo?: string;
   image?: string;
+  imageUrl?: string;
   overview?: string;
   logoType?: string;
   usdPrice?: string;
   inStock?: boolean;
+  status?: string;
+  stockStatus?: string;
+  productId?: string;
   unit?: string;
   terms?: string;
   priceNote?: string;
@@ -43,6 +49,7 @@ export interface ServiceItem {
   operator?: string;
   tag?: string;
   badgeColor?: string;
+  smmPriceMigrated?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

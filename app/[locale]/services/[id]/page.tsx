@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, use, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -15,7 +15,7 @@ import { SERVICES } from "@/data/services";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import { getCanonicalCategory } from "@/lib/categories";
+import { getCanonicalCategory, getCategoryQueryParam } from "@/lib/categories";
 import { sortAlphabetically } from "@/lib/sorting";
 import {
   ShieldCheck,
@@ -39,10 +39,10 @@ import {
   AlertCircle
 } from "lucide-react";
 
-function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string; id: string }> | { locale: string; id: string } }) {
-  const resolvedParams = use(params as any) as { locale: string; id: string };
-  const locale = resolvedParams?.locale || "en";
-  const serviceId = resolvedParams?.id;
+function ServiceDetailPageContent({ params }: { params?: any }) {
+  const routeParams = useParams();
+  const locale = (routeParams?.locale as string) || (params?.locale as string) || "en";
+  const serviceId = (routeParams?.id as string) || (params?.id as string) || "";
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -63,8 +63,8 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
-  // Smart Origin Category State Detection
-  const catParam = searchParams?.get("cat") || searchParams?.get("category");
+  // Smart Origin Category State Detection - Preserves active category alias (e.g. cat=ai, cat=social, cat=proxies)
+  const catParam = searchParams?.get("cat") || searchParams?.get("category") || "";
   const originCategory = useMemo(() => {
     if (catParam) {
       return getCanonicalCategory({ category: catParam });
@@ -75,17 +75,26 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
     return "all";
   }, [catParam, service]);
 
-  const returnUrl = useMemo(() => {
+  const activeCategoryParam = useMemo(() => {
+    if (catParam) return catParam;
     if (originCategory && originCategory !== "all") {
-      return `/${locale}/services?cat=${originCategory}`;
+      return getCategoryQueryParam(originCategory, originCategory);
+    }
+    return "";
+  }, [catParam, originCategory]);
+
+  const returnUrl = useMemo(() => {
+    if (activeCategoryParam && activeCategoryParam !== "all") {
+      return `/${locale}/services?cat=${activeCategoryParam}`;
     }
     return `/${locale}/services`;
-  }, [locale, originCategory]);
+  }, [locale, activeCategoryParam]);
 
   // Modals
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
+  const [imgError, setImgError] = useState<boolean>(false);
 
   const isAdmin = user?.role === "admin" || (user?.email || "").toLowerCase() === "mdasifrayhanjoy2@gmail.com";
 
@@ -153,21 +162,12 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
 
   const relatedProducts = useMemo(() => {
     if (!service) return [];
+    const currentServiceId = service.id;
+    const currentServiceCategory = service.category;
     const list = allProducts
-      .filter((p) => p.id !== service.id && (p.category === service.category || p.popular));
+      .filter((p) => p && p.id !== currentServiceId && (p.category === currentServiceCategory || p.popular));
     return sortAlphabetically(list).slice(0, 4);
   }, [allProducts, service]);
-
-  const isSoldOut = 
-    service?.inStock === false ||
-    (service as any)?.inStock === "false" ||
-    service?.stock === "Out of Stock" || 
-    service?.stock === "Stock Out" || 
-    service?.stock === "Sold Out" ||
-    service?.badge === "SOLD OUT";
-  const discountPercent = service && service.originalPrice && service.originalPrice > service.price
-    ? Math.round(((service.originalPrice - service.price) / service.originalPrice) * 100)
-    : 0;
 
   if (isLoading) {
     return (
@@ -204,6 +204,24 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
       </div>
     );
   }
+
+  const rawInStock = service.inStock;
+  const rawStock = (service.stock || "").toString().trim();
+  const rawStatus = ((service as any).status || (service as any).stockStatus || "").toString().trim().toLowerCase();
+
+  const isSoldOut =
+    rawInStock === false ||
+    (rawInStock as any) === "false" ||
+    rawStock === "Stock Out" ||
+    rawStock === "Out of Stock" ||
+    rawStock === "Sold Out" ||
+    rawStatus === "stock-out" ||
+    rawStatus === "out-of-stock" ||
+    (rawInStock === undefined && rawStock === "" && (service.badge === "SOLD OUT" || service.badge === "Sold Out ❌"));
+
+  const discountPercent = service.originalPrice && service.originalPrice > service.price
+    ? Math.round(((service.originalPrice - service.price) / service.originalPrice) * 100)
+    : 0;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
@@ -254,19 +272,36 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
 
             {/* Product Display Box */}
             <div className="w-full h-64 sm:h-80 rounded-2xl bg-white p-6 flex items-center justify-center relative shadow-inner overflow-hidden my-2">
-              {service.logo || service.image ? (
-                <img
-                  src={service.logo || service.image}
-                  alt={service.title}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full object-contain max-h-60"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center p-4">
-                  <BrandLogoSvg logoType={service.logoType} title={service.title} />
-                </div>
-              )}
+              {(() => {
+                const customImg = ((service as any)?.imageUrl || service?.image || service?.logo || "").toString().trim();
+                const hasExplicitCustomImage = Boolean(
+                  customImg &&
+                  (customImg.startsWith("http://") ||
+                   customImg.startsWith("https://") ||
+                   customImg.startsWith("/") ||
+                   customImg.startsWith("data:") ||
+                   /\.(png|jpe?g|svg|webp|gif|avif|ico)(\?.*)?$/i.test(customImg))
+                );
+
+                if (hasExplicitCustomImage && !imgError) {
+                  return (
+                    <img
+                      src={customImg}
+                      alt={service.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-contain max-h-60"
+                      onError={() => setImgError(true)}
+                    />
+                  );
+                }
+
+                return (
+                  <div className="w-full h-full flex items-center justify-center p-4">
+                    <BrandLogoSvg logoType={service.logoType} title={service.title} />
+                  </div>
+                );
+              })()}
 
               {/* Heart Favorite Trigger */}
               <button
@@ -510,7 +545,8 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
                   onAddToCart={() => addToCart(prod)}
                   onBuyNow={() => {
                     requireAuth(() => {
-                      router.push(`/${locale}/services/${prod.id}?cat=${getCanonicalCategory(prod)}`);
+                      const querySlug = getCategoryQueryParam(prod.category, getCanonicalCategory(prod));
+                      router.push(querySlug ? `/${locale}/services/${prod.id}?cat=${querySlug}` : `/${locale}/services/${prod.id}`);
                     });
                   }}
                 />
@@ -543,8 +579,12 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
           mode="edit"
           initialData={service}
           currentCategory={originCategory}
+          categoryParam={activeCategoryParam}
           returnUrl={returnUrl}
+          locale={locale}
           onSaveSuccess={(updated, targetReturnUrl, targetCategory) => {
+            const customImg = ((updated as any)?.imageUrl || updated?.image || updated?.logo || "").toString().trim();
+            setImgError(false);
             setService((prev: any) => ({
               ...prev,
               ...updated,
@@ -552,18 +592,26 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
               validity: updated.validity || updated.duration || prev?.validity || "7 Days",
               inStock: updated.inStock,
               stock: updated.stock,
+              status: (updated as any).status || (updated.inStock ? "in-stock" : "stock-out"),
+              stockStatus: (updated as any).stockStatus || (updated.inStock ? "in-stock" : "stock-out"),
+              badge: updated.badge,
+              subtitle: updated.subtitle !== undefined ? updated.subtitle : updated.badge,
+              tag: updated.tag || updated.badge,
+              imageUrl: customImg,
+              logo: customImg,
+              image: customImg,
+              logoType: (updated as any).logoType ?? "",
             }));
             router.refresh();
+            fetchProductDetail();
             showToast("Product Updated! ✨", `"${updated.title}" has been saved to the database.`);
             setIsAdminModalOpen(false);
 
-            // Smart Redirect back to exact category path
-            const destCategory = (originCategory && originCategory !== "all")
-              ? originCategory
-              : (targetCategory && targetCategory !== "all" ? targetCategory : getCanonicalCategory(updated));
+            // Dynamic Category-Aware Redirect: return back to the exact originating category view
+            const destParam = activeCategoryParam || (targetCategory && targetCategory !== "all" ? getCategoryQueryParam(targetCategory) : getCategoryQueryParam(getCanonicalCategory(updated)));
 
-            const targetPath = destCategory && destCategory !== "all"
-              ? `/${locale}/services?cat=${destCategory}#product-${updated.id}`
+            const targetPath = destParam && destParam !== "all"
+              ? `/${locale}/services?cat=${destParam}#product-${updated.id}`
               : `/${locale}/services#product-${updated.id}`;
 
             router.push(targetPath);
@@ -576,7 +624,7 @@ function ServiceDetailPageContent({ params }: { params: Promise<{ locale: string
   );
 }
 
-export default function ServiceDetailPage(props: { params: Promise<{ locale: string; id: string }> | { locale: string; id: string } }) {
+export default function ServiceDetailPage(props: { params?: any }) {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-8 text-center font-bold text-cyan-400">

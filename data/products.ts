@@ -760,12 +760,12 @@ export const smmProducts = [
     category: "smm",
     subtitle: "No Refill 🕝",
     badge: "No Refill 🕝",
-    price: 26,
-    usdPrice: "$0.20",
+    price: 31,
+    usdPrice: "$0.24",
     unit: "1000pcs",
     minQuantity: 1000,
     maxQuantity: 50000,
-    overview: "[1205] - Facebook - Post Reaction ❤️ [Video / Pic] | Instant⚡ | High Quality | 100k/Day | No Refill 🕝 - ≈ ৳26 per 1000pcs",
+    overview: "[1205] - Facebook - Post Reaction ❤️ [Video / Pic] | Instant⚡ | High Quality | 100k/Day | No Refill 🕝 - ≈ ৳31 per 1000pcs",
     logoType: "facebook"
   },
   {

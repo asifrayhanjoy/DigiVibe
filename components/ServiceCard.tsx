@@ -40,7 +40,7 @@ import { useRouter } from "next/navigation";
 import { ServiceItem } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
-import { getCanonicalCategory } from "@/lib/categories";
+import { getCanonicalCategory, getCategoryQueryParam } from "@/lib/categories";
 
 const ICON_MAP: Record<string, any> = {
   Shield,
@@ -649,20 +649,41 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
   const displayTitle = isBn ? service.title_bn || service.title : service.title;
   
   const isSubscription = service.category?.toLowerCase() === "subscriptions";
-  const isSoldOut = 
-    service.inStock === false ||
-    (service as any).inStock === "false" ||
-    service.stock === "Stock Out" ||
-    service.stock === "Out of Stock" ||
-    service.stock === "Sold Out" ||
-    service.badge === "Sold Out ❌" ||
-    service.badge === "SOLD OUT";
+  const rawInStock = service.inStock;
+  const rawStock = (service.stock || "").toString().trim();
+  const rawStatus = ((service as any).status || (service as any).stockStatus || "").toString().trim().toLowerCase();
+
+  const isSoldOut =
+    rawInStock === false ||
+    (rawInStock as any) === "false" ||
+    rawStock === "Stock Out" ||
+    rawStock === "Out of Stock" ||
+    rawStock === "Sold Out" ||
+    rawStatus === "stock-out" ||
+    rawStatus === "out-of-stock" ||
+    (rawInStock === undefined && rawStock === "" && (service.badge === "Sold Out ❌" || service.badge === "SOLD OUT"));
+
+  const customImgUrl = useMemo(() => {
+    return ((service as any).imageUrl || service.image || service.logo || "").toString().trim();
+  }, [(service as any).imageUrl, service.image, service.logo]);
+
+  const hasExplicitCustomImage = useMemo(() => {
+    if (!customImgUrl) return false;
+    return (
+      customImgUrl.startsWith("http://") ||
+      customImgUrl.startsWith("https://") ||
+      customImgUrl.startsWith("/") ||
+      customImgUrl.startsWith("data:") ||
+      /\.(png|jpe?g|svg|webp|gif|avif|ico)(\?.*)?$/i.test(customImgUrl)
+    );
+  }, [customImgUrl]);
 
   const displayLogo = useMemo(() => {
     if (logoError) return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(service.title)}`;
+    if (customImgUrl) return customImgUrl;
     const firstWord = service.title.toLowerCase().split(" ")[0].replace(/[^a-z]/g, "");
-    return (service as any).logo || (service as any).image || `/images/vpns/${firstWord}.svg`;
-  }, [logoError, service.title, (service as any).logo, (service as any).image]);
+    return `/images/vpns/${firstWord}.svg`;
+  }, [logoError, service.title, customImgUrl]);
 
   const featureList = useMemo(() => {
     const defaultCategoryFeatures: Record<string, string[]> = {
@@ -701,33 +722,36 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
     const categoryKey = (service.category || "").toLowerCase();
     const fallbackFeatures = defaultCategoryFeatures[categoryKey] || defaultCategoryFeatures.default;
     
-    return (service.features && service.features.length >= 2 ? service.features : fallbackFeatures)
-      .filter((feat) => !/500 days|30 days|90d|180d|365d/i.test(feat) || /replacement|full fresh|guaranteed/i.test(feat));
+    return Array.isArray(service.features) && service.features.length >= 1 ? service.features : fallbackFeatures;
   }, [service.category, service.features]);
 
   const hasSvgLogo = isSubscription || !!service.logoType || service.category?.toLowerCase() === "ip" || service.category?.toLowerCase() === "smm" || service.category?.toLowerCase() === "email";
 
   const cleanBadge = useMemo(() => {
-    const rawBadge = service.badge || service.subtitle || "";
-    return /500 days|30 days|90d|180d|365d|validity/i.test(rawBadge)
-      ? "Full Replacement Support ✅"
-      : rawBadge;
-  }, [service.badge, service.subtitle]);
+    const rawBadge = (service.badge || service.subtitle || "").toString().trim();
+    if (isSoldOut) return "STOCK OUT";
+    if (rawBadge === "SOLD OUT" || rawBadge === "Sold Out ❌" || rawBadge.toLowerCase() === "sold out") {
+      const sub = (service.subtitle || "").toString().trim();
+      return sub && sub !== "SOLD OUT" && sub !== "Sold Out ❌" ? sub : "Full Replacement Support ✅";
+    }
+    return rawBadge || "Full Replacement Support ✅";
+  }, [service.badge, service.subtitle, isSoldOut]);
 
   const cleanSubtitle = useMemo(() => {
-    return /500 days|30 days|90d|180d|365d|validity/i.test(service.subtitle || "")
-      ? "Full Replacement Support ✅"
-      : (service.subtitle || "100% Genuine Digital Service ✅");
+    const rawSub = (service.subtitle || "").toString().trim();
+    if (rawSub === "SOLD OUT" || rawSub === "Sold Out ❌" || rawSub.toLowerCase() === "sold out") {
+      return "100% Genuine Digital Service ✅";
+    }
+    return rawSub || "100% Genuine Digital Service ✅";
   }, [service.subtitle]);
 
   const router = useRouter();
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Navigate to product detail page preserving category context
-    const cat = currentCategory && currentCategory !== "all"
-      ? getCanonicalCategory({ category: currentCategory })
-      : getCanonicalCategory(service);
-    router.push(`/${locale}/services/${service.id}?cat=${cat}`);
+    // Navigate to product detail page preserving category context and query aliases
+    const effectiveCategory = currentCategory && currentCategory !== "all" ? currentCategory : (service.category || getCanonicalCategory(service));
+    const cat = getCategoryQueryParam(effectiveCategory, getCanonicalCategory(service));
+    router.push(cat ? `/${locale}/services/${service.id}?cat=${cat}` : `/${locale}/services/${service.id}`);
   };
 
   const handleAdd = useCallback((e: React.MouseEvent) => {
@@ -787,9 +811,18 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
               </div>
             )}
 
-            {hasSvgLogo ? (
+            {hasExplicitCustomImage && !imgError ? (
+              <img
+                src={customImgUrl}
+                alt={service.title}
+                loading="lazy"
+                decoding="async"
+                className="max-h-20 max-w-[80%] sm:max-h-24 object-contain group-hover:scale-105 transition-transform duration-300"
+                onError={() => setImgError(true)}
+              />
+            ) : hasSvgLogo ? (
               <BrandLogoSvg logoType={service.logoType} title={service.title} />
-            ) : !imgError ? (
+            ) : !logoError ? (
               <img
                 src={displayLogo}
                 alt={service.title}

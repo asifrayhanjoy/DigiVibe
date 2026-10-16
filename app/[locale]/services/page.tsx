@@ -19,7 +19,7 @@ import { SlidersHorizontal, ArrowUpDown, Sparkles, Info, Server, Headphones, Plu
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import { getCanonicalCategory } from "@/lib/categories";
+import { getCanonicalCategory, getCategoryQueryParam, isCategoryMatch } from "@/lib/categories";
 import { compareAlphabetical, sortAlphabetically } from "@/lib/sorting";
 
 const CheckoutModal = dynamic(() => import("@/components/CheckoutModal"), { ssr: false });
@@ -29,10 +29,12 @@ const AdminProductModal = dynamic(() => import("@/components/AdminProductModal")
 function ServicesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const urlCatParam = searchParams?.get("cat") || searchParams?.get("category");
+  const urlCatParam = searchParams?.get("cat") || searchParams?.get("category") || "";
   const initialCategory: CategoryId = urlCatParam ? getCanonicalCategory({ category: urlCatParam }) : "all";
 
   const [activeCategory, setActiveCategory] = useState<CategoryId>(initialCategory);
+  const [activeCatQueryParam, setActiveCatQueryParam] = useState<string>(urlCatParam);
+  const [capturedCategoryParam, setCapturedCategoryParam] = useState<string>(urlCatParam);
   const [proxySubFilter, setProxySubFilter] = useState<"all" | "gb" | "ip">("all");
   const [smmSubFilter, setSmmSubFilter] = useState<"all" | "lifetime" | "30day" | "norefill">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -126,18 +128,28 @@ function ServicesContent() {
     fetchServicesFromDB();
   }, [fetchServicesFromDB]);
 
-  // Admin Add / Edit Modal Handlers
+  // Admin Add / Edit Modal Handlers - Capture active category context before opening modal
   const handleOpenAddModal = useCallback(() => {
+    const rawCat = searchParams?.get("cat") || searchParams?.get("category") || activeCatQueryParam;
+    const effectiveQueryParam = rawCat || (activeCategory !== "all" ? getCategoryQueryParam(activeCategory, activeCategory) : "");
+    setCapturedCategoryParam(effectiveQueryParam);
     setSelectedProductToEdit(null);
     setAdminModalMode("add");
     setIsAdminModalOpen(true);
-  }, []);
+  }, [searchParams, activeCatQueryParam, activeCategory]);
 
   const handleOpenEditModal = useCallback((service: ServiceItem) => {
+    // 1. Capture the exact active category query parameter (e.g. cat=ai, cat=social, cat=proxies, etc.)
+    const rawCat = searchParams?.get("cat") || searchParams?.get("category") || activeCatQueryParam;
+    const itemCanonical = getCanonicalCategory(service);
+    const effectiveCanonical = activeCategory !== "all" ? activeCategory : itemCanonical;
+    const effectiveQueryParam = rawCat || getCategoryQueryParam(effectiveCanonical, effectiveCanonical);
+
+    setCapturedCategoryParam(effectiveQueryParam);
     setSelectedProductToEdit(service);
     setAdminModalMode("edit");
     setIsAdminModalOpen(true);
-  }, []);
+  }, [searchParams, activeCatQueryParam, activeCategory]);
 
   const handleDeleteProduct = useCallback(async (service: ServiceItem) => {
     if (!service) return;
@@ -219,43 +231,75 @@ function ServicesContent() {
     }
 
     // 1. Instant Optimistic State Update: update ONLY the matching card in servicesList
+    // Guarantees all products in that category remain 100% visible and loaded in A-Z order
     setServicesList((prevList) => {
-      const targetId = savedProduct.id || (savedProduct as any).productId || (savedProduct as any)._id;
-      const idx = prevList.findIndex(
-        (item) => item.id === targetId || (item as any)._id === targetId || (item as any).productId === targetId
-      );
+      const targetId = (savedProduct.id || (savedProduct as any).productId || (savedProduct as any)._id || "").toString().trim();
+      const targetDocId = ((savedProduct as any)._id || (savedProduct as any).id || "").toString().trim();
+
+      const idx = prevList.findIndex((item) => {
+        const itemId = (item.id || (item as any).productId || (item as any)._id || "").toString().trim();
+        const itemDocId = ((item as any)._id || (item as any).productId || item.id || "").toString().trim();
+        return (
+          (targetId && (itemId === targetId || itemDocId === targetId)) ||
+          (targetDocId && (itemId === targetDocId || itemDocId === targetDocId)) ||
+          (item.title && savedProduct.title && item.title.trim().toLowerCase() === savedProduct.title.trim().toLowerCase())
+        );
+      });
+
+      const customImg = ((savedProduct as any).imageUrl || savedProduct.image || savedProduct.logo || "").toString().trim();
+      const normalizedSaved: ServiceItem = {
+        ...savedProduct,
+        category: getCanonicalCategory(savedProduct),
+        duration: savedProduct.duration || savedProduct.validity || "7 Days",
+        validity: savedProduct.validity || savedProduct.duration || "7 Days",
+        inStock: savedProduct.inStock,
+        stock: savedProduct.stock,
+        status: (savedProduct as any).status || (savedProduct.inStock ? "in-stock" : "stock-out"),
+        stockStatus: (savedProduct as any).stockStatus || (savedProduct.inStock ? "in-stock" : "stock-out"),
+        badge: savedProduct.badge,
+        subtitle: savedProduct.subtitle !== undefined ? savedProduct.subtitle : savedProduct.badge,
+        tag: savedProduct.tag || savedProduct.badge,
+        imageUrl: customImg,
+        logo: customImg,
+        image: customImg,
+        logoType: (savedProduct as any).logoType ?? "",
+      };
+
       if (idx !== -1) {
         const nextList = [...prevList];
         nextList[idx] = {
           ...nextList[idx],
-          ...savedProduct,
-          duration: savedProduct.duration || savedProduct.validity || nextList[idx].duration || "7 Days",
-          validity: savedProduct.validity || savedProduct.duration || nextList[idx].validity || "7 Days",
-          inStock: savedProduct.inStock,
-          stock: savedProduct.stock,
+          ...normalizedSaved,
         };
         return sortAlphabetically(nextList);
       }
-      return sortAlphabetically([savedProduct, ...prevList]);
+      return sortAlphabetically([normalizedSaved, ...prevList]);
     });
 
     // 2. Clear any search filter so the full product list in the category remains visible
     setSearchQuery("");
 
-    // 3. Preserve category tab & update URL cleanly without destructive &id= filter parameter
-    const destinationCat: CategoryId = (activeCategory && activeCategory !== "all")
+    // 3. Dynamic Category-Aware Redirect:
+    // Determine the exact query parameter that was active before editing (e.g. cat=ai, cat=social, cat=email, cat=vpn, cat=proxies, cat=telegram, cat=hosting, cat=advanced)
+    const rawTargetParam = capturedCategoryParam || activeCatQueryParam;
+    const canonicalDestination: CategoryId = (activeCategory && activeCategory !== "all")
       ? activeCategory
-      : (targetCategory && targetCategory !== "all" ? (targetCategory as CategoryId) : getCanonicalCategory(savedProduct));
+      : (rawTargetParam ? getCanonicalCategory({ category: rawTargetParam }) : (targetCategory && targetCategory !== "all" ? (targetCategory as CategoryId) : getCanonicalCategory(savedProduct)));
 
-    if (destinationCat && destinationCat !== "all") {
-      setActiveCategory(destinationCat);
-      const targetPath = `/${locale}/services?cat=${destinationCat}`;
-      router.replace(targetPath, { scroll: false });
-    } else {
-      setActiveCategory("all");
-      const targetPath = `/${locale}/services`;
-      router.replace(targetPath, { scroll: false });
+    const effectiveQueryParam = rawTargetParam || (canonicalDestination !== "all" ? getCategoryQueryParam(canonicalDestination, canonicalDestination) : "");
+
+    // Keep active category state and active query param fully synchronized
+    setActiveCategory(canonicalDestination);
+    if (effectiveQueryParam) {
+      setActiveCatQueryParam(effectiveQueryParam);
+      setCapturedCategoryParam(effectiveQueryParam);
     }
+
+    const targetPath = effectiveQueryParam && effectiveQueryParam !== "all"
+      ? `/${locale}/services?cat=${effectiveQueryParam}`
+      : `/${locale}/services`;
+
+    router.replace(targetPath, { scroll: false });
 
     // 4. Trigger cache revalidation and background DB sync
     router.refresh();
@@ -268,7 +312,7 @@ function ServicesContent() {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }, 200);
-  }, [adminModalMode, fetchServicesFromDB, activeCategory, locale, router]);
+  }, [adminModalMode, capturedCategoryParam, activeCatQueryParam, activeCategory, locale, router, fetchServicesFromDB]);
 
   const hasScrolledRef = useRef<string>("");
 
@@ -279,10 +323,16 @@ function ServicesContent() {
     const urlId = searchParams.get("id") || searchParams.get("product");
     const urlCat = searchParams.get("cat") || searchParams.get("category");
 
-    // 1. Sync active category with URL parameter if explicitly provided
+    // 1. Sync active category with URL parameter
     if (urlCat) {
       const canonical = getCanonicalCategory({ category: urlCat });
       setActiveCategory((prev) => (prev !== canonical ? canonical : prev));
+      setActiveCatQueryParam((prev) => (prev !== urlCat ? urlCat : prev));
+      setCapturedCategoryParam((prev) => (prev !== urlCat ? urlCat : prev));
+    } else if (!urlId) {
+      setActiveCategory((prev) => (prev !== "all" ? "all" : prev));
+      setActiveCatQueryParam((prev) => (prev !== "" ? "" : prev));
+      setCapturedCategoryParam((prev) => (prev !== "" ? "" : prev));
     }
 
     // 2. Sync search query with URL parameter ONLY if explicitly provided as search query
@@ -298,6 +348,8 @@ function ServicesContent() {
         const canonical = getCanonicalCategory(matched);
         if (canonical && canonical !== "all") {
           setActiveCategory((prev) => (prev !== canonical ? canonical : prev));
+          setActiveCatQueryParam((prev) => (prev !== canonical ? canonical : prev));
+          setCapturedCategoryParam((prev) => (prev !== canonical ? canonical : prev));
         }
       }
       const paramKey = `id-${urlId}`;
@@ -324,11 +376,10 @@ function ServicesContent() {
     }
   }, [searchParams, servicesList]);
 
-  // Strict Filter & Sort
+  // Strict Filter & Sort - Preserves full category array and A-Z ordering
   const processedServices = useMemo(() => {
     let list = servicesList.filter((service) => {
-      const itemCategory = getCanonicalCategory(service);
-      const matchesCategory = activeCategory === "all" || itemCategory === activeCategory;
+      const matchesCategory = activeCategory === "all" || isCategoryMatch(service, activeCategory);
       const matchesSearch =
         searchQuery.trim() === "" ||
         service.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -422,14 +473,20 @@ function ServicesContent() {
     }, `/${locale}/services`);
   }, [requireAuth, locale]);
 
-  const handleSelectCategory = useCallback((cat: CategoryId) => {
-    setActiveCategory(cat);
+  const handleSelectCategory = useCallback((cat: CategoryId | string) => {
+    const canonical = getCanonicalCategory({ category: cat });
+    setActiveCategory(canonical);
     setSearchQuery("");
-    if (cat === "ip") setProxySubFilter("all");
-    if (cat === "smm") setSmmSubFilter("all");
+    if (canonical === "ip") setProxySubFilter("all");
+    if (canonical === "smm") setSmmSubFilter("all");
+
+    // Preserve alias if valid or map canonical to query parameter
+    const queryParam = getCategoryQueryParam(cat, canonical);
+    setActiveCatQueryParam(queryParam);
+    setCapturedCategoryParam(queryParam);
 
     // Dynamically synchronize the URL with the chosen category tab
-    const targetPath = cat === "all" ? `/${locale}/services` : `/${locale}/services?cat=${cat}`;
+    const targetPath = canonical === "all" || !queryParam || queryParam === "all" ? `/${locale}/services` : `/${locale}/services?cat=${queryParam}`;
     router.replace(targetPath, { scroll: false });
   }, [locale, router]);
 
@@ -473,7 +530,7 @@ function ServicesContent() {
           getCategoryCount={(catId) =>
             catId === "all"
               ? servicesList.length
-              : servicesList.filter((s) => getCanonicalCategory(s) === catId).length
+              : servicesList.filter((s) => isCategoryMatch(s, catId)).length
           }
         />
 
@@ -824,7 +881,13 @@ function ServicesContent() {
         mode={adminModalMode}
         initialData={selectedProductToEdit}
         currentCategory={activeCategory}
-        returnUrl={activeCategory !== "all" ? `/${locale}/services?cat=${activeCategory}` : `/${locale}/services`}
+        categoryParam={capturedCategoryParam || activeCatQueryParam}
+        returnUrl={
+          (capturedCategoryParam || activeCatQueryParam) && (capturedCategoryParam || activeCatQueryParam) !== "all"
+            ? `/${locale}/services?cat=${capturedCategoryParam || activeCatQueryParam}`
+            : (activeCategory !== "all" ? `/${locale}/services?cat=${getCategoryQueryParam(activeCategory, activeCategory)}` : `/${locale}/services`)
+        }
+        locale={locale}
         onSaveSuccess={handleSaveSuccess}
       />
 

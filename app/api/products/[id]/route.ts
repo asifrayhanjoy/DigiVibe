@@ -1,14 +1,51 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
 import DeletedProduct from "@/lib/models/DeletedProduct";
+import { getCanonicalCategory } from "@/lib/categories";
 
 function mapProductToServiceItem(doc: any) {
+  const productId = (doc.productId || doc.id || (doc._id ? doc._id.toString() : "")).toString().trim();
+  const docId = doc._id ? doc._id.toString() : productId;
+  const canonicalCat = getCanonicalCategory({ id: productId || docId, category: doc.category, title: doc.title });
+
+  const rawInStock = doc.inStock;
+  const rawStock = (doc.stock || "").toString().trim();
+  const rawStatus = (doc.status || doc.stockStatus || "").toString().trim().toLowerCase();
+
+  const isAvailable =
+    rawInStock !== false &&
+    rawInStock !== "false" &&
+    rawStock !== "Stock Out" &&
+    rawStock !== "Out of Stock" &&
+    rawStock !== "Sold Out" &&
+    rawStatus !== "stock-out" &&
+    rawStatus !== "out-of-stock";
+
+  const resolvedStock = isAvailable
+    ? "In Stock"
+    : (rawStock === "Sold Out" ? "Sold Out" : (rawStock === "Out of Stock" ? "Out of Stock" : "Stock Out"));
+
+  const resolvedStatus = isAvailable ? "in-stock" : "stock-out";
+
+  // Clean badge: if available, it should never say SOLD OUT
+  let resolvedBadge = (doc.badge || doc.tag || doc.subtitle || "").toString().trim();
+  if (isAvailable && (resolvedBadge === "SOLD OUT" || resolvedBadge === "Sold Out ❌" || resolvedBadge.toLowerCase() === "sold out")) {
+    resolvedBadge = doc.subtitle && doc.subtitle !== "SOLD OUT" && doc.subtitle !== "Sold Out ❌" ? doc.subtitle : "";
+  }
+
+  let resolvedTag = (doc.tag || doc.badge || "").toString().trim();
+  if (isAvailable && (resolvedTag === "SOLD OUT" || resolvedTag === "Sold Out ❌" || resolvedTag.toLowerCase() === "sold out")) {
+    resolvedTag = "";
+  }
+
   return {
-    id: doc.productId || doc._id.toString(),
-    _id: doc._id.toString(),
+    id: productId || docId,
+    _id: docId,
+    productId: productId || docId,
     title: doc.title,
-    category: doc.category,
+    category: canonicalCat,
     subtitle: doc.subtitle || "",
     operator: doc.operator || "",
     price: Number(doc.price),
@@ -17,15 +54,18 @@ function mapProductToServiceItem(doc: any) {
     validity: doc.validity || doc.duration || "7 Days",
     rating: doc.rating ? Number(doc.rating) : 4.8,
     reviews: doc.reviews ? Number(doc.reviews) : 120,
-    badge: doc.badge || doc.tag || doc.subtitle || "",
-    tag: doc.tag || doc.badge || "",
+    badge: resolvedBadge,
+    tag: resolvedTag,
     badgeColor: doc.badgeColor || "",
-    logo: doc.logo || doc.image || "",
-    image: doc.image || doc.logo || "",
-    logoType: doc.logoType || "",
+    logo: (doc.imageUrl || doc.image || doc.logo || "").toString().trim(),
+    image: (doc.imageUrl || doc.image || doc.logo || "").toString().trim(),
+    imageUrl: (doc.imageUrl || doc.image || doc.logo || "").toString().trim(),
+    logoType: doc.logoType !== undefined && doc.logoType !== null ? doc.logoType : "",
     icon: doc.icon || "Sparkles",
-    inStock: doc.inStock !== false && (doc as any).inStock !== "false" && doc.stock !== "Out of Stock" && doc.stock !== "Stock Out" && doc.stock !== "Sold Out",
-    stock: doc.stock || (doc.inStock === false ? "Stock Out" : "In Stock"),
+    inStock: isAvailable,
+    stock: resolvedStock,
+    status: resolvedStatus,
+    stockStatus: resolvedStatus,
     features: Array.isArray(doc.features) ? doc.features : [],
     popular: !!doc.popular,
     usdPrice: doc.usdPrice || "",
@@ -37,6 +77,7 @@ function mapProductToServiceItem(doc: any) {
     maxQuantity: doc.maxQuantity,
     terms: doc.terms || "",
     priceNote: doc.priceNote || "",
+    smmPriceMigrated: !!doc.smmPriceMigrated,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -55,7 +96,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const decodedId = decodeURIComponent(idParam).trim();
     const isObjectId = typeof decodedId === "string" && Boolean(decodedId.match(/^[0-9a-fA-F]{24}$/));
-    const filter = isObjectId ? { $or: [{ productId: decodedId }, { _id: decodedId }] } : { productId: decodedId };
+    const conditions: any[] = [{ productId: decodedId }, { id: decodedId }];
+    if (isObjectId) {
+      conditions.push({ _id: decodedId });
+      try {
+        conditions.push({ _id: new mongoose.Types.ObjectId(decodedId) });
+      } catch (e) {}
+    }
+    const filter = conditions.length === 1 ? conditions[0] : { $or: conditions };
 
     const doc = await (Product as any).findOne(filter).lean();
 
@@ -74,12 +122,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     await connectDB();
     const resolvedParams = await params;
-    const id = resolvedParams?.id;
+    const rawIdParam = resolvedParams?.id;
 
-    if (!id) {
+    if (!rawIdParam) {
       return NextResponse.json({ success: false, message: "Product ID is required" }, { status: 400 });
     }
 
+    const decodedId = decodeURIComponent(rawIdParam).trim();
     const body = await req.json();
 
     const {
@@ -98,10 +147,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       badgeColor,
       logo,
       image,
+      imageUrl,
       logoType,
       icon,
       inStock,
       stock,
+      status,
+      stockStatus,
       features,
       popular,
       usdPrice,
@@ -115,21 +167,43 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       priceNote,
     } = body;
 
-    const isAvailable = 
-      inStock !== false && 
-      inStock !== "false" && 
-      stock !== "Out of Stock" && 
-      stock !== "Stock Out" && 
-      stock !== "Sold Out";
+    // Resolve stock status accurately across all representations
+    const hasInStock = inStock !== undefined;
+    const hasStock = stock !== undefined;
+    const hasStatus = status !== undefined || stockStatus !== undefined;
 
-    const finalStock = !isAvailable
-      ? (stock === "Sold Out" ? "Sold Out" : (stock === "Out of Stock" ? "Out of Stock" : "Stock Out"))
-      : "In Stock";
+    let isAvailable: boolean | undefined;
+    if (hasInStock || hasStock || hasStatus) {
+      if (inStock === false || inStock === "false") {
+        isAvailable = false;
+      } else if (
+        stock === "Stock Out" ||
+        stock === "Out of Stock" ||
+        stock === "Sold Out" ||
+        status === "stock-out" ||
+        status === "out-of-stock" ||
+        stockStatus === "stock-out"
+      ) {
+        isAvailable = false;
+      } else if (inStock === true || inStock === "true" || stock === "In Stock" || status === "in-stock") {
+        isAvailable = true;
+      } else {
+        isAvailable = true;
+      }
+    }
+
+    const finalStock = isAvailable !== undefined
+      ? (!isAvailable
+          ? (stock === "Sold Out" ? "Sold Out" : (stock === "Out of Stock" ? "Out of Stock" : "Stock Out"))
+          : "In Stock")
+      : undefined;
+
+    const finalStatus = isAvailable !== undefined ? (isAvailable ? "in-stock" : "stock-out") : undefined;
 
     const updateData: any = {};
-    if (title !== undefined) updateData.title = title.trim();
-    if (category !== undefined) updateData.category = category.trim();
-    if (subtitle !== undefined) updateData.subtitle = subtitle;
+    if (title !== undefined) updateData.title = typeof title === "string" ? title.trim() : title;
+    if (category !== undefined) updateData.category = typeof category === "string" ? category.trim() : category;
+    if (subtitle !== undefined) updateData.subtitle = typeof subtitle === "string" ? subtitle.trim() : subtitle;
     if (operator !== undefined) updateData.operator = operator;
     if (price !== undefined) updateData.price = Number(price);
     if (originalPrice !== undefined) updateData.originalPrice = Number(originalPrice);
@@ -143,17 +217,45 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
     if (rating !== undefined) updateData.rating = Number(rating);
     if (reviews !== undefined) updateData.reviews = Number(reviews);
-    if (badge !== undefined) updateData.badge = badge;
-    if (tag !== undefined) updateData.tag = tag;
+    if (badge !== undefined) updateData.badge = typeof badge === "string" ? badge.trim() : badge;
+    if (tag !== undefined) updateData.tag = typeof tag === "string" ? tag.trim() : tag;
     if (badgeColor !== undefined) updateData.badgeColor = badgeColor;
-    if (logo !== undefined) updateData.logo = logo;
-    if (image !== undefined) updateData.image = image;
-    if (logoType !== undefined) updateData.logoType = logoType;
+
+    // Capture and persist custom image URL and presets across all representations
+    const rawImage = imageUrl !== undefined ? imageUrl : (image !== undefined ? image : logo);
+    if (rawImage !== undefined) {
+      const trimmedImg = typeof rawImage === "string" ? rawImage.trim() : (rawImage || "");
+      updateData.imageUrl = trimmedImg;
+      updateData.image = trimmedImg;
+      updateData.logo = trimmedImg;
+    }
+
+    if (logoType !== undefined) {
+      updateData.logoType = typeof logoType === "string" ? logoType.trim() : (logoType ?? "");
+    }
     if (icon !== undefined) updateData.icon = icon;
-    if (inStock !== undefined || stock !== undefined) {
+
+    // Apply unified stock fields synchronously
+    if (isAvailable !== undefined) {
       updateData.inStock = isAvailable;
       updateData.stock = finalStock;
+      updateData.status = finalStatus;
+      updateData.stockStatus = finalStatus;
+
+      // When setting to in stock, clean out any stale "SOLD OUT" badge/tag/subtitle
+      if (isAvailable) {
+        if (updateData.badge === "SOLD OUT" || updateData.badge === "Sold Out ❌" || updateData.badge?.toLowerCase() === "sold out") {
+          updateData.badge = "";
+        }
+        if (updateData.tag === "SOLD OUT" || updateData.tag === "Sold Out ❌" || updateData.tag?.toLowerCase() === "sold out") {
+          updateData.tag = "";
+        }
+        if (updateData.subtitle === "SOLD OUT" || updateData.subtitle === "Sold Out ❌" || updateData.subtitle?.toLowerCase() === "sold out") {
+          updateData.subtitle = "";
+        }
+      }
     }
+
     if (features !== undefined) updateData.features = Array.isArray(features) ? features : [];
     if (popular !== undefined) updateData.popular = !!popular;
     if (usdPrice !== undefined) updateData.usdPrice = usdPrice;
@@ -166,30 +268,69 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (terms !== undefined) updateData.terms = terms;
     if (priceNote !== undefined) updateData.priceNote = priceNote;
 
-    const targetProductId = (body.productId || body.id || id).toString().trim();
-    const isObjectId = typeof id === "string" && Boolean(id.match(/^[0-9a-fA-F]{24}$/));
-    const isBodyObjectId = typeof body._id === "string" && Boolean(body._id.match(/^[0-9a-fA-F]{24}$/));
+    // Collect all candidate identifiers
+    const targetProductId = (body.productId || body.id || decodedId).toString().trim();
+    const candidateIds = Array.from(
+      new Set(
+        [
+          decodedId,
+          rawIdParam.trim(),
+          (body.id || "").toString().trim(),
+          (body.productId || "").toString().trim(),
+          (body._id || "").toString().trim(),
+        ].filter(Boolean)
+      )
+    );
 
-    const orConditions: any[] = [{ productId: id }, { productId: targetProductId }];
-    if (isObjectId) orConditions.push({ _id: id });
-    if (isBodyObjectId) orConditions.push({ _id: body._id });
+    const orConditions: any[] = [];
+    for (const cid of candidateIds) {
+      orConditions.push({ productId: cid });
+      orConditions.push({ id: cid });
+      if (typeof cid === "string" && cid.match(/^[0-9a-fA-F]{24}$/)) {
+        orConditions.push({ _id: cid });
+        try {
+          orConditions.push({ _id: new mongoose.Types.ObjectId(cid) });
+        } catch (e) {}
+      }
+    }
+
+    if (body.title && typeof body.title === "string" && body.title.trim().length > 0) {
+      orConditions.push({ title: body.title.trim() });
+    }
 
     const filter = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
 
-    const updatedDoc = await (Product as any).findOneAndUpdate(
-      filter,
-      { 
-        $set: updateData,
-        $setOnInsert: { productId: targetProductId }
-      },
-      { new: true, upsert: true }
-    ).lean();
+    // 1. First attempt to find existing product to update by _id
+    let existingDoc = await (Product as any).findOne(filter);
 
-    const mapped = mapProductToServiceItem(updatedDoc);
+    let updatedDoc: any = null;
+    if (existingDoc) {
+      // Ensure productId is always populated on document
+      updateData.productId = existingDoc.productId || targetProductId;
+
+      updatedDoc = await (Product as any).findByIdAndUpdate(
+        existingDoc._id,
+        { $set: updateData },
+        { new: true, runValidators: false }
+      ).lean();
+    } else {
+      // 2. Fallback: findOneAndUpdate or create
+      updateData.productId = targetProductId;
+      updatedDoc = await (Product as any).findOneAndUpdate(
+        filter,
+        { 
+          $set: updateData,
+          $setOnInsert: { productId: targetProductId }
+        },
+        { new: true, upsert: true, runValidators: false }
+      ).lean();
+    }
+
+    const mapped = mapProductToServiceItem(updatedDoc || { ...updateData, productId: targetProductId });
 
     try {
       await (DeletedProduct as any).deleteMany({
-        $or: [{ productId: id }, { productId: targetProductId }]
+        $or: candidateIds.map((cid) => ({ productId: cid }))
       });
     } catch (e) {}
 

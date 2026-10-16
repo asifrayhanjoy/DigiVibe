@@ -16,10 +16,12 @@ const ProductSchema = new mongoose.Schema(
     logo: { type: String },
     inStock: { type: Boolean, default: true },
     stock: { type: String, default: 'In Stock' },
+    status: { type: String, default: 'in-stock' },
+    stockStatus: { type: String, default: 'in-stock' },
     features: [{ type: String }],
     popular: { type: Boolean, default: false }
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 );
 
 module.exports = mongoose.models.Product || mongoose.model('Product', ProductSchema);

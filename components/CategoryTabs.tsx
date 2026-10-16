@@ -19,6 +19,7 @@ import {
 import { CATEGORIES } from "@/data/services";
 import { CategoryId } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
+import { isCategoryMatch } from "@/lib/categories";
 
 const ICON_MAP: Record<string, any> = {
   LayoutGrid,
@@ -35,9 +36,9 @@ const ICON_MAP: Record<string, any> = {
 };
 
 interface CategoryTabsProps {
-  activeCategory: CategoryId;
-  onSelectCategory: (id: CategoryId) => void;
-  getCategoryCount?: (id: CategoryId) => number;
+  activeCategory: CategoryId | string;
+  onSelectCategory: (slugOrId: string) => void;
+  getCategoryCount?: (id: CategoryId | string) => number;
 }
 
 function CategoryTabs({
@@ -54,6 +55,9 @@ function CategoryTabs({
   const isMouseDownRef = useRef(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const hasDraggedRef = useRef(false);
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const checkScroll = useCallback(() => {
     if (!scrollRef.current) return;
@@ -74,6 +78,7 @@ function CategoryTabs({
     return () => {
       if (el) el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
+      if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
     };
   }, [checkScroll]);
 
@@ -86,20 +91,47 @@ function CategoryTabs({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
     isMouseDownRef.current = true;
+    isDraggingRef.current = false;
+    hasDraggedRef.current = false;
     startXRef.current = e.pageX - scrollRef.current.offsetLeft;
     scrollLeftRef.current = scrollRef.current.scrollLeft;
   };
 
   const handleMouseLeaveOrUp = () => {
     isMouseDownRef.current = false;
+    if (isDraggingRef.current) {
+      if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
+      dragTimeoutRef.current = setTimeout(() => {
+        hasDraggedRef.current = false;
+        isDraggingRef.current = false;
+      }, 80);
+    } else {
+      hasDraggedRef.current = false;
+      isDraggingRef.current = false;
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isMouseDownRef.current || !scrollRef.current) return;
-    e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startXRef.current) * 1.5;
-    scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
+    const distance = Math.abs(x - startXRef.current);
+    // Ignore micro-movements (< 6px) to keep normal clicks stable and prevent jitter
+    if (distance > 6) {
+      isDraggingRef.current = true;
+      hasDraggedRef.current = true;
+      e.preventDefault();
+      const walk = (x - startXRef.current) * 1.5;
+      scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
+    }
+  };
+
+  const handleTabClick = (e: React.MouseEvent, targetSlug: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (hasDraggedRef.current || isDraggingRef.current) {
+      return;
+    }
+    onSelectCategory(targetSlug);
   };
 
   return (
@@ -118,6 +150,7 @@ function CategoryTabs({
         {/* Left Scroll Button */}
         {canScrollLeft && (
           <button
+            type="button"
             onClick={() => scrollByOffset(-240)}
             aria-label="Scroll Left"
             className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-900/90 border border-cyan-500/40 text-cyan-400 shadow-xl backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
@@ -129,6 +162,7 @@ function CategoryTabs({
         {/* Right Scroll Button */}
         {canScrollRight && (
           <button
+            type="button"
             onClick={() => scrollByOffset(240)}
             aria-label="Scroll Right"
             className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-900/90 border border-cyan-500/40 text-cyan-400 shadow-xl backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 transition-all duration-200"
@@ -148,14 +182,25 @@ function CategoryTabs({
         >
           {CATEGORIES.map((cat) => {
             const Icon = ICON_MAP[cat.icon] || LayoutGrid;
-            const isActive = activeCategory === cat.id;
-            const count = getCategoryCount ? getCategoryCount(cat.id as CategoryId) : cat.count;
-            const categoryLabel = (locale === "bn" ? cat.labelBn : cat.labelEn) || cat.label || cat.id;
+            const targetSlug = (cat as any).slug || cat.id;
+            const isActive =
+              activeCategory === "all" || !activeCategory
+                ? cat.id === "all" || targetSlug === "all"
+                : cat.id !== "all" &&
+                  (isCategoryMatch(cat.id, activeCategory) || isCategoryMatch(targetSlug, activeCategory));
+
+            const count = getCategoryCount
+              ? getCategoryCount(cat.id as CategoryId)
+              : cat.count;
+            const categoryLabel = (locale === "bn" ? cat.labelBn : cat.labelEn) || (cat as any).label || cat.id;
 
             return (
               <button
                 key={cat.id}
-                onClick={() => onSelectCategory(cat.id as CategoryId)}
+                id={`tab-${targetSlug}`}
+                type="button"
+                data-category-slug={targetSlug}
+                onClick={(e) => handleTabClick(e, targetSlug)}
                 className={`pill-tab shrink-0 ${isActive ? "pill-tab-active" : ""}`}
               >
                 <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-white scale-110" : "text-cyan-400"}`} />

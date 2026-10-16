@@ -17,9 +17,8 @@ const SearchModal = dynamic(() => import("@/components/SearchModal"), { ssr: fal
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { SERVICES } from "@/data/services";
-import { CategoryId } from "@/types";
 import { sortAlphabetically } from "@/lib/sorting";
-import { getCanonicalCategory } from "@/lib/categories";
+import { getCanonicalCategory, getCategoryQueryParam, isCategoryMatch } from "@/lib/categories";
 
 export default function HomePage() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -81,11 +80,13 @@ export default function HomePage() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-6 md:my-10">
         <CategoryTabs
           activeCategory="all"
-          onSelectCategory={(cat: CategoryId) => {
-            handleProtectedNavigate(`/${locale}/services?cat=${cat}`);
+          onSelectCategory={(slugOrId: string) => {
+            const queryParam = getCategoryQueryParam(slugOrId);
+            const targetPath = !queryParam || queryParam === "all" ? `/${locale}/services` : `/${locale}/services?cat=${queryParam}`;
+            handleProtectedNavigate(targetPath);
           }}
           getCategoryCount={(catId) =>
-            catId === "all" ? servicesList.length : servicesList.filter((s) => getCanonicalCategory(s) === catId).length
+            catId === "all" ? servicesList.length : servicesList.filter((s) => isCategoryMatch(s, catId)).length
           }
         />
       </div>
