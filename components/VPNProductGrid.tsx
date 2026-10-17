@@ -73,4 +73,4 @@ export const VPNProductGrid = ({
   );
 };
 
-export default VPNProductGrid;
+export default React.memo(VPNProductGrid);

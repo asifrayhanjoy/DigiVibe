@@ -59,13 +59,18 @@ function CategoryTabs({
   const hasDraggedRef = useRef(false);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const rafIdRef = useRef<number | null>(null);
   const checkScroll = useCallback(() => {
-    if (!scrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    const nextLeft = scrollLeft > 5;
-    const nextRight = scrollLeft + clientWidth < scrollWidth - 5;
-    setCanScrollLeft((prev) => (prev !== nextLeft ? nextLeft : prev));
-    setCanScrollRight((prev) => (prev !== nextRight ? nextRight : prev));
+    if (rafIdRef.current) return;
+    rafIdRef.current = window.requestAnimationFrame(() => {
+      rafIdRef.current = null;
+      if (!scrollRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      const nextLeft = scrollLeft > 5;
+      const nextRight = scrollLeft + clientWidth < scrollWidth - 5;
+      setCanScrollLeft((prev) => (prev !== nextLeft ? nextLeft : prev));
+      setCanScrollRight((prev) => (prev !== nextRight ? nextRight : prev));
+    });
   }, []);
 
   useEffect(() => {
@@ -79,6 +84,7 @@ function CategoryTabs({
       if (el) el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
       if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     };
   }, [checkScroll]);
 

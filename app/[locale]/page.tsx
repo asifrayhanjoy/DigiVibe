@@ -8,7 +8,6 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import CategoryTabs from "@/components/CategoryTabs";
 import RightDock from "@/components/RightDock";
-import BackgroundSlider from "@/components/BackgroundSlider";
 import PromotionalBanner from "@/components/PromotionalBanner";
 import Footer from "@/components/Footer";
 
@@ -47,9 +46,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen text-slate-100 flex flex-col font-sans relative selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden">
-      {/* DYNAMIC 3D BACKGROUND SLIDER (Rotates 5 3D Tech Images every 4s with Dark Overlay) */}
-      <BackgroundSlider />
-
       {/* GLOBAL NAVBAR */}
       <Navbar
         cartCount={0}

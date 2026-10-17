@@ -156,16 +156,16 @@ export default function UserNotificationBell({ locale = "en" }: UserNotification
     fetchUserOrders();
 
     const handleVisibilityAndPoll = () => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && (typeof navigator === "undefined" || navigator.onLine !== false)) {
         fetchUserOrders();
       }
     };
 
     const interval = setInterval(() => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && (typeof navigator === "undefined" || navigator.onLine !== false)) {
         fetchUserOrders();
       }
-    }, 30000);
+    }, 45000);
 
     document.addEventListener("visibilitychange", handleVisibilityAndPoll);
 

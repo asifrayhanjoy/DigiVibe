@@ -9,16 +9,13 @@
 
 html, body {
   background-color: #070b16;
-  background-image: 
-    linear-gradient(to bottom, rgba(7, 11, 22, 0.85), rgba(7, 11, 22, 0.92)),
-    url('/images/hero-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
   color: #f1f5f9;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   overflow-x: hidden;
   max-width: 100vw;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom scrollbar */
@@ -55,26 +52,18 @@ html, body {
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-  transform: translateZ(0);
-}
-
-@media (max-width: 640px) {
-  .glass-panel {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    background: rgba(15, 23, 42, 0.88);
-  }
+  transform: translate3d(0, 0, 0);
 }
 
 .glass-panel-hover {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, box-shadow;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 .glass-panel-hover:hover {
   background: rgba(15, 23, 42, 0.75);
   border-color: rgba(6, 182, 212, 0.35);
   box-shadow: 0 12px 32px -8px rgba(6, 182, 212, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px) translateZ(0);
+  transform: translateY(-2px) translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 /* Reference UI Category Pill Tabs - Translucent Glassmorphism & Upscaled Prominence */
@@ -92,25 +81,26 @@ html, body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease;
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
   flex-shrink: 0;
+  transform: translate3d(0, 0, 0);
 }
 .pill-tab:hover {
   color: #ffffff;
   background: rgba(15, 23, 42, 0.85);
   border-color: rgba(6, 182, 212, 0.5);
   box-shadow: 0 6px 24px -4px rgba(6, 182, 212, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-2px) translate3d(0, 0, 0);
 }
 .pill-tab-active {
   color: #ffffff !important;
   background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%) !important;
   border-color: rgba(56, 189, 248, 0.6) !important;
   box-shadow: 0 6px 25px -2px rgba(6, 182, 212, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.25) !important;
-  transform: translateY(-1px);
+  transform: translateY(-1px) translate3d(0, 0, 0);
 }
 
 /* Reference UI Dashboard Launcher Cards */
@@ -122,7 +112,8 @@ html, body {
   border-radius: 1.25rem;
   padding: 1.25rem;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-  transition: all 0.25s ease;
+  transition: transform 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+  transform: translate3d(0, 0, 0);
 }
 .dashboard-card:hover {
   background: rgba(15, 23, 42, 0.7);
@@ -135,7 +126,7 @@ html, body {
   position: fixed;
   right: 1.25rem;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) translate3d(0, 0, 0);
   z-index: 40;
   display: flex;
   flex-direction: column;
@@ -158,39 +149,41 @@ html, body {
   text-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
 }
 
-/* Continuous Ken Burns Background Zoom & Movement Animation */
+/* Hardware-Accelerated 3D Ken Burns Background Zoom */
 @keyframes kenburns {
-  0% { transform: scale(1) translate(0, 0); }
-  50% { transform: scale(1.06) translate(-0.8%, -0.5%); }
-  100% { transform: scale(1.12) translate(0.8%, 0.5%); }
+  0% { transform: scale3d(1, 1, 1) translate3d(0, 0, 0); }
+  50% { transform: scale3d(1.04, 1.04, 1) translate3d(-0.6%, -0.4%, 0); }
+  100% { transform: scale3d(1.08, 1.08, 1) translate3d(0.6%, 0.4%, 0); }
 }
 
 .animate-kenburns {
-  animation: kenburns 8s ease-in-out infinite alternate;
-  will-change: transform;
+  animation: kenburns 12s ease-in-out infinite alternate;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
-/* Gradient animations */
+/* Hardware-Accelerated Gradient & Glow Animations */
 @keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1) translateZ(0); }
-  50% { opacity: 0.8; transform: scale(1.05) translateZ(0); }
+  0%, 100% { opacity: 0.4; transform: scale3d(1, 1, 1); }
+  50% { opacity: 0.75; transform: scale3d(1.04, 1.04, 1); }
 }
 
 .animate-pulse-glow {
   animation: pulseGlow 6s ease-in-out infinite;
-  will-change: transform, opacity;
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px) translateZ(0); }
-  50% { transform: translateY(-8px) translateZ(0); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -6px, 0); }
 }
 
 .animate-float {
   animation: float 4s ease-in-out infinite;
-  will-change: transform;
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 /* Mobile Performance & Touch Responsiveness */
@@ -202,7 +195,6 @@ button, a, input, select, textarea {
 @media (max-width: 768px) {
   html, body {
     -webkit-overflow-scrolling: touch;
-    background-attachment: scroll !important; /* Fixed backgrounds cause severe lag on mobile Safari/Chrome */
   }
   .animate-kenburns {
     animation: none !important;
@@ -212,40 +204,45 @@ button, a, input, select, textarea {
   .animate-pulse-glow {
     animation: none !important;
     opacity: 0.6 !important;
+    transform: none !important;
   }
   .animate-float {
     animation: none !important;
+    transform: none !important;
   }
   .backdrop-blur-2xl,
   .backdrop-blur-xl,
   .backdrop-blur-lg,
   .backdrop-blur-md,
   .glass-panel,
-  .pill-tab {
-    backdrop-filter: blur(6px) !important;
-    -webkit-backdrop-filter: blur(6px) !important;
-    background-color: rgba(15, 23, 42, 0.92) !important;
+  .pill-tab,
+  .dashboard-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(15, 23, 42, 0.94) !important;
   }
-  header, nav, main {
-    transform: translateZ(0);
-    will-change: transform;
+  .glass-panel-hover:hover {
+    transform: none !important;
+    will-change: auto !important;
   }
 }
 
-/* Infinite Marquee Ticker Animations */
+/* Infinite Marquee Ticker Animations - Hardware Accelerated */
 @keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  0% { transform: translate3d(0%, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 @keyframes marquee-reverse {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0%); }
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0%, 0, 0); }
 }
 
 .animate-marquee {
   display: flex;
   width: max-content;
   animation: marquee 45s linear infinite;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 .animate-marquee:hover {
   animation-play-state: paused;
@@ -255,6 +252,8 @@ button, a, input, select, textarea {
   display: flex;
   width: max-content;
   animation: marquee-reverse 50s linear infinite;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 .animate-marquee-reverse:hover {
   animation-play-state: paused;
@@ -267,6 +266,15 @@ button, a, input, select, textarea {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .animate-kenburns,
+  .animate-marquee,
+  .animate-marquee-reverse,
+  .animate-float,
+  .animate-pulse-glow {
+    animation: none !important;
+    transform: none !important;
+    will-change: auto !important;
   }
 }
 

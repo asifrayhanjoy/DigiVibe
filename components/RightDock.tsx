@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -23,7 +23,7 @@ interface RightDockProps {
   onOpenSearch?: () => void;
 }
 
-export default function RightDock({ onOpenSearch }: RightDockProps) {
+function RightDock({ onOpenSearch }: RightDockProps) {
   const { locale } = useLanguage();
   const { user, isAuthenticated, requireAuth } = useAuth();
   const { cartCount, openCart } = useCart();
@@ -126,3 +126,5 @@ export default function RightDock({ onOpenSearch }: RightDockProps) {
     </aside>
   );
 }
+
+export default memo(RightDock);

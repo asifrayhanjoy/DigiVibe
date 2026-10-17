@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { PhoneCall, Mail, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useRouter, usePathname } from "next/navigation";
@@ -9,7 +10,7 @@ interface FooterProps {
   onSelectCategory?: (cat: string) => void;
 }
 
-export default function Footer({ onSelectCategory }: FooterProps) {
+function Footer({ onSelectCategory }: FooterProps) {
   const { locale, setLocale } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
@@ -98,3 +99,5 @@ export default function Footer({ onSelectCategory }: FooterProps) {
     </footer>
   );
 }
+
+export default memo(Footer);

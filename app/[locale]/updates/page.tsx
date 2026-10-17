@@ -6,7 +6,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
 import FilePreviewModal from "@/components/FilePreviewModal";
-import BackgroundSlider from "@/components/BackgroundSlider";
 import {
   Sparkles,
   Megaphone,
@@ -269,9 +268,6 @@ export default function UpdatesPage() {
 
   return (
     <div className="min-h-screen text-slate-100 flex flex-col font-sans relative selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden">
-      {/* DYNAMIC 3D BACKGROUND SLIDER (Rotates 5 3D Tech Images every 4s with Dark Overlay) */}
-      <BackgroundSlider />
-
       <Navbar onOpenSearch={() => { }} currentLocale={locale} />
 
       <main className="relative z-10 flex-1 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-8">

@@ -1,16 +1,16 @@
-'use client';
-
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Globe, Zap, Wifi, Smartphone, Radio, Sparkles } from 'lucide-react';
 import ServiceCard from './ServiceCard';
 import { sortAlphabetically } from '@/lib/sorting';
+
+const NOOP = () => {};
 
 export interface SimFilterBarProps {
   selectedOperator: string;
   setSelectedOperator: (op: string) => void;
 }
 
-export const SimFilterBar = ({ selectedOperator, setSelectedOperator }: SimFilterBarProps) => {
+export const SimFilterBar = memo(({ selectedOperator, setSelectedOperator }: SimFilterBarProps) => {
   const operatorTabs = [
     { label: 'All', value: 'All', icon: <Globe className="w-3.5 h-3.5 text-cyan-400" /> },
     { label: 'Recharge', value: 'Recharge', icon: <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400/20" /> },
@@ -41,7 +41,7 @@ export const SimFilterBar = ({ selectedOperator, setSelectedOperator }: SimFilte
       })}
     </div>
   );
-};
+});
 
 export interface SimOfferGridProps {
   simOffers: any[];
@@ -113,8 +113,8 @@ export const SimOfferGrid = ({
             <ServiceCard
               key={offer.id}
               service={offer}
-              onAddToCart={onAddToCart || (() => {})}
-              onBuyNow={onBuyNow || (() => {})}
+              onAddToCart={onAddToCart || NOOP}
+              onBuyNow={onBuyNow || NOOP}
               onEdit={onEditOffer}
             />
           ))}
@@ -124,4 +124,4 @@ export const SimOfferGrid = ({
   );
 };
 
-export default SimOfferGrid;
+export default memo(SimOfferGrid);

@@ -9,7 +9,6 @@ import CheckoutModal from "@/components/CheckoutModal";
 import AdminProductModal from "@/components/AdminProductModal";
 import Toast from "@/components/Toast";
 import ServiceCard, { BrandLogoSvg } from "@/components/ServiceCard";
-import BackgroundSlider from "@/components/BackgroundSlider";
 import { ServiceItem, CartItem } from "@/types";
 import { SERVICES } from "@/data/services";
 import { useLanguage } from "@/context/LanguageContext";
@@ -225,7 +224,6 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
-      <BackgroundSlider />
       <Navbar onOpenSearch={() => {}} currentLocale={locale as any} />
 
       {/* Main Content Area */}

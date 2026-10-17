@@ -121,16 +121,16 @@ export default function AdminNotificationBell({ locale = "en" }: AdminNotificati
     fetchAdminOrders(true);
 
     const handleVisibilityAndPoll = () => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && (typeof navigator === "undefined" || navigator.onLine !== false)) {
         fetchAdminOrders(false);
       }
     };
 
     const interval = setInterval(() => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && (typeof navigator === "undefined" || navigator.onLine !== false)) {
         fetchAdminOrders(false);
       }
-    }, 30000);
+    }, 45000);
 
     document.addEventListener("visibilitychange", handleVisibilityAndPoll);
 

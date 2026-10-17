@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { Search, Zap, Sparkles } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
@@ -13,7 +13,7 @@ interface HeroProps {
   onSearchSubmit?: () => void;
 }
 
-export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: HeroProps) {
+function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: HeroProps) {
   const { locale, dict } = useLanguage();
   const { requireAuth } = useAuth();
   const router = useRouter();
@@ -137,3 +137,5 @@ export default function Hero({ searchQuery, setSearchQuery, onSearchSubmit }: He
     </section>
   );
 }
+
+export default memo(Hero);

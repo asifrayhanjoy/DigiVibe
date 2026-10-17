@@ -8,7 +8,6 @@ import Navbar from "@/components/Navbar";
 import ServiceCard from "@/components/ServiceCard";
 import CategoryTabs from "@/components/CategoryTabs";
 import RightDock from "@/components/RightDock";
-import BackgroundSlider from "@/components/BackgroundSlider";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
 import VPNProductGrid from "@/components/VPNProductGrid";
@@ -461,6 +460,52 @@ function ServicesContent() {
     return processedServices;
   }, [processedServices, activeCategory, proxySubFilter, smmSubFilter]);
 
+  const PAGE_SIZE = 24;
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Reset visibleCount when category, search, or filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeCategory, proxySubFilter, smmSubFilter, searchQuery, sortBy]);
+
+  // Ensure targeted product is visible if ID passed in URL
+  useEffect(() => {
+    if (!searchParams) return;
+    const urlId = searchParams.get("id") || searchParams.get("product");
+    if (urlId) {
+      const idx = displayedServices.findIndex(
+        (s) => s.id === urlId || (s as any)._id === urlId || (s as any).productId === urlId
+      );
+      if (idx !== -1 && idx >= visibleCount) {
+        setVisibleCount(idx + PAGE_SIZE);
+      }
+    }
+  }, [searchParams, displayedServices, visibleCount]);
+
+  // Infinite Scroll IntersectionObserver
+  useEffect(() => {
+    if (visibleCount >= displayedServices.length) return;
+    const target = loadMoreSentinelRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, displayedServices.length));
+        }
+      },
+      { rootMargin: "300px" }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [visibleCount, displayedServices.length]);
+
+  const paginatedServices = useMemo(() => {
+    return displayedServices.slice(0, visibleCount);
+  }, [displayedServices, visibleCount]);
+
   const handleAddToCart = useCallback((service: ServiceItem) => {
     addToCart(service);
     showToast("Added to Cart 🛒", `${service.title} added to cart.`);
@@ -492,9 +537,6 @@ function ServicesContent() {
 
   return (
     <div className="min-h-screen text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
-      {/* DYNAMIC 3D BACKGROUND SLIDER (Rotates 5 3D Tech Images every 4s with Dark Overlay) */}
-      <BackgroundSlider />
-
       <Navbar
         onOpenCart={contextOpenCart}
         onOpenSearch={() => setIsSearchModalOpen(true)}
@@ -818,18 +860,39 @@ function ServicesContent() {
               </div>
             )}
 
-            {displayedServices.map((service, index) => (
-              <ServiceCard
-                key={`${service.id || service._id || 'prod'}-${index}`}
-                service={service}
-                currentCategory={activeCategory}
-                onAddToCart={handleAddToCart}
-                onBuyNow={handleBuyNow}
-                onEdit={handleOpenEditModal}
-                onDelete={handleDeleteProduct}
-                isHighlighted={highlightedId === service.id || (!!searchQuery && searchQuery.trim().length >= 2 && service.title.toLowerCase().includes(searchQuery.toLowerCase()))}
-              />
-            ))}
+            {paginatedServices.map((service) => {
+              const serviceKey = (service.id || (service as any)._id || service.title || "").toString();
+              return (
+                <ServiceCard
+                  key={serviceKey}
+                  service={service}
+                  currentCategory={activeCategory}
+                  onAddToCart={handleAddToCart}
+                  onBuyNow={handleBuyNow}
+                  onEdit={handleOpenEditModal}
+                  onDelete={handleDeleteProduct}
+                  isHighlighted={highlightedId === service.id || (!!searchQuery && searchQuery.trim().length >= 2 && service.title.toLowerCase().includes(searchQuery.toLowerCase()))}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Load More Button & Infinite Scroll Sentinel */}
+        {activeCategory !== "hosting" && activeCategory !== "vpn" && visibleCount < displayedServices.length && (
+          <div className="flex flex-col items-center justify-center mt-10 mb-4 gap-3">
+            <p className="text-xs text-slate-400 font-medium">
+              Showing <span className="text-cyan-400 font-bold">{Math.min(visibleCount, displayedServices.length)}</span> of{" "}
+              <span className="text-white font-bold">{displayedServices.length}</span> products
+            </p>
+            <button
+              type="button"
+              onClick={() => setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, displayedServices.length))}
+              className="px-6 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/40 hover:border-cyan-400 transition-all duration-200 shadow-lg shadow-cyan-500/10 hover:scale-105 active:scale-95 cursor-pointer"
+            >
+              Load More Products ▾
+            </button>
+            <div ref={loadMoreSentinelRef} className="h-6 w-full pointer-events-none" />
           </div>
         )}
       </main>

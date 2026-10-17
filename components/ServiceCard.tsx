@@ -774,8 +774,8 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
           : "border-white/10 hover:border-cyan-500/40"
       }`}
     >
-      {/* Radial Hover Glow Accent */}
-      <div className="absolute top-0 right-0 w-28 h-28 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-all duration-500 pointer-events-none" />
+      {/* Radial Hover Glow Accent (Desktop Only to save mobile GPU) */}
+      <div className="hidden sm:block absolute top-0 right-0 w-28 h-28 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-all duration-500 pointer-events-none" />
 
       <div>
         {/* 1. TOP BANNER LOGO CONTAINER */}
@@ -817,6 +817,8 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
                 alt={service.title}
                 loading="lazy"
                 decoding="async"
+                width={96}
+                height={96}
                 className="max-h-20 max-w-[80%] sm:max-h-24 object-contain group-hover:scale-105 transition-transform duration-300"
                 onError={() => setImgError(true)}
               />
@@ -828,6 +830,8 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
                 alt={service.title}
                 loading="lazy"
                 decoding="async"
+                width={96}
+                height={96}
                 className="max-h-20 max-w-[80%] sm:max-h-24 object-contain group-hover:scale-105 transition-transform duration-300"
                 onError={() => {
                   if (!logoError) setLogoError(true);

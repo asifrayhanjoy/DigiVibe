@@ -1,10 +1,9 @@
-"use client";
-
+import { memo } from "react";
 import Link from "next/link";
 import { Handshake, PhoneCall, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
-export default function PromotionalBanner() {
+function PromotionalBanner() {
   const { locale } = useLanguage();
 
   return (
@@ -72,3 +71,5 @@ export default function PromotionalBanner() {
     </section>
   );
 }
+
+export default memo(PromotionalBanner);

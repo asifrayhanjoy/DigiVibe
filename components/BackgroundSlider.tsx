@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useRef, useCallback } from "react";
 
 const BG_IMAGES = [
   "/images/bg1.jpg",
@@ -12,80 +12,132 @@ const BG_IMAGES = [
 
 function BackgroundSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMobileOrLowEnd, setIsMobileOrLowEnd] = useState<boolean>(false);
+  const [isEligibleForSlider, setIsEligibleForSlider] = useState<boolean>(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Detect capability: enable rich image slider only on capable desktop devices with good network & motion allowed
   useEffect(() => {
-    const checkPerformanceProfile = () => {
+    const checkEligibility = () => {
       if (typeof window === "undefined") return;
 
       const isMobileWidth = window.innerWidth < 768;
-
-      // Detect Slow Network Connections (2G / 3G / Save-Data mode)
-      const navConn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-      const isSlowConnection = navConn
-        ? navConn.saveData || navConn.effectiveType === "slow-2g" || navConn.effectiveType === "2g" || navConn.effectiveType === "3g"
-        : false;
-
-      // Detect Low-End Hardware (<= 4 CPU cores, <= 4GB RAM, or prefers-reduced-motion)
-      const isLowCPU = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
-      const isLowRAM = typeof (navigator as any).deviceMemory === "number" && (navigator as any).deviceMemory <= 4;
       const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      setIsMobileOrLowEnd(isMobileWidth || isSlowConnection || isLowCPU || isLowRAM || prefersReducedMotion);
+      // Detect Slow Network Connections (Save-Data mode, 2G, 3G)
+      const navConn =
+        (navigator as any).connection ||
+        (navigator as any).mozConnection ||
+        (navigator as any).webkitConnection;
+      const isSlowConnection = navConn
+        ? navConn.saveData ||
+          navConn.effectiveType === "slow-2g" ||
+          navConn.effectiveType === "2g" ||
+          navConn.effectiveType === "3g"
+        : false;
+
+      // Detect Low-End Hardware (<= 4 CPU cores or <= 4GB RAM)
+      const isLowCPU = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
+      const isLowRAM = typeof (navigator as any).deviceMemory === "number" && (navigator as any).deviceMemory <= 4;
+
+      const eligible = !isMobileWidth && !prefersReducedMotion && !isSlowConnection && !isLowCPU && !isLowRAM;
+      setIsEligibleForSlider(eligible);
     };
 
-    checkPerformanceProfile();
+    checkEligibility();
 
-    window.addEventListener("resize", checkPerformanceProfile, { passive: true });
-    return () => window.removeEventListener("resize", checkPerformanceProfile);
+    let resizeTimer: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(checkEligibility, 250);
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(resizeTimer);
+    };
   }, []);
 
+  const nextSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % BG_IMAGES.length);
+  }, []);
+
+  // Interval timer with intelligent tab visibility handling (0% CPU when tab is hidden)
   useEffect(() => {
-    // Completely disable timer loops on mobile or low-performance profiles for zero CPU/GPU overhead
-    if (isMobileOrLowEnd) return;
+    if (!isEligibleForSlider) return;
 
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % BG_IMAGES.length);
-    }, 6000);
+    const startTimer = () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(nextSlide, 7000);
+    };
 
-    return () => clearInterval(timer);
-  }, [isMobileOrLowEnd]);
+    const stopTimer = () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+
+    startTimer();
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopTimer();
+      } else {
+        startTimer();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      stopTimer();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [isEligibleForSlider, nextSlide]);
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none contain-strict">
-      {/* Smart Adaptation: Render ultra-lightweight dark gradient background for low-end / mobile / slow network users */}
-      {isMobileOrLowEnd ? (
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-[#070b16] to-slate-950 z-10" />
-      ) : (
-        /* Layered Desktop Background Slider */
-        BG_IMAGES.map((src, index) => {
-          const isActive = index === currentIndex;
-          return (
-            <div
-              key={src}
-              className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in-out ${
-                isActive ? "opacity-100 animate-kenburns z-10" : "opacity-0 z-0"
-              }`}
-              style={{
-                backgroundImage: `url('${src}')`,
-                willChange: isActive ? "opacity, transform" : "opacity",
-                transform: "translateZ(0)"
-              }}
-            />
-          );
-        })
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none">
+      {/* 1. Fast CSS-Only Dark Ambient Gradient Mesh (Always active, 0 overhead) */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-[#070b16] to-slate-950 z-0" />
+
+      {/* 2. Hardware-Accelerated Dynamic Slider (Desktop with motion enabled only) */}
+      {isEligibleForSlider && (
+        <div className="absolute inset-0 z-10 transition-opacity duration-1000 ease-in-out">
+          {BG_IMAGES.map((src, index) => {
+            const isActive = index === currentIndex;
+            // Only keep active or adjacent slides in the active layer to save GPU texture memory
+            const isNear = Math.abs(index - currentIndex) <= 1 || (currentIndex === 0 && index === BG_IMAGES.length - 1);
+            if (!isNear) return null;
+
+            return (
+              <div
+                key={src}
+                className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in-out ${
+                  isActive ? "opacity-100 animate-kenburns z-10" : "opacity-0 z-0 pointer-events-none"
+                }`}
+                style={{
+                  backgroundImage: `url('${src}')`,
+                  transform: "translate3d(0, 0, 0)",
+                  willChange: isActive ? "opacity, transform" : "auto",
+                  animationPlayState: isActive ? "running" : "paused"
+                }}
+              />
+            );
+          })}
+        </div>
       )}
 
-      {/* Crystal Clear Gradient Overlay */}
-      <div className="absolute inset-0 z-20 bg-gradient-to-b from-slate-950/45 via-slate-950/60 to-slate-950/85" />
+      {/* 3. Sleek Vignette Gradient Overlay */}
+      <div className="absolute inset-0 z-20 bg-gradient-to-b from-slate-950/50 via-slate-950/70 to-slate-950/90 pointer-events-none" />
 
-      {/* Lightweight Ambient Radial Lighting (Only on High Performance Desktop) */}
-      {!isMobileOrLowEnd && (
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-cyan-500/10 rounded-full blur-[140px] z-20 pointer-events-none" />
+      {/* 4. Lightweight Ambient Radial Lighting (Only on High Performance Desktop) */}
+      {isEligibleForSlider && (
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-cyan-500/10 rounded-full blur-[120px] z-20 pointer-events-none transform-gpu" />
       )}
 
-      {/* Navigation Indicator Dots (Desktop Only) */}
-      {!isMobileOrLowEnd && (
+      {/* 5. Navigation Indicator Dots (Desktop Only) */}
+      {isEligibleForSlider && (
         <div className="absolute bottom-6 left-6 z-30 flex items-center gap-1.5 pointer-events-auto">
           {BG_IMAGES.map((_, idx) => (
             <button

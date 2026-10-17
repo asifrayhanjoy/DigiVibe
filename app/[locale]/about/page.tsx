@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import RightDock from "@/components/RightDock";
-import BackgroundSlider from "@/components/BackgroundSlider";
 import Footer from "@/components/Footer";
 import SearchModal from "@/components/SearchModal";
 import {
@@ -92,9 +91,6 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen text-slate-100 flex flex-col font-sans relative selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden">
-      {/* DYNAMIC 3D BACKGROUND SLIDER (Rotates 5 3D Tech Images every 4s with Dark Overlay) */}
-      <BackgroundSlider />
-
       <Navbar
         cartCount={0}
         onOpenCart={() => { }}
