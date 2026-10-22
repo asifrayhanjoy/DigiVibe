@@ -34,7 +34,29 @@ import {
   Cpu,
   Pencil,
   Trash2,
-  Clock
+  Pin,
+  Clock,
+  Headphones,
+  Laptop,
+  Network,
+  Layout,
+  Code2,
+  QrCode,
+  Receipt,
+  FileSignature,
+  FileText,
+  Presentation,
+  Wrench,
+  CreditCard,
+  Palette,
+  Mic,
+  Film,
+  Clipboard,
+  Languages,
+  Layers,
+  CloudSun,
+  Compass,
+  Gift
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ServiceItem } from "@/types";
@@ -67,7 +89,28 @@ const ICON_MAP: Record<string, any> = {
   Play,
   Mail,
   GraduationCap,
-  Cpu
+  Cpu,
+  Laptop,
+  Network,
+  Layout,
+  Code2,
+  QrCode,
+  Receipt,
+  FileSignature,
+  FileText,
+  Presentation,
+  Wrench,
+  CreditCard,
+  Palette,
+  Mic,
+  Film,
+  Clock,
+  Clipboard,
+  Languages,
+  Layers,
+  CloudSun,
+  Compass,
+  Gift
 };
 
 // High-resolution SVGs for Brand Logos
@@ -607,8 +650,587 @@ export const BrandLogoSvg = memo(function BrandLogoSvg({ logoType, title }: { lo
     );
   }
 
-  return null;
+  // --- ADVANCED SERVICES MINIMALIST & CLEAN SVG LOGOS ---
+  if (type.includes("extension") || type.includes("ব্রাউজার") || type.includes("টুলস")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#082f49" fillOpacity="0.35" stroke="#0284c7" strokeWidth="1.5" />
+        <path d="M17 21a2 2 0 012-2h2a3 3 0 006 0h2a2 2 0 012 2v2a3 3 0 000 6v2a2 2 0 01-2 2h-2a3 3 0 00-6 0h-2a2 2 0 01-2-2v-2a3 3 0 000-6v-2z" stroke="#38bdf8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="27" cy="27" r="1.5" fill="#38bdf8" />
+      </svg>
+    );
+  }
+
+  if (type.includes("saas") || type.includes("ফুল-স্ট্যাক") || type.includes("অনলাইন সিস্টেম") || type.includes("সিস্টেম")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#0c1e3d" fillOpacity="0.4" stroke="#2563eb" strokeWidth="1.5" />
+        <path d="M16 30h16a5.5 5.5 0 001.2-10.8A8 8 0 0018 20.5 5 5 0 0016 30z" stroke="#60a5fa" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M24 24v5M21.5 26.5L24 29l2.5-2.5" stroke="#93c5fd" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("api") || type.includes("এপিআই") || type.includes("লিংক") || type.includes("integration") || type.includes("কানেকশন")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#042f2e" fillOpacity="0.35" stroke="#0d9488" strokeWidth="1.5" />
+        <circle cx="16" cy="24" r="3.5" stroke="#2dd4bf" strokeWidth="2.2" />
+        <circle cx="32" cy="17" r="3.5" stroke="#2dd4bf" strokeWidth="2.2" />
+        <circle cx="32" cy="31" r="3.5" stroke="#2dd4bf" strokeWidth="2.2" />
+        <path d="M19.5 24H25M25 24V17H28.5M25 24V31H28.5" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("performance") || type.includes("speed") || type.includes("স্পিড") || type.includes("পারফরম্যান্স")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#2d1f04" fillOpacity="0.35" stroke="#d97706" strokeWidth="1.5" />
+        <path d="M26 13L16 26h8l-2 11 12-14H24l2-9z" stroke="#fbbf24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="#fbbf24" fillOpacity="0.15" />
+      </svg>
+    );
+  }
+
+  if (type.includes("devops") || type.includes("সার্ভার") || type.includes("ক্লাউড") || type.includes("ডেভপস")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#1e1b4b" fillOpacity="0.35" stroke="#4f46e5" strokeWidth="1.5" />
+        <rect x="15" y="16" width="18" height="6.5" rx="2" stroke="#818cf8" strokeWidth="2" />
+        <rect x="15" y="25.5" width="18" height="6.5" rx="2" stroke="#818cf8" strokeWidth="2" />
+        <circle cx="19.5" cy="19.25" r="1" fill="#818cf8" />
+        <circle cx="19.5" cy="28.75" r="1" fill="#818cf8" />
+      </svg>
+    );
+  }
+
+  if (type.includes("school") || type.includes("coaching") || type.includes("স্কুল") || type.includes("কোচিং")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#064e3b" fillOpacity="0.3" stroke="#059669" strokeWidth="1.5" />
+        <path d="M24 15L13 21l11 6 11-6-11-6z" stroke="#34d399" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M16 23.5v7c0 3 3.5 5.5 8 5.5s8-2.5 8-5.5v-7" stroke="#34d399" strokeWidth="2" strokeLinecap="round" />
+        <path d="M35 21.5v9" stroke="#a7f3d0" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("qrmenu") || type.includes("qr") || type.includes("কিউআর") || type.includes("মেনু")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#431407" fillOpacity="0.3" stroke="#ea580c" strokeWidth="1.5" />
+        <rect x="15" y="15" width="7" height="7" rx="1.5" stroke="#fb923c" strokeWidth="2.2" />
+        <rect x="26" y="15" width="7" height="7" rx="1.5" stroke="#fb923c" strokeWidth="2.2" />
+        <rect x="15" y="26" width="7" height="7" rx="1.5" stroke="#fb923c" strokeWidth="2.2" />
+        <circle cx="29.5" cy="29.5" r="2" fill="#fdba74" />
+      </svg>
+    );
+  }
+
+  if (type.includes("pos") || type.includes("দোকান") || type.includes("হিসাব") || type.includes("ক্যাশ") || type.includes("ক্যাশিয়ার")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#082f49" fillOpacity="0.35" stroke="#0284c7" strokeWidth="1.5" />
+        <path d="M16 14h16v20l-2.5-1.5-2.5 1.5-3-1.5-3 1.5-2.5-1.5-2.5 1.5V14z" stroke="#38bdf8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M21 20h6M21 24h6M21 28h3" stroke="#7dd3fc" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("resume") || type.includes("বায়োডাটা") || type.includes("বায়োডাটা")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#3b0764" fillOpacity="0.3" stroke="#9333ea" strokeWidth="1.5" />
+        <path d="M17 14h10l6 6v14a2 2 0 01-2 2H17a2 2 0 01-2-2V16a2 2 0 012-2z" stroke="#c084fc" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 26h8M20 30h5" stroke="#e9d5ff" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("thesis") || type.includes("থিসিস") || type.includes("টাইপিং") || type.includes("অ্যাসাইনমেন্ট")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#082f49" fillOpacity="0.35" stroke="#0284c7" strokeWidth="1.5" />
+        <path d="M15 14h18v20H15z" stroke="#38bdf8" strokeWidth="2.2" strokeLinejoin="round" />
+        <path d="M20 20h8M20 24h8M20 28h5" stroke="#7dd3fc" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("presentation") || type.includes("স্লাইড") || type.includes("প্রেজেন্টেশন")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#431407" fillOpacity="0.3" stroke="#ea580c" strokeWidth="1.5" />
+        <rect x="15" y="15" width="18" height="12" rx="2" stroke="#fb923c" strokeWidth="2.2" />
+        <path d="M19 22v-2M24 22v-4M29 22v-3" stroke="#fdba74" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M24 27v6M19 36l5-3 5 3" stroke="#fb923c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("software") || type.includes("সফটওয়্যার") || type.includes("সফটওয়্যার") || type.includes("অ্যাপ")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#0c1e3d" fillOpacity="0.4" stroke="#2563eb" strokeWidth="1.5" />
+        <rect x="14" y="15" width="16" height="12" rx="2" stroke="#60a5fa" strokeWidth="2.2" />
+        <path d="M19 27v3M16 30h12" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round" />
+        <rect x="27" y="20" width="8" height="13" rx="1.5" stroke="#93c5fd" strokeWidth="1.8" fill="#0c1e3d" />
+        <circle cx="31" cy="30.5" r="0.6" fill="#93c5fd" />
+      </svg>
+    );
+  }
+
+  if (type.includes("web") || type.includes("ওয়েব") || type.includes("ওয়েবসাইট")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#042f2e" fillOpacity="0.35" stroke="#0891b2" strokeWidth="1.5" />
+        <rect x="14" y="15" width="20" height="18" rx="3" stroke="#22d3ee" strokeWidth="2.2" />
+        <path d="M14 21h20" stroke="#22d3ee" strokeWidth="1.8" />
+        <circle cx="18" cy="18" r="1" fill="#67e8f9" />
+        <circle cx="21" cy="18" r="1" fill="#67e8f9" />
+        <path d="M20 27l2-2-2-2M25 27h3" stroke="#a5f3fc" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("graphic") || type.includes("গ্রাফিক") || type.includes("design") || type.includes("ডিজাইন")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#500724" fillOpacity="0.3" stroke="#db2777" strokeWidth="1.5" />
+        <path d="M24 14c-6.6 0-10.5 4-10.5 10 0 5 4 8.5 8.5 8.5 1.5 0 2.5-.8 3.5-2 1-1 1.5-1.5 2.5-1.5h1.5c4 0 6.5-3 6.5-6.5C36 17.5 31.5 14 24 14z" stroke="#f472b6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="19.5" cy="20" r="1.5" fill="#f472b6" />
+        <circle cx="25.5" cy="18.5" r="1.5" fill="#fbcfe8" />
+        <circle cx="30.5" cy="22" r="1.5" fill="#f472b6" />
+      </svg>
+    );
+  }
+
+  if (type.includes("video") || type.includes("ভিডিও") || type.includes("এডিটর") || type.includes("এডিটিং") || type.includes("কালার")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#4c0519" fillOpacity="0.3" stroke="#e11d48" strokeWidth="1.5" />
+        <rect x="14" y="18" width="15" height="12" rx="2.5" stroke="#fb7185" strokeWidth="2.2" />
+        <path d="M29 22l6-3v10l-6-3v-4z" stroke="#fb7185" strokeWidth="2" strokeLinejoin="round" />
+        <circle cx="21.5" cy="24" r="2" stroke="#fda4af" strokeWidth="1.5" />
+      </svg>
+    );
+  }
+
+  if (type.includes("growth") || type.includes("গ্রোথ") || type.includes("চ্যানেল") || type.includes("পেজ")) {
+    if (title.includes("ইউটিউব") || title.includes("ফেসবুক") || type.includes("yt-fb")) {
+      return (
+        <div className="flex items-center justify-center gap-1.5">
+          <svg className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-md" viewBox="0 0 100 70" fill="none">
+            <path d="M96.3 10.7c-1.1-4.2-4.4-7.5-8.6-8.6C80.1 0 49.2 0 49.2 0S18.3 0 10.7 2.1c-4.2 1.1-7.5 4.4-8.6 8.6C0 18.3 0 34.3 0 34.3s0 16 2.1 23.6c1.1 4.2 4.4 7.5 8.6 8.6 7.6 2.1 38.5 2.1 38.5 2.1s30.9 0 38.5-2.1c4.2-1.1 7.5-4.4 8.6-8.6 2.1-7.6 2.1-23.6 2.1-23.6s0-16-2.1-23.6z" fill="#FF0000"/>
+            <path d="M39.3 49L64.8 34.3 39.3 19.6z" fill="#FFFFFF"/>
+          </svg>
+          <svg className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-md" viewBox="0 0 100 100" fill="none">
+            <circle cx="50" cy="50" r="48" fill="#1877F2" />
+            <path d="M58 52L60 38H46V29C46 25.5 48 22 53.5 22H60V9.5C60 9.5 54.5 8.5 49.5 8.5C39 8.5 32 15 32 26.5V38H20V52H32V88C34.8 88.5 37.6 88.8 40.5 88.8C42.4 88.8 44.2 88.6 46 88.3V52H58Z" fill="#FFF" />
+          </svg>
+        </div>
+      );
+    }
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#2d1f04" fillOpacity="0.35" stroke="#d97706" strokeWidth="1.5" />
+        <path d="M15 33l6-6 4.5 4.5 9-10.5" stroke="#fbbf24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M28.5 21H34.5v6" stroke="#fbbf24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("location") || type.includes("লোকেশন") || type.includes("ট্রেকিং") || type.includes("ট্র্যাকিং")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#064e3b" fillOpacity="0.3" stroke="#059669" strokeWidth="1.5" />
+        <path d="M24 14c-4.2 0-7.5 3.3-7.5 7.5 0 5.6 7.5 13.5 7.5 13.5s7.5-7.9 7.5-13.5c0-4.2-3.3-7.5-7.5-7.5z" stroke="#34d399" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="24" cy="21.5" r="2.5" stroke="#a7f3d0" strokeWidth="1.8" />
+      </svg>
+    );
+  }
+
+  if (type.includes("remote") || type.includes("রিমোট") || type.includes("কম্পিউটার")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#1e1b4b" fillOpacity="0.35" stroke="#4338ca" strokeWidth="1.5" />
+        <rect x="18" y="16" width="16" height="11" rx="1.5" stroke="#818cf8" strokeWidth="2.2" />
+        <path d="M15 29h22" stroke="#818cf8" strokeWidth="1.8" strokeLinecap="round" />
+        <rect x="14" y="21" width="7" height="12" rx="1.5" stroke="#a5b4fc" strokeWidth="1.8" fill="#1e1b4b" />
+      </svg>
+    );
+  }
+
+  if (type.includes("cv") || type.includes("সিভি") || type.includes("প্রোফাইল")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#1e1b4b" fillOpacity="0.35" stroke="#6366f1" strokeWidth="1.5" />
+        <rect x="15" y="14" width="18" height="21" rx="2.5" stroke="#818cf8" strokeWidth="2.2" />
+        <circle cx="24" cy="20.5" r="3" stroke="#c7d2fe" strokeWidth="1.8" />
+        <path d="M19 29.5c0-2.5 2.2-4 5-4s5 1.5 5 4" stroke="#c7d2fe" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("security") || type.includes("নিরাপত্তা") || type.includes("সিকিউরিটি") || type.includes("হ্যাকিং")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#064e3b" fillOpacity="0.3" stroke="#059669" strokeWidth="1.5" />
+        <path d="M24 14l9 4v7c0 7-4.5 10-9 11.5-4.5-1.5-9-4.5-9-11.5v-7l9-4z" stroke="#34d399" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20.5 24.5l2.5 2.5 5-5" stroke="#a7f3d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("bug") || type.includes("সমস্যা") || type.includes("ত্রুটি") || type.includes("এরর")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#2d1f04" fillOpacity="0.35" stroke="#d97706" strokeWidth="1.5" />
+        <path d="M28.5 16a5 5 0 00-4.8 6.2l-8 8a1.5 1.5 0 002.1 2.1l8-8A5 5 0 0032 20.2l-3 3-3-3 1.5-4.2z" stroke="#fbbf24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("payment") || type.includes("পেমেন্ট") || type.includes("বিকাশ") || type.includes("নগদ")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#064e3b" fillOpacity="0.3" stroke="#059669" strokeWidth="1.5" />
+        <rect x="14" y="17" width="20" height="14" rx="2.5" stroke="#34d399" strokeWidth="2.2" />
+        <path d="M14 21.5h20" stroke="#34d399" strokeWidth="1.8" />
+        <rect x="17.5" y="25" width="4" height="2.5" rx="0.5" fill="#a7f3d0" />
+      </svg>
+    );
+  }
+
+  if (type.includes("voice") || type.includes("ভয়েস") || type.includes("ভয়েস") || type.includes("অডিও")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#3b0764" fillOpacity="0.3" stroke="#7c3aed" strokeWidth="1.5" />
+        <rect x="21" y="15" width="6" height="11" rx="3" stroke="#a78bfa" strokeWidth="2.2" />
+        <path d="M17.5 22.5a6.5 6.5 0 0013 0" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" />
+        <path d="M24 29v5M20 34h8" stroke="#a78bfa" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type.includes("ui") || type.includes("ux") || type.includes("লুক")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#500724" fillOpacity="0.3" stroke="#db2777" strokeWidth="1.5" />
+        <rect x="14" y="15" width="20" height="18" rx="2.5" stroke="#f472b6" strokeWidth="2.2" />
+        <rect x="17" y="18" width="6" height="12" rx="1" fill="#f472b6" fillOpacity="0.3" />
+        <rect x="25" y="18" width="6" height="5" rx="1" fill="#fbcfe8" fillOpacity="0.4" />
+        <rect x="25" y="25" width="6" height="5" rx="1" fill="#fbcfe8" fillOpacity="0.4" />
+      </svg>
+    );
+  }
+
+  if (type.includes("hosting") || type.includes("vps") || type.includes("হোস্টিং") || type.includes("ডোমেইন")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#082f49" fillOpacity="0.35" stroke="#0284c7" strokeWidth="1.5" />
+        <rect x="14" y="16" width="20" height="7" rx="2" stroke="#38bdf8" strokeWidth="2.2" />
+        <rect x="14" y="26" width="20" height="7" rx="2" stroke="#38bdf8" strokeWidth="2.2" />
+        <circle cx="18" cy="19.5" r="1" fill="#7dd3fc" />
+        <circle cx="18" cy="29.5" r="1" fill="#7dd3fc" />
+      </svg>
+    );
+  }
+
+  if (type.includes("advanced") || type.includes("custom") || type.includes("rdp") || type.includes("service") || type.includes("সার্ভিস")) {
+    return (
+      <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="14" fill="#082f49" fillOpacity="0.35" stroke="#0ea5e9" strokeWidth="1.5" />
+        <circle cx="24" cy="24" r="8" stroke="#38bdf8" strokeWidth="2.2" />
+        <path d="M24 12v3M24 33v3M12 24h3M33 24h3" stroke="#7dd3fc" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  // Reliable, clean minimalist fallback SVG for any unspecified service (ensures visual is NEVER blank)
+  return (
+    <svg className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-sm" viewBox="0 0 48 48" fill="none">
+      <rect width="48" height="48" rx="14" fill="#082f49" fillOpacity="0.35" stroke="#0ea5e9" strokeWidth="1.5" />
+      <circle cx="24" cy="24" r="8" stroke="#38bdf8" strokeWidth="2.2" />
+      <path d="M24 12v3M24 33v3M12 24h3M33 24h3" stroke="#7dd3fc" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
 });
+
+// Curated high-resolution professional themed images for all Advanced Services
+export const ADVANCED_SERVICE_THEME_IMAGES: Record<string, string> = {
+  // Web Development
+  "adv-web-development": "https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=600&q=80",
+  "web": "https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=600&q=80",
+
+  // Phone / Location Tracing
+  "adv-phone-location-tracing": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=600&q=80",
+  "location": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=600&q=80",
+
+  // Video Editing
+  "adv-video-editor-service": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=600&q=80",
+  "video": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=600&q=80",
+
+  // YouTube & Facebook Growth
+  "adv-yt-fb-growth-masterclass": "/images/services/youtube-facebook-growth.svg",
+  "growth": "/images/services/youtube-facebook-growth.svg",
+
+  // Browser Extension & Custom Tools
+  "adv-custom-browser-extension": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80",
+  "extension": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80",
+
+  // Mobile to PC Remote Control
+  "adv-mobile-pc-remote-control": "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&w=600&q=80",
+  "remote": "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&w=600&q=80",
+
+  // Smart Meeting Minutes & Action Item Generator
+  "adv-meeting-minutes-generator": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80",
+  "meeting-minutes": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80",
+
+  // Smart Social Media Comment Moderator
+  "adv-social-comment-moderator": "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=600&q=80",
+  "comment-moderator": "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=600&q=80",
+
+  // Automatic Job Apply & CV Optimization
+  "adv-job-apply-cv-optimizer": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=600&q=80",
+  "job-apply-cv": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=600&q=80",
+
+  // Smart Voice Password & Biometric Lock
+  "adv-voice-password-biometric-lock": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=600&q=80",
+  "voice-biometric-lock": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=600&q=80",
+
+  // Automatic Rent & Utility Bill Payer
+  "adv-rent-utility-bill-payer": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80",
+  "rent-utility-bill": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80",
+
+  // Automatic Travel & Route Planner
+  "adv-travel-route-planner": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80",
+  "travel-route-planner": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80",
+
+  // Smart Event & Birthday Reminder
+  "adv-birthday-event-reminder": "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=600&q=80",
+  "birthday-event-reminder": "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=600&q=80",
+
+  // Automatic Voice Note Summary
+  "adv-voice-note-summary": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=600&q=80",
+  "voice-note-summary": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=600&q=80",
+
+  // Smart Email Drafting & Reply
+  "adv-smart-email-drafting": "https://images.unsplash.com/photo-1557200134-90327ee9fafa?auto=format&fit=crop&w=600&q=80",
+  "email-drafting": "https://images.unsplash.com/photo-1557200134-90327ee9fafa?auto=format&fit=crop&w=600&q=80",
+
+  // Smart Clipboard Manager
+  "adv-smart-clipboard-manager": "https://images.unsplash.com/photo-1586282391129-76a6df230234?auto=format&fit=crop&w=600&q=80",
+  "clipboard-manager": "https://images.unsplash.com/photo-1586282391129-76a6df230234?auto=format&fit=crop&w=600&q=80",
+
+  // Live Language Translation & Conversation
+  "adv-live-language-translation": "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=600&q=80",
+  "language-translation": "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=600&q=80",
+
+  // Smart Project & Task Assigner
+  "adv-smart-task-assigner": "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80",
+  "task-assigner": "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80",
+
+  // Automatic Contact Finder
+  "adv-auto-contact-finder": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80",
+  "contact-finder": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80",
+
+  // Smart Alarm & Weather Updates
+  "adv-smart-alarm-weather": "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=600&q=80",
+  "alarm-weather": "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=600&q=80",
+
+  // Password & Security Reminder
+  "adv-password-security-reminder": "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=600&q=80",
+  "password-security": "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=600&q=80",
+
+  // Smart Reminder & Scheduling
+  "adv-smart-reminder-scheduling": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=600&q=80",
+  "smart-reminder": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=600&q=80",
+
+  // Web & App Location Tracking
+  "adv-web-app-location-tracking": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=600&q=80",
+  "web-app-tracking": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=600&q=80",
+
+  // Full Autonomous AI Device Control
+  "adv-full-device-ai-control": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80",
+  "ai-device-control": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80",
+
+  // Remote Phone Control & Access
+  "adv-remote-phone-control": "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=600&q=80",
+  "phone-control": "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=600&q=80",
+
+  // Device Monitoring & Setup
+  "adv-device-monitoring-setup": "https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?auto=format&fit=crop&w=600&q=80",
+  "device-monitoring": "https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?auto=format&fit=crop&w=600&q=80",
+
+  // Real-time Device & Location Tracking
+  "adv-realtime-device-location-tracking": "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?auto=format&fit=crop&w=600&q=80",
+  "device-tracking": "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?auto=format&fit=crop&w=600&q=80",
+
+  // CV / Portfolio / LinkedIn Optimization
+  "adv-cv-portfolio-linkedin-optimization": "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=600&q=80",
+  "cv": "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=600&q=80",
+
+  // Custom Software & Mobile App Development
+  "adv-custom-software-app-development": "https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=600&q=80",
+  "software": "https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=600&q=80",
+
+  // Cybersecurity Audit & Safe Website
+  "adv-cyber-security-audit": "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80",
+  "security": "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80",
+
+  // Domain & Hosting Consultancy
+  "adv-domain-hosting-consultancy": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80",
+  "vps": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80",
+  "hosting": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80",
+
+  // Video Color Grading & Premium Editing
+  "adv-video-editing-color-grading": "https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=600&q=80",
+
+  // Bug Fixing & Coding Support
+  "adv-bug-fixing-coding-support": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80",
+  "bug": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80",
+
+  // Payment Gateway Integration (Bkash, Nagad)
+  "adv-payment-gateway-integration": "https://images.unsplash.com/photo-1556742049-0a67e5574f73?auto=format&fit=crop&w=600&q=80",
+  "payment": "https://images.unsplash.com/photo-1556742049-0a67e5574f73?auto=format&fit=crop&w=600&q=80",
+
+  // Graphic Design Service
+  "adv-graphic-design-service": "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=600&q=80",
+  "graphic": "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=600&q=80",
+
+  // Voiceover & Audio Editing
+  "adv-voiceover-audio-editing": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=600&q=80",
+  "voice": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=600&q=80",
+
+  // UI/UX Design Service
+  "adv-ui-ux-design-service": "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=600&q=80",
+  "ui-ux": "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=600&q=80",
+
+  // Fullstack SaaS Development
+  "adv-fullstack-saas-development": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80",
+  "saas": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80",
+
+  // Third-party API Integration
+  "adv-thirdparty-api-integration": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=600&q=80",
+  "api": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=600&q=80",
+
+  // Web Performance Optimization
+  "adv-web-performance-optimization": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80",
+  "performance": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80",
+
+  // DevOps & Cloud Automation
+  "adv-devops-cloud-automation": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
+  "devops": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
+
+  // School & Coaching Management
+  "adv-school-coaching-management": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80",
+  "school": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80",
+
+  // Restaurant QR Menu
+  "adv-restaurant-qr-menu": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80",
+  "qrmenu": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80",
+
+  // Local POS Software
+  "adv-local-pos-software": "https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=600&q=80",
+  "pos": "https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=600&q=80",
+
+  // CV & Resume Writing
+  "adv-cv-resume-writing": "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80",
+  "resume": "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80",
+
+  // Assignment & Thesis Typing
+  "adv-assignment-thesis-typing": "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=600&q=80",
+  "thesis": "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=600&q=80",
+
+  // Presentation & Student Projects
+  "adv-student-project-presentation": "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=600&q=80",
+  "presentation": "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=600&q=80",
+};
+
+export function getAdvancedServiceImage(service: any): string {
+  const id = (service?.id || (service as any)?._id || (service as any)?.productId || "").toString();
+  const title = (service?.title || "").toLowerCase();
+  const logoType = (service?.logoType || "").toLowerCase();
+
+  // YouTube & Facebook Growth priority check (side-by-side original logos)
+  if (
+    id === "adv-yt-fb-growth-masterclass" ||
+    logoType === "growth" ||
+    logoType === "yt-fb-growth" ||
+    (title.includes("ইউটিউব") && title.includes("ফেসবুক"))
+  ) {
+    return "/images/services/youtube-facebook-growth.svg";
+  }
+
+  // Intercept and sanitize any stale Unsplash Netflix photo placeholder reference
+  if (
+    service?.imageUrl?.includes("1611162617474-5b21e879e113") ||
+    service?.image?.includes("1611162617474-5b21e879e113")
+  ) {
+    return "/images/services/youtube-facebook-growth.svg";
+  }
+
+  if (service?.imageUrl && (service.imageUrl.startsWith("http") || service.imageUrl.startsWith("/"))) {
+    return service.imageUrl;
+  }
+  if (service?.image && (service.image.startsWith("http") || service.image.startsWith("/"))) {
+    return service.image;
+  }
+  if (id && ADVANCED_SERVICE_THEME_IMAGES[id]) {
+    return ADVANCED_SERVICE_THEME_IMAGES[id];
+  }
+  if (logoType && ADVANCED_SERVICE_THEME_IMAGES[logoType]) {
+    return ADVANCED_SERVICE_THEME_IMAGES[logoType];
+  }
+  if (title.includes("মিটিং মিনিটস") || title.includes("অ্যাকশন আইটেম") || title.includes("meeting minutes")) return ADVANCED_SERVICE_THEME_IMAGES["meeting-minutes"];
+  if (title.includes("কমেন্ট মডারেটর") || title.includes("সোশ্যাল মিডিয়া কমেন্ট") || title.includes("comment moderator")) return ADVANCED_SERVICE_THEME_IMAGES["comment-moderator"];
+  if (title.includes("জব অ্যাপ্লাই") || title.includes("সিভি অপ্টিমাইজেশন") || title.includes("job apply")) return ADVANCED_SERVICE_THEME_IMAGES["job-apply-cv"];
+  if (title.includes("ভয়েস পাসওয়ার্ড") || title.includes("বায়োমেট্রিক লক") || title.includes("biometric lock")) return ADVANCED_SERVICE_THEME_IMAGES["voice-biometric-lock"];
+  if (title.includes("বিল পেয়ার") || title.includes("ইউটিলিটি বিল") || title.includes("বাসা ভাড়া") || title.includes("utility bill")) return ADVANCED_SERVICE_THEME_IMAGES["rent-utility-bill"];
+  if (title.includes("ট্রাভেল") || title.includes("রুট প্ল্যানার") || title.includes("travel planner")) return ADVANCED_SERVICE_THEME_IMAGES["travel-route-planner"];
+  if (title.includes("বার্থডে") || title.includes("ইভেন্ট ও বার্থডে") || title.includes("birthday reminder")) return ADVANCED_SERVICE_THEME_IMAGES["birthday-event-reminder"];
+  if (title.includes("ভয়েস নোট") || title.includes("ভয়েস নোট") || title.includes("নোট সামারি") || title.includes("voice note")) return ADVANCED_SERVICE_THEME_IMAGES["voice-note-summary"];
+  if (title.includes("ইমেল ড্রাফটিং") || title.includes("ইমেইল ড্রাফটিং") || title.includes("ড্রাফটিং ও রিপ্লাই") || title.includes("email drafting")) return ADVANCED_SERVICE_THEME_IMAGES["email-drafting"];
+  if (title.includes("ক্লিপবোর্ড") || title.includes("clipboard")) return ADVANCED_SERVICE_THEME_IMAGES["clipboard-manager"];
+  if (title.includes("ভাষা অনুবাদ") || title.includes("লাইভ কনভার্সেশন") || title.includes("লাইভ অনুবাদ") || title.includes("translation")) return ADVANCED_SERVICE_THEME_IMAGES["language-translation"];
+  if (title.includes("টাস্ক অ্যাসাইনার") || title.includes("প্রজেক্ট ও টাস্ক") || title.includes("task assigner")) return ADVANCED_SERVICE_THEME_IMAGES["task-assigner"];
+  if (title.includes("কন্টাক্ট ফাইন্ডার") || title.includes("contact finder")) return ADVANCED_SERVICE_THEME_IMAGES["contact-finder"];
+  if (title.includes("অ্যালার্ম ও ওয়েদার") || title.includes("ওয়েদার আপডেটস") || title.includes("alarm & weather")) return ADVANCED_SERVICE_THEME_IMAGES["alarm-weather"];
+  if (title.includes("পাসওয়ার্ড ও সিকিউরিটি") || title.includes("সিকিউরিটি রিমাইন্ডার") || title.includes("password & security")) return ADVANCED_SERVICE_THEME_IMAGES["password-security"];
+  if (title.includes("স্মার্ট রিমাইন্ডার") || title.includes("smart reminder") || title.includes("রিমাইন্ডার ও শিডিউলিং") || title.includes("শিডিউলিং")) return ADVANCED_SERVICE_THEME_IMAGES["smart-reminder"];
+  if (title.includes("ফুল ডিভাইস কন্ট্রোল") || title.includes("ফুল ডিভাইস") || title.includes("device ai control") || title.includes("ডিভাইস কন্ট্রোল এআই")) return ADVANCED_SERVICE_THEME_IMAGES["ai-device-control"];
+  if (title.includes("ওয়েবসাইট ও অ্যাপ লোকেশন") || title.includes("location tracking setup") || title.includes("অ্যাপ লোকেশন")) return ADVANCED_SERVICE_THEME_IMAGES["web-app-tracking"] || ADVANCED_SERVICE_THEME_IMAGES["location"];
+  if (title.includes("ওয়েবসাইট") || title.includes("web")) return ADVANCED_SERVICE_THEME_IMAGES["web"];
+  if (title.includes("রিয়েল-টাইম") || title.includes("রিয়েল টাইম") || title.includes("location tracker") || title.includes("ডিভাইস ও লোকেশন")) return ADVANCED_SERVICE_THEME_IMAGES["device-tracking"];
+  if (title.includes("লোকেশন") || title.includes("ট্র্যাকিং")) return ADVANCED_SERVICE_THEME_IMAGES["location"];
+  if (title.includes("ভিডিও") || title.includes("কালার")) return ADVANCED_SERVICE_THEME_IMAGES["video"];
+  if (title.includes("গ্রোথ") || title.includes("ইউটিউব") || title.includes("ফেসবুক")) return ADVANCED_SERVICE_THEME_IMAGES["growth"];
+  if (title.includes("টুলস") || title.includes("ক্রোম") || title.includes("এক্সটেনশন")) return ADVANCED_SERVICE_THEME_IMAGES["extension"];
+  if (title.includes("রিমোট ফোন") || title.includes("ফোন কন্ট্রোল") || title.includes("remote phone")) return ADVANCED_SERVICE_THEME_IMAGES["phone-control"];
+  if (title.includes("ডিভাইস মনিটরিং") || title.includes("মনিটরিং") || title.includes("monitoring")) return ADVANCED_SERVICE_THEME_IMAGES["device-monitoring"];
+  if (title.includes("রিমোট") || title.includes("কম্পিউটার")) return ADVANCED_SERVICE_THEME_IMAGES["remote"];
+  if (title.includes("সিভি") || title.includes("বায়োডাটা") || title.includes("প্রোফাইল")) return ADVANCED_SERVICE_THEME_IMAGES["cv"];
+  if (title.includes("সফটওয়্যার") || title.includes("অ্যাপ")) return ADVANCED_SERVICE_THEME_IMAGES["software"];
+  if (title.includes("নিরাপত্তা") || title.includes("হ্যাকিং") || title.includes("সিকিউরিটি")) return ADVANCED_SERVICE_THEME_IMAGES["security"];
+  if (title.includes("হোস্টিং") || title.includes("ডোমেইন")) return ADVANCED_SERVICE_THEME_IMAGES["hosting"];
+  if (title.includes("বাগ") || title.includes("সমস্যা") || title.includes("এরর")) return ADVANCED_SERVICE_THEME_IMAGES["bug"];
+  if (title.includes("পেমেন্ট") || title.includes("বিকাশ") || title.includes("নগদ")) return ADVANCED_SERVICE_THEME_IMAGES["payment"];
+  if (title.includes("গ্রাফিক") || title.includes("লোগো") || title.includes("ব্যানার")) return ADVANCED_SERVICE_THEME_IMAGES["graphic"];
+  if (title.includes("ভয়েস") || title.includes("ভয়েস") || title.includes("অডিও")) return ADVANCED_SERVICE_THEME_IMAGES["voice"];
+  if (title.includes("ডিজাইন") || title.includes("ui") || title.includes("ux")) return ADVANCED_SERVICE_THEME_IMAGES["ui-ux"];
+  if (title.includes("সাআস") || title.includes("saas") || title.includes("সিস্টেম")) return ADVANCED_SERVICE_THEME_IMAGES["saas"];
+  if (title.includes("api") || title.includes("লিংক") || title.includes("সংযোগ")) return ADVANCED_SERVICE_THEME_IMAGES["api"];
+  if (title.includes("স্পিড") || title.includes("ফাস্ট") || title.includes("গতি")) return ADVANCED_SERVICE_THEME_IMAGES["performance"];
+  if (title.includes("ক্লাউড") || title.includes("সার্ভার") || title.includes("ব্যাকআপ")) return ADVANCED_SERVICE_THEME_IMAGES["devops"];
+  if (title.includes("স্কুল") || title.includes("কোচিং")) return ADVANCED_SERVICE_THEME_IMAGES["school"];
+  if (title.includes("কিউআর") || title.includes("রেস্টুরেন্ট") || title.includes("মেনু")) return ADVANCED_SERVICE_THEME_IMAGES["qrmenu"];
+  if (title.includes("দোকান") || title.includes("ক্যাশ") || title.includes("মেমো") || title.includes("pos")) return ADVANCED_SERVICE_THEME_IMAGES["pos"];
+  if (title.includes("থিসিস") || title.includes("টাইপিং") || title.includes("অ্যাসাইনমেন্ট")) return ADVANCED_SERVICE_THEME_IMAGES["thesis"];
+  if (title.includes("স্লাইড") || title.includes("প্রেজেন্টেশন")) return ADVANCED_SERVICE_THEME_IMAGES["presentation"];
+
+  return "https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=600&q=80";
+}
 
 interface ServiceCardProps {
   service?: ServiceItem & { title_bn?: string; description_bn?: string; logoType?: string; usdPrice?: string; subtitle?: string };
@@ -618,10 +1240,11 @@ interface ServiceCardProps {
   onBuyNow?: (service: ServiceItem) => void;
   onEdit?: (service: ServiceItem) => void;
   onDelete?: (service: ServiceItem) => void;
+  onTogglePin?: (service: ServiceItem) => void;
   isHighlighted?: boolean;
 }
 
-function ServiceCard({ service: inputService, product, currentCategory, onAddToCart, onBuyNow, onEdit, onDelete, isHighlighted }: ServiceCardProps) {
+function ServiceCard({ service: inputService, product, currentCategory, onAddToCart, onBuyNow, onEdit, onDelete, onTogglePin, isHighlighted }: ServiceCardProps) {
   const service = inputService || product;
   const { locale } = useLanguage();
   const { user } = useAuth();
@@ -647,6 +1270,7 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
   }, [calcOriginalPrice, service.price]);
 
   const displayTitle = isBn ? service.title_bn || service.title : service.title;
+  const isPinned = !!(service.isPinned ?? (service as any).pinned);
   
   const isSubscription = service.category?.toLowerCase() === "subscriptions";
   const rawInStock = service.inStock;
@@ -725,6 +1349,35 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
     return Array.isArray(service.features) && service.features.length >= 1 ? service.features : fallbackFeatures;
   }, [service.category, service.features]);
 
+  const isStudent = useMemo(() => {
+    const cat = (currentCategory || "").toLowerCase();
+    const servCat = (service?.category || "").toLowerCase();
+    const canonical = getCanonicalCategory(service || {});
+    return cat === "student" || servCat === "student" || canonical === "student";
+  }, [currentCategory, service]);
+
+  const isAdvanced = useMemo(() => {
+    const cat = (currentCategory || "").toLowerCase();
+    const servCat = (service?.category || "").toLowerCase();
+    const canonical = getCanonicalCategory(service || {});
+    const wideSet = new Set(["advanced", "tech", "ai-voice", "security", "media-marketing", "utilities"]);
+    return wideSet.has(cat) || wideSet.has(servCat) || wideSet.has(canonical);
+  }, [currentCategory, service]);
+
+  const categoryBadgeText = useMemo(() => {
+    if (isStudent) return "STUDENT SERVICE";
+    const canonical = getCanonicalCategory(service || {});
+    const servCat = (service?.category || "").toLowerCase();
+    if (canonical === "tech" || servCat === "tech") return "ADVANCED TECH";
+    if (canonical === "ai-voice" || servCat === "ai-voice") return "AI & VOICE";
+    if (canonical === "security" || servCat === "security") return "DIGITAL SECURITY";
+    if (canonical === "media-marketing" || servCat === "media-marketing") return "MEDIA & MARKETING";
+    if (canonical === "utilities" || servCat === "utilities") return "SMART UTILITIES";
+    return "ADVANCED SERVICE";
+  }, [isStudent, service]);
+
+  const isWideCard = isAdvanced || isStudent;
+
   const hasSvgLogo = isSubscription || !!service.logoType || service.category?.toLowerCase() === "ip" || service.category?.toLowerCase() === "smm" || service.category?.toLowerCase() === "email";
 
   const cleanBadge = useMemo(() => {
@@ -764,6 +1417,273 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
     if (onBuyNow) onBuyNow(service);
   }, [onBuyNow, service]);
 
+  // --- 1. HORIZONTAL & BALANCED WIDE CARD LAYOUT FOR ADVANCED & STUDENT SERVICE CATEGORIES ---
+  if (isWideCard) {
+    return (
+      <div
+        id={`product-${service.id}`}
+        onClick={handleCardClick}
+        role="link"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleCardClick(e as any);
+          }
+        }}
+        aria-label={isBn ? `${displayTitle} - বিস্তারিত বিবরণ দেখুন` : `View details for ${displayTitle}`}
+        className={`group relative glass-panel glass-panel-hover rounded-3xl p-4 sm:p-5 md:p-5 flex flex-col md:flex-row items-stretch gap-4 sm:gap-5 md:gap-6 border transition-all duration-300 transform-gpu cursor-pointer font-sans overflow-hidden ${
+          isHighlighted
+            ? "border-rose-500 ring-2 ring-rose-500/40 shadow-2xl shadow-rose-500/20 bg-slate-900/95"
+            : "border-cyan-500/30 hover:border-cyan-400/80 bg-gradient-to-r from-slate-900/90 via-slate-950/95 to-slate-900/90 hover:shadow-2xl hover:shadow-cyan-500/10"
+        }`}
+      >
+        {/* Radial Hover Glow Accent */}
+        <div className="hidden sm:block absolute top-0 right-0 w-36 h-36 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all duration-500 pointer-events-none" />
+
+        {/* 1. LEFT VISUAL BANNER / IMAGE CONTAINER (Wide / Horizontal X-axis Layout) */}
+        <div className="relative w-full md:w-56 lg:w-64 h-48 sm:h-52 md:h-auto md:min-h-[175px] shrink-0 rounded-2xl bg-slate-900 border border-cyan-500/30 group-hover:border-cyan-400/50 overflow-hidden shadow-md flex items-center justify-center">
+          {((service?.id || (service as any)?._id || (service as any)?.productId) === "adv-yt-fb-growth-masterclass" ||
+            service?.logoType === "growth" ||
+            service?.logoType === "yt-fb-growth" ||
+            ((service?.title || "").includes("ইউটিউব") && (service?.title || "").includes("ফেসবুক"))) ? (
+            <div className="relative w-full h-full min-h-[175px] bg-gradient-to-br from-[#0c101d] via-[#070a14] to-[#03050a] flex flex-col items-center justify-center p-3 sm:p-4 overflow-hidden select-none">
+              {/* Ambient colorful glow halos */}
+              <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 bg-red-600/25 rounded-full blur-2xl pointer-events-none group-hover:bg-red-600/40 transition-all duration-500" />
+              <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-28 h-28 bg-blue-600/25 rounded-full blur-2xl pointer-events-none group-hover:bg-blue-600/40 transition-all duration-500" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.06)_0,transparent_70%)] pointer-events-none" />
+
+              {/* Side-by-side Logos Container */}
+              <div className="relative z-10 flex items-center justify-center gap-2.5 sm:gap-3.5 my-auto">
+                {/* YouTube Official Logo Box */}
+                <div className="flex flex-col items-center gap-1 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-16 h-12 sm:w-20 sm:h-14 bg-gradient-to-b from-[#FF0000] to-[#D90000] rounded-2xl flex items-center justify-center shadow-lg shadow-red-600/30 border border-red-400/30">
+                    <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white fill-current ml-0.5 drop-shadow" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                  <span className="text-[11px] font-extrabold text-slate-100 tracking-wide">YouTube</span>
+                </div>
+
+                {/* Elegant Ampersand Badge */}
+                <div className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800/90 border border-cyan-500/40 shadow-md">
+                  <span className="text-cyan-400 font-black text-xs">&amp;</span>
+                </div>
+
+                {/* Facebook Official Logo Box */}
+                <div className="flex flex-col items-center gap-1 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-16 h-12 sm:w-20 sm:h-14 bg-gradient-to-b from-[#1877F2] to-[#0d65d9] rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30 border border-blue-400/30">
+                    <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white fill-current drop-shadow" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                  </div>
+                  <span className="text-[11px] font-extrabold text-slate-100 tracking-wide">Facebook</span>
+                </div>
+              </div>
+
+              {/* Bottom Growth Pill */}
+              <div className="relative z-10 mt-1 px-3 py-0.5 rounded-full bg-slate-900/90 border border-cyan-500/30 flex items-center gap-1.5 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-cyan-300">Growth Service</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Professional Themed Image */}
+              <img
+                src={getAdvancedServiceImage(service)}
+                alt={service.title}
+                loading="lazy"
+                decoding="async"
+                width={320}
+                height={200}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=600&q=80";
+                }}
+              />
+
+              {/* Subtle Ambient Contrast Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+            </>
+          )}
+        </div>
+
+        {/* 2. RIGHT / MAIN CONTENT AREA */}
+        <div className="flex-1 flex flex-col justify-between space-y-2.5 min-w-0">
+          <div>
+            {/* Top Toolbar: Category, Service Badge, Duration, Rating, Status & Admin Controls */}
+            <div className="flex items-center justify-between gap-2.5 flex-wrap mb-2">
+              {/* Badges Cluster (Directly above service title) */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className={`px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full shadow-sm border ${
+                  isStudent
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                    : "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+                }`}>
+                  {categoryBadgeText}
+                </span>
+                {isPinned && (
+                  <span className="px-2.5 py-0.5 text-[10px] font-black bg-cyan-950/90 text-cyan-300 border border-cyan-400/50 rounded-full shadow-sm flex items-center gap-1">
+                    <Pin className="w-2.5 h-2.5 fill-cyan-400 text-cyan-400 stroke-[2]" />
+                    <span>{isBn ? "পিন করা" : "PINNED"}</span>
+                  </span>
+                )}
+                {cleanBadge && (
+                  <span className="px-2.5 py-0.5 text-[10px] font-black bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 rounded-full shadow-sm flex items-center gap-1">
+                    <span>⚡</span>
+                    <span>{cleanBadge}</span>
+                  </span>
+                )}
+                {(service.duration || service.validity) && (
+                  <span className="px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-indigo-950/80 text-indigo-300 border border-indigo-500/40 rounded-full flex items-center gap-1 shadow-sm">
+                    <Clock className="w-2.5 h-2.5 stroke-[2.5] text-indigo-400" />
+                    <span>{service.duration || service.validity}</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Right Toolbar: Rating, Stock, Favorite & Admin Controls */}
+              <div className="flex items-center gap-2 sm:gap-2.5 text-[11px] flex-wrap ml-auto">
+                <div className="flex items-center gap-1 bg-slate-950/60 px-2 py-0.5 rounded-full border border-slate-800/80">
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  <span className="font-extrabold text-white text-xs">{service.rating || 5.0}</span>
+                  <span className="text-slate-400 text-[10px]">({service.reviews || 95})</span>
+                </div>
+                <div className="flex items-center gap-1 text-emerald-400 font-bold text-[10px] bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>{isBn ? "লাইভ সার্ভিস" : "Active Service"}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsFavorite(!isFavorite);
+                  }}
+                  className="w-6 h-6 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center border border-slate-800"
+                  aria-label="Add to Favorites"
+                  title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-rose-500 text-rose-500" : ""}`} />
+                </button>
+
+                {/* Relocated Admin Controls (Pin, Edit & Delete Buttons) */}
+                {isAdmin && (
+                  <div className="flex items-center gap-1 pl-1.5 border-l border-slate-700/60">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onTogglePin) onTogglePin(service);
+                      }}
+                      className={`px-2.5 py-1 text-[11px] font-black rounded-lg shadow flex items-center gap-1 transition-all hover:scale-105 active:scale-95 cursor-pointer border ${
+                        isPinned
+                          ? "bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 text-slate-950 border-cyan-300 shadow-md shadow-cyan-500/30"
+                          : "bg-slate-800/90 hover:bg-slate-700 text-cyan-300 border-slate-700 hover:border-cyan-500/50"
+                      }`}
+                      title={isPinned ? (isBn ? "পিন সরানো (Unpin)" : "Unpin Service") : (isBn ? "উপরে পিন করুন (Pin to Top)" : "Pin Service to Top")}
+                    >
+                      <Pin className={`w-3 h-3 stroke-[2.5] ${isPinned ? "fill-slate-950 text-slate-950" : "text-cyan-400"}`} />
+                      <span>{isPinned ? (isBn ? "পিন্ড" : "Pinned") : (isBn ? "পিন" : "Pin")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onEdit) onEdit(service);
+                      }}
+                      className="px-2.5 py-1 text-[11px] font-black bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 rounded-lg shadow flex items-center gap-1 transition-all hover:scale-105 active:scale-95 cursor-pointer border border-amber-300/60"
+                      title="Edit Card (Admin Only)"
+                    >
+                      <Pencil className="w-3 h-3 stroke-[2.5]" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onDelete) onDelete(service);
+                      }}
+                      className="px-2.5 py-1 text-[11px] font-black bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white rounded-lg shadow flex items-center gap-1 transition-all hover:scale-105 active:scale-95 cursor-pointer border border-rose-400/60"
+                      title="Delete Card (Admin Only)"
+                    >
+                      <Trash2 className="w-3 h-3 stroke-[2.5]" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Service Title */}
+            <h3 className="text-base sm:text-lg lg:text-xl font-black text-white group-hover:text-cyan-200 transition-colors leading-snug tracking-tight font-sans line-clamp-1 sm:line-clamp-2">
+              {displayTitle}
+            </h3>
+
+            {/* Subtitle / Description */}
+            {service.subtitle && (
+              <p className="text-xs sm:text-sm text-slate-300/90 font-medium mt-1 leading-relaxed line-clamp-2">
+                {service.subtitle}
+              </p>
+            )}
+
+            {/* Feature List (3-4 concise items in compact 2-column grid) */}
+            <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {featureList.slice(0, 4).map((feat, idx) => (
+                <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-300 font-medium truncate">
+                  <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 stroke-[2.5]" />
+                  <span className="truncate">{feat}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. BOTTOM ACTION BUTTONS (NO PRICE, NO CART, NO BUY BUTTONS) */}
+          <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t border-slate-800/80">
+            {/* Direct Details Page Navigation CTA Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCardClick(e);
+              }}
+              className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-white border border-cyan-500/40 hover:border-cyan-300 font-bold text-xs sm:text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-95 cursor-pointer shadow-sm group/btn"
+              title={isBn ? "সার্ভিসের বিস্তারিত তথ্য দেখুন" : "View comprehensive service details"}
+            >
+              <span>{isBn ? "বিস্তারিত দেখুন" : "View Details"}</span>
+              <ArrowRight className="w-4 h-4 text-cyan-400 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
+
+            {/* Telegram Direct Support Button */}
+            <a
+              href="https://t.me/forid78687"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-md shadow-cyan-500/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+            >
+              <Send className="w-4 h-4 fill-slate-950 stroke-none" />
+              <span>{isBn ? "টেলিগ্রামে যোগাযোগ" : "Chat on Telegram"}</span>
+            </a>
+
+            {/* Support Page Navigation Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/${locale}/support`);
+              }}
+              className="flex-1 min-w-[125px] flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 hover:border-cyan-500/40 font-bold text-xs sm:text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-95 cursor-pointer shadow-sm"
+            >
+              <Headphones className="w-4 h-4 text-cyan-400" />
+              <span>{isBn ? "সাপোর্ট পেজ" : "Contact Support"}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       id={`product-${service.id}`}
@@ -781,9 +1701,25 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
         {/* 1. TOP BANNER LOGO CONTAINER */}
         <div className="relative w-full h-32 sm:h-36 rounded-xl bg-slate-950/80 border border-white/10 p-2 mb-3.5 group-hover:border-cyan-500/30 transition-all flex items-center justify-center">
           <div className="w-full h-full rounded-lg bg-white/95 p-3 flex items-center justify-center shadow-inner relative overflow-hidden">
-            {/* ADMIN CONTROLS (EDIT & DELETE BUTTONS) */}
+            {/* ADMIN CONTROLS (PIN, EDIT & DELETE BUTTONS) */}
             {isAdmin && (
               <div className="absolute top-1.5 left-1.5 flex items-center gap-1 z-20">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onTogglePin) onTogglePin(service);
+                  }}
+                  className={`px-2 py-0.5 text-[10px] font-black rounded-full shadow flex items-center gap-1 transition-all hover:scale-105 active:scale-95 cursor-pointer border ${
+                    isPinned
+                      ? "bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 text-slate-950 border-cyan-300 shadow-md shadow-cyan-500/30"
+                      : "bg-slate-900/90 hover:bg-slate-800 text-cyan-300 border-slate-700 hover:border-cyan-500/50"
+                  }`}
+                  title={isPinned ? (isBn ? "পিন সরানো (Unpin)" : "Unpin Service") : (isBn ? "উপরে পিন করুন (Pin to Top)" : "Pin Service to Top")}
+                >
+                  <Pin className={`w-3 h-3 stroke-[2.5] ${isPinned ? "fill-slate-950 text-slate-950" : "text-cyan-400"}`} />
+                  <span>{isPinned ? (isBn ? "পিন্ড" : "Pinned") : (isBn ? "পিন" : "Pin")}</span>
+                </button>
                 <button
                   type="button"
                   onClick={(e) => {
@@ -873,7 +1809,7 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
             <IconComponent className="w-3 h-3 stroke-[2.2]" />
           </div>
           <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-slate-900/90 text-slate-300 border border-slate-700/60 rounded">
-            {service.category === "advanced" ? "ADVANCED SERVICE" : (service.category || "Subscriptions").toUpperCase()}
+            {categoryBadgeText}
           </span>
           {(service.duration || service.validity) && (
             <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 rounded flex items-center gap-1 shadow-sm">
@@ -926,59 +1862,96 @@ function ServiceCard({ service: inputService, product, currentCategory, onAddToC
       </div>
 
       {/* 5. BOTTOM PRICING & ACTION BUTTONS */}
-      <div className="pt-2.5 border-t border-slate-800/80 mt-2">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-xl sm:text-2xl font-black text-amber-500 tracking-tight font-sans">
-              ৳{Number(service.price).toFixed(2)}
-            </span>
-            {service.usdPrice ? (
-              <span className="text-xs text-slate-400 font-medium font-sans">
-                ({service.usdPrice})
+      {!isWideCard ? (
+        <div className="pt-2.5 border-t border-slate-800/80 mt-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <span className="text-xl sm:text-2xl font-black text-amber-500 tracking-tight font-sans">
+                ৳{Number(service.price).toFixed(2)}
               </span>
-            ) : calcOriginalPrice > service.price ? (
-              <span className="text-[10px] sm:text-xs text-slate-500 line-through font-normal">
-                ৳{calcOriginalPrice}
+              {service.usdPrice ? (
+                <span className="text-xs text-slate-400 font-medium font-sans">
+                  ({service.usdPrice})
+                </span>
+              ) : calcOriginalPrice > service.price ? (
+                <span className="text-[10px] sm:text-xs text-slate-500 line-through font-normal">
+                  ৳{calcOriginalPrice}
+                </span>
+              ) : null}
+            </div>
+
+            {discountPercent > 0 && !service.usdPrice && (
+              <span className="px-1.5 py-0.5 text-[9px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded uppercase">
+                -{discountPercent}% {isBn ? "ছাড়" : "OFF"}
               </span>
-            ) : null}
+            )}
           </div>
 
-          {discountPercent > 0 && !service.usdPrice && (
-            <span className="px-1.5 py-0.5 text-[9px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded uppercase">
-              -{discountPercent}% {isBn ? "ছাড়" : "OFF"}
-            </span>
-          )}
-        </div>
+          {/* CTA BUTTONS */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={handleAdd}
+              className="flex items-center justify-center gap-1 py-1.5 px-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-bold text-xs rounded-lg border border-slate-700/80 hover:border-cyan-500/40 transition-all active:scale-95 cursor-pointer"
+              title="Add to Cart"
+            >
+              <ShoppingCart className="w-3.5 h-3.5 text-cyan-400" />
+              <span>{isBn ? "কার্ট" : "Cart"}</span>
+            </button>
 
-        {/* CTA BUTTONS */}
-        <div className="grid grid-cols-2 gap-2">
+            {!isSoldOut ? (
+              <button
+                onClick={handleBuy}
+                className="flex items-center justify-center gap-1 py-1.5 px-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-lg shadow-md shadow-amber-500/20 transition-all hover:scale-[1.03] active:scale-95 cursor-pointer"
+              >
+                <Zap className="w-3.5 h-3.5 fill-slate-950 stroke-none" />
+                <span>{isBn ? "কিনুন" : "BUY"}</span>
+              </button>
+            ) : (
+              <button
+                disabled
+                className="flex items-center justify-center gap-1 py-1.5 px-2.5 bg-gradient-to-r from-rose-600 to-red-600 text-white font-extrabold text-xs rounded-lg shadow-md shadow-rose-600/30 cursor-not-allowed uppercase"
+              >
+                <span>{isBn ? "স্টক শেষ" : "STOCK OUT"}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-slate-800/80 mt-2">
           <button
-            onClick={handleAdd}
-            className="flex items-center justify-center gap-1 py-1.5 px-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-bold text-xs rounded-lg border border-slate-700/80 hover:border-cyan-500/40 transition-all active:scale-95 cursor-pointer"
-            title="Add to Cart"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCardClick(e);
+            }}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-white border border-cyan-500/40 text-xs font-bold transition-all cursor-pointer"
           >
-            <ShoppingCart className="w-3.5 h-3.5 text-cyan-400" />
-            <span>{isBn ? "কার্ট" : "Cart"}</span>
+            <span>{isBn ? "বিস্তারিত দেখুন" : "View Details"}</span>
+            <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
           </button>
-
-          {!isSoldOut ? (
-            <button
-              onClick={handleBuy}
-              className="flex items-center justify-center gap-1 py-1.5 px-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-lg shadow-md shadow-amber-500/20 transition-all hover:scale-[1.03] active:scale-95 cursor-pointer"
-            >
-              <Zap className="w-3.5 h-3.5 fill-slate-950 stroke-none" />
-              <span>{isBn ? "কিনুন" : "BUY"}</span>
-            </button>
-          ) : (
-            <button
-              disabled
-              className="flex items-center justify-center gap-1 py-1.5 px-2.5 bg-gradient-to-r from-rose-600 to-red-600 text-white font-extrabold text-xs rounded-lg shadow-md shadow-rose-600/30 cursor-not-allowed uppercase"
-            >
-              <span>{isBn ? "স্টক শেষ" : "STOCK OUT"}</span>
-            </button>
-          )}
+          <a
+            href="https://t.me/forid78687"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs tracking-wide shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+          >
+            <Send className="w-3.5 h-3.5 fill-slate-950 stroke-none" />
+            <span>{isBn ? "টেলিগ্রাম" : "Telegram"}</span>
+          </a>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/${locale}/support`);
+            }}
+            className="flex-1 min-w-[110px] flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all cursor-pointer"
+          >
+            <Headphones className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{isBn ? "সাপোর্ট" : "Support"}</span>
+          </button>
         </div>
-      </div>
+      )}
     </div>
   );
 }

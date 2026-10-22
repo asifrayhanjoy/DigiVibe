@@ -1,7 +1,7 @@
 import React, { useState, memo } from 'react';
 import { Globe, Zap, Wifi, Smartphone, Radio, Sparkles } from 'lucide-react';
 import ServiceCard from './ServiceCard';
-import { sortAlphabetically } from '@/lib/sorting';
+import { sortAlphabetically, deduplicateServices } from '@/lib/sorting';
 
 const NOOP = () => {};
 
@@ -82,7 +82,7 @@ export const SimOfferGrid = ({
     const list = selectedOperator === 'All'
       ? simOffers
       : simOffers.filter((item) => getOperatorType(item) === selectedOperator);
-    return sortAlphabetically(list);
+    return sortAlphabetically(deduplicateServices(list));
   }, [simOffers, selectedOperator]);
 
   return (
@@ -109,15 +109,18 @@ export const SimOfferGrid = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredOffers.map((offer) => (
-            <ServiceCard
-              key={offer.id}
-              service={offer}
-              onAddToCart={onAddToCart || NOOP}
-              onBuyNow={onBuyNow || NOOP}
-              onEdit={onEditOffer}
-            />
-          ))}
+          {filteredOffers.map((offer, index) => {
+            const offerKey = (offer.id || (offer as any).productId || (offer as any)._id || `sim-${index}`).toString();
+            return (
+              <ServiceCard
+                key={offerKey}
+                service={offer}
+                onAddToCart={onAddToCart || NOOP}
+                onBuyNow={onBuyNow || NOOP}
+                onEdit={onEditOffer}
+              />
+            );
+          })}
         </div>
       )}
     </div>

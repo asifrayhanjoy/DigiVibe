@@ -14,7 +14,11 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  Cpu
+  Cpu,
+  GraduationCap,
+  ShieldAlert,
+  Video,
+  Wrench
 } from "lucide-react";
 import { CATEGORIES } from "@/data/services";
 import { CategoryId } from "@/types";
@@ -33,6 +37,10 @@ const ICON_MAP: Record<string, any> = {
   Cpu,
   Server,
   FileText,
+  GraduationCap,
+  ShieldAlert,
+  Video,
+  Wrench,
 };
 
 interface CategoryTabsProps {
@@ -212,6 +220,7 @@ function CategoryTabs({
                 <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-white scale-110" : "text-cyan-400"}`} />
                 <span className="font-extrabold text-xs sm:text-sm tracking-wide">{categoryLabel}</span>
                 <span
+                  suppressHydrationWarning
                   className={`px-2.5 py-0.5 text-[11px] sm:text-xs font-black rounded-full transition-colors shrink-0 ${
                     isActive
                       ? "bg-white/25 text-white border border-white/40 shadow-sm"

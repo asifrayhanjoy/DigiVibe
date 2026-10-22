@@ -7,7 +7,6 @@ import Footer from "@/components/Footer";
 import SearchModal from "@/components/SearchModal";
 import Toast from "@/components/Toast";
 import {
-  PhoneCall,
   Mail,
   MessageSquare,
   HelpCircle,
@@ -40,7 +39,7 @@ export default function SupportPage() {
     },
     {
       q: "What if my verification OTP email is delayed?",
-      a: "Please check your Gmail Spam or Updates folder. If you still haven't received your 6-digit OTP code within 1 minute, click 'Resend Code' on the login screen or contact our 24/7 WhatsApp agent."
+      a: "Please check your Gmail Spam or Updates folder. If you still haven't received your 6-digit OTP code within 1 minute, click 'Resend Code' on the login screen or contact our 24/7 Telegram support team."
     },
     {
       q: "What is the replacement warranty policy?",
@@ -77,7 +76,7 @@ export default function SupportPage() {
             How Can We Help You Today?
           </h1>
           <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-xl mx-auto font-medium">
-            Get instant support via WhatsApp, browse frequent questions, or email our support team.
+            Get instant support via Telegram, browse frequent questions, or email our support team.
           </p>
         </div>
       </section>
@@ -85,57 +84,40 @@ export default function SupportPage() {
       {/* Direct Contact Cards - 2 Main Support Options */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-20 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Card 1: WhatsApp Support (Two Admins) */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-emerald-500/40 hover:border-emerald-400 transition-all duration-300 shadow-2xl flex flex-col justify-between space-y-5">
+          {/* Card 1: Telegram Support */}
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-sky-500/40 hover:border-sky-400 transition-all duration-300 shadow-2xl flex flex-col justify-between space-y-5">
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm">
+                <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm">
                   Fastest Response
                 </span>
-                <PhoneCall className="w-6 h-6 text-emerald-400" />
+                <svg className="w-6 h-6 text-sky-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.963z"/>
+                </svg>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white">WhatsApp Live Support</h3>
+              <h3 className="text-xl sm:text-2xl font-black text-white">Telegram Support</h3>
               <p className="text-xs text-slate-300 mt-1 font-medium">
-                Direct WhatsApp contact with our official DigiVibe support admins for instant help.
+                Direct Telegram contact with our official DigiVibe support admin for instant help.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              {/* Admin 1: FARID */}
-              <div className="p-4 rounded-2xl bg-slate-950/80 backdrop-blur-md border border-slate-700/60 flex flex-col justify-between space-y-3">
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Admin</span>
-                  <h4 className="text-sm font-black text-white truncate">FARID</h4>
-                  <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">01990800188</p>
-                </div>
-                <a
-                  href="https://wa.me/8801990800188"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-2 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <PhoneCall className="w-3.5 h-3.5" />
-                  <span>Chat Now</span>
-                </a>
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Official Telegram Support</span>
+                <h4 className="text-sm sm:text-base font-mono font-black text-sky-400 break-all">
+                  @forid78687
+                </h4>
               </div>
 
-              {/* Admin 2: MD ASIF RAYHAN JOY */}
-              <div className="p-4 rounded-2xl bg-slate-950/80 backdrop-blur-md border border-slate-700/60 flex flex-col justify-between space-y-3">
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Admin</span>
-                  <h4 className="text-sm font-black text-white truncate">MD ASIF RAYHAN JOY</h4>
-                  <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">01302271472</p>
-                </div>
-                <a
-                  href="https://wa.me/8801302271472"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-2 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <PhoneCall className="w-3.5 h-3.5" />
-                  <span>Chat Now</span>
-                </a>
-              </div>
+              <a
+                href="https://t.me/forid78687"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-2.5 px-4 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs sm:text-sm font-bold text-center transition-colors flex items-center justify-center gap-2 shadow-lg shadow-sky-500/10"
+              >
+                <Send className="w-4 h-4 text-sky-400" />
+                <span>Chat on Telegram</span>
+              </a>
             </div>
           </div>
 
@@ -230,26 +212,24 @@ export default function SupportPage() {
         <div className="glass-panel p-6 sm:p-8 rounded-3xl bg-slate-900/85 backdrop-blur-xl border border-slate-700/60 text-center space-y-4 mt-8 shadow-2xl">
           <h3 className="text-lg font-black text-white">Still have questions or need custom bulk orders?</h3>
           <p className="text-xs text-slate-400 max-w-lg mx-auto">
-            Our support admins are ready to assist you directly on WhatsApp for instant assistance.
+            Our support admins are ready to assist you directly on Telegram for instant assistance.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             <a
-              href="https://wa.me/8801990800188"
+              href="https://t.me/forid78687"
               target="_blank"
               rel="noreferrer"
-              className="px-5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-2"
+              className="px-5 py-2.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-bold transition-all flex items-center gap-2"
             >
-              <PhoneCall className="w-4 h-4" />
-              <span>WhatsApp Admin Farid (01990800188)</span>
+              <Send className="w-4 h-4" />
+              <span>Telegram Admin (@forid78687)</span>
             </a>
             <a
-              href="https://wa.me/8801302271472"
-              target="_blank"
-              rel="noreferrer"
-              className="px-5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-2"
+              href="mailto:mdasifrayhanjoy2@gmail.com"
+              className="px-5 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-bold transition-all flex items-center gap-2"
             >
-              <PhoneCall className="w-4 h-4" />
-              <span>WhatsApp Admin Joy (01302271472)</span>
+              <Mail className="w-4 h-4" />
+              <span>Email Support (mdasifrayhanjoy2@gmail.com)</span>
             </a>
           </div>
         </div>

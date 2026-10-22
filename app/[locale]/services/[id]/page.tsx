@@ -8,14 +8,14 @@ import Footer from "@/components/Footer";
 import CheckoutModal from "@/components/CheckoutModal";
 import AdminProductModal from "@/components/AdminProductModal";
 import Toast from "@/components/Toast";
-import ServiceCard, { BrandLogoSvg } from "@/components/ServiceCard";
+import ServiceCard, { BrandLogoSvg, getAdvancedServiceImage } from "@/components/ServiceCard";
 import { ServiceItem, CartItem } from "@/types";
 import { SERVICES } from "@/data/services";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { getCanonicalCategory, getCategoryQueryParam } from "@/lib/categories";
-import { sortAlphabetically } from "@/lib/sorting";
+import { sortAlphabetically, deduplicateServices } from "@/lib/sorting";
 import {
   ShieldCheck,
   Star,
@@ -35,7 +35,8 @@ import {
   Layers,
   RefreshCw,
   Tag,
-  AlertCircle
+  AlertCircle,
+  Send
 } from "lucide-react";
 
 function ServiceDetailPageContent({ params }: { params?: any }) {
@@ -88,6 +89,14 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
     }
     return `/${locale}/services`;
   }, [locale, activeCategoryParam]);
+
+  const isBn = locale === "bn";
+  const isAdvanced = useMemo(() => {
+    if (!service) return false;
+    const cat = (service.category || "").toLowerCase();
+    const canonical = getCanonicalCategory(service);
+    return cat === "advanced" || canonical === "advanced" || catParam === "advanced" || cat === "student" || canonical === "student" || catParam === "student";
+  }, [service, catParam]);
 
   // Modals
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
@@ -165,7 +174,7 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
     const currentServiceCategory = service.category;
     const list = allProducts
       .filter((p) => p && p.id !== currentServiceId && (p.category === currentServiceCategory || p.popular));
-    return sortAlphabetically(list).slice(0, 4);
+    return sortAlphabetically(deduplicateServices(list)).slice(0, 4);
   }, [allProducts, service]);
 
   if (isLoading) {
@@ -261,7 +270,7 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
                   </span>
                 )}
               </div>
-              {discountPercent > 0 && (
+              {!isAdvanced && discountPercent > 0 && (
                 <span className="px-3.5 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 animate-pulse">
                   ⚡ {discountPercent}% OFF
                 </span>
@@ -269,8 +278,79 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
             </div>
 
             {/* Product Display Box */}
-            <div className="w-full h-64 sm:h-80 rounded-2xl bg-white p-6 flex items-center justify-center relative shadow-inner overflow-hidden my-2">
+            <div className={`w-full h-64 sm:h-80 rounded-2xl ${isAdvanced ? "bg-slate-900 border border-cyan-500/30" : "bg-white"} ${isAdvanced ? "p-0" : "p-6"} flex items-center justify-center relative shadow-inner overflow-hidden my-2`}>
               {(() => {
+                if (isAdvanced) {
+                  const advImg = getAdvancedServiceImage(service);
+                  const isYtFb =
+                    service?.id === "adv-yt-fb-growth-masterclass" ||
+                    (service as any)?.productId === "adv-yt-fb-growth-masterclass" ||
+                    service?.logoType === "growth" ||
+                    service?.logoType === "yt-fb-growth" ||
+                    ((service?.title || "").includes("ইউটিউব") && (service?.title || "").includes("ফেসবুক"));
+
+                  if (isYtFb) {
+                    return (
+                      <div className="relative w-full h-full min-h-[240px] bg-gradient-to-br from-[#0c101d] via-[#070a14] to-[#03050a] flex flex-col items-center justify-center p-6 overflow-hidden select-none">
+                        {/* Ambient colorful glow halos */}
+                        <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-48 h-48 bg-red-600/25 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute -right-10 top-1/2 -translate-y-1/2 w-48 h-48 bg-blue-600/25 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.08)_0,transparent_70%)] pointer-events-none" />
+
+                        {/* Side-by-side Logos Container */}
+                        <div className="relative z-10 flex items-center justify-center gap-5 sm:gap-7 my-auto">
+                          {/* YouTube Official Logo Box */}
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="w-20 h-14 sm:w-24 sm:h-16 bg-gradient-to-b from-[#FF0000] to-[#D90000] rounded-2xl flex items-center justify-center shadow-2xl shadow-red-600/30 border border-red-400/30">
+                              <svg className="w-9 h-9 text-white fill-current ml-0.5 drop-shadow" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </div>
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-100 tracking-wide">YouTube</span>
+                          </div>
+
+                          {/* Elegant Ampersand Badge */}
+                          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-800/90 border border-cyan-500/40 shadow-lg">
+                            <span className="text-cyan-400 font-black text-sm sm:text-base">&amp;</span>
+                          </div>
+
+                          {/* Facebook Official Logo Box */}
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="w-20 h-14 sm:w-24 sm:h-16 bg-gradient-to-b from-[#1877F2] to-[#0d65d9] rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-600/30 border border-blue-400/30">
+                              <svg className="w-9 h-9 text-white fill-current drop-shadow" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                              </svg>
+                            </div>
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-100 tracking-wide">Facebook</span>
+                          </div>
+                        </div>
+
+                        {/* Bottom Growth Pill */}
+                        <div className="relative z-10 mt-2 px-3.5 py-1 rounded-full bg-slate-900/90 border border-cyan-500/30 flex items-center gap-2 shadow-sm">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-300">Creator &amp; Page Growth Masterclass</span>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
+                      <img
+                        src={advImg}
+                        alt={service.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=600&q=80";
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
+                    </div>
+                  );
+                }
+
                 const customImg = ((service as any)?.imageUrl || service?.image || service?.logo || "").toString().trim();
                 const hasExplicitCustomImage = Boolean(
                   customImg &&
@@ -386,74 +466,114 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
               </div>
             </div>
 
-            {/* Price Box */}
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 shadow-xl">
-              <div className="flex items-baseline gap-3">
-                <span className="text-4xl sm:text-5xl font-black text-cyan-400 font-sans tracking-tight">
-                  ৳{service.price}
-                </span>
-                {service.originalPrice && service.originalPrice > service.price && (
-                  <span className="text-lg sm:text-xl text-slate-500 line-through font-medium">
-                    ৳{service.originalPrice}
-                  </span>
-                )}
-                {service.unit && (
-                  <span className="text-xs text-slate-400 font-bold">
-                    /{service.unit.replace(/^\//, "")}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Instant automated delivery after payment verification</span>
-              </p>
-            </div>
+            {/* Price Box & Action Buttons */}
+            {isAdvanced ? (
+              <div className="space-y-4 pt-2">
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-cyan-500/30 shadow-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 text-xs font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded-full">
+                      {isBn ? "কাস্টম প্রজেক্ট ও স্পেশাল সার্ভিস" : "Custom Project & Special Service"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-300 font-medium mt-2 leading-relaxed">
+                    {isBn
+                      ? "এই সার্ভিসের কাজ শুরু করতে সরাসরি আমাদের টেলিগ্রামে বা সাপোর্টে যোগাযোগ করুন। আপনার প্রয়োজন অনুযায়ী খুব সহজে কাজ বুঝিয়ে দেওয়া হবে।"
+                      : "To get started with this service, contact us directly on Telegram or Support. We will assist you promptly based on your needs."}
+                  </p>
+                </div>
 
-            {/* Quantity Selector & Instant Action Buttons */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-4">
-                <span className="text-xs font-bold text-slate-300">Quantity:</span>
-                <div className="flex items-center border border-slate-800 bg-slate-900 rounded-xl overflow-hidden">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3.5 py-2 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors font-bold text-sm"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <a
+                    href="https://t.me/forid78687"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-4 px-6 rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-xl shadow-cyan-500/25 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                   >
-                    -
-                  </button>
-                  <span className="px-4 py-2 text-white font-bold text-sm font-mono">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-3.5 py-2 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors font-bold text-sm"
+                    <Send className="w-5 h-5 fill-slate-950 stroke-none" />
+                    <span>{isBn ? "টেলিগ্রামে যোগাযোগ" : "Chat on Telegram"}</span>
+                  </a>
+
+                  <Link
+                    href={`/${locale}/support`}
+                    className="py-4 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white border border-cyan-500/40 hover:border-cyan-400 font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                   >
-                    +
-                  </button>
+                    <PhoneCall className="w-5 h-5 text-cyan-400" />
+                    <span>{isBn ? "সাপোর্ট পেজ" : "Contact Support"}</span>
+                  </Link>
                 </div>
               </div>
+            ) : (
+              <>
+                {/* Price Box */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 shadow-xl">
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-4xl sm:text-5xl font-black text-cyan-400 font-sans tracking-tight">
+                      ৳{service.price}
+                    </span>
+                    {service.originalPrice && service.originalPrice > service.price && (
+                      <span className="text-lg sm:text-xl text-slate-500 line-through font-medium">
+                        ৳{service.originalPrice}
+                      </span>
+                    )}
+                    {service.unit && (
+                      <span className="text-xs text-slate-400 font-bold">
+                        /{service.unit.replace(/^\//, "")}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Instant automated delivery after payment verification</span>
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  onClick={handleBuyNow}
-                  disabled={isSoldOut}
-                  className={`py-4 px-6 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-xl uppercase tracking-wider cursor-pointer ${
-                    isSoldOut
-                      ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 shadow-cyan-500/25 hover:scale-[1.02] active:scale-[0.98]"
-                  }`}
-                >
-                  <Zap className="w-5 h-5 fill-slate-950" />
-                  <span>Buy Now (কিনুন)</span>
-                </button>
+                {/* Quantity Selector & Instant Action Buttons */}
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-bold text-slate-300">Quantity:</span>
+                    <div className="flex items-center border border-slate-800 bg-slate-900 rounded-xl overflow-hidden">
+                      <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="px-3.5 py-2 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors font-bold text-sm"
+                      >
+                        -
+                      </button>
+                      <span className="px-4 py-2 text-white font-bold text-sm font-mono">{quantity}</span>
+                      <button
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="px-3.5 py-2 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors font-bold text-sm"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
 
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isSoldOut}
-                  className="py-4 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/40 hover:border-cyan-400 font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-                >
-                  <ShoppingBag className="w-5 h-5" />
-                  <span>Add To Cart</span>
-                </button>
-              </div>
-            </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      onClick={handleBuyNow}
+                      disabled={isSoldOut}
+                      className={`py-4 px-6 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-xl uppercase tracking-wider cursor-pointer ${
+                        isSoldOut
+                          ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                          : "bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 shadow-cyan-500/25 hover:scale-[1.02] active:scale-[0.98]"
+                      }`}
+                    >
+                      <Zap className="w-5 h-5 fill-slate-950" />
+                      <span>Buy Now (কিনুন)</span>
+                    </button>
+
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={isSoldOut}
+                      className="py-4 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/40 hover:border-cyan-400 font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                    >
+                      <ShoppingBag className="w-5 h-5" />
+                      <span>Add To Cart</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -535,20 +655,23 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((prod) => (
-                <ServiceCard
-                  key={prod.id}
-                  service={prod}
-                  currentCategory={originCategory}
-                  onAddToCart={() => addToCart(prod)}
-                  onBuyNow={() => {
-                    requireAuth(() => {
-                      const querySlug = getCategoryQueryParam(prod.category, getCanonicalCategory(prod));
-                      router.push(querySlug ? `/${locale}/services/${prod.id}?cat=${querySlug}` : `/${locale}/services/${prod.id}`);
-                    });
-                  }}
-                />
-              ))}
+              {relatedProducts.map((prod, index) => {
+                const prodKey = (prod.id || (prod as any).productId || (prod as any)._id || `related-${index}`).toString();
+                return (
+                  <ServiceCard
+                    key={prodKey}
+                    service={prod}
+                    currentCategory={originCategory}
+                    onAddToCart={() => addToCart(prod)}
+                    onBuyNow={() => {
+                      requireAuth(() => {
+                        const querySlug = getCategoryQueryParam(prod.category, getCanonicalCategory(prod));
+                        router.push(querySlug ? `/${locale}/services/${prod.id}?cat=${querySlug}` : `/${locale}/services/${prod.id}`);
+                      });
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         )}

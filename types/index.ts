@@ -1,6 +1,6 @@
 // TypeScript Definitions for DigiVibe Enterprise Digital Service Platform
 
-export type CategoryId = "all" | "vpn" | "subscriptions" | "ip" | "smm" | "email" | "telegram" | "advanced" | "advanced-service" | "hosting";
+export type CategoryId = "all" | "vpn" | "subscriptions" | "ip" | "smm" | "email" | "telegram" | "student" | "advanced" | "advanced-service" | "hosting" | "tech" | "ai-voice" | "security" | "media-marketing" | "utilities";
 
 export interface Category {
   id: CategoryId | string;
@@ -50,6 +50,8 @@ export interface ServiceItem {
   tag?: string;
   badgeColor?: string;
   smmPriceMigrated?: boolean;
+  isPinned?: boolean;
+  pinned?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

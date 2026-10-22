@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { Search, X, Zap, ArrowRight } from "lucide-react";
 import { ServiceItem } from "@/types";
-import { sortAlphabetically } from "@/lib/sorting";
+import { sortAlphabetically, deduplicateServices } from "@/lib/sorting";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export default function SearchModal({
   onSearchSubmit
 }: SearchModalProps) {
   const sortedResults = useMemo(() => {
-    return sortAlphabetically(searchResults);
+    return sortAlphabetically(deduplicateServices(searchResults));
   }, [searchResults]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -90,15 +90,17 @@ export default function SearchModal({
               No matching digital services found for "{searchQuery}".
             </div>
           ) : (
-            sortedResults.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => {
-                  onSelectService(item);
-                  onClose();
-                }}
-                className="p-3.5 rounded-2xl bg-slate-900/40 hover:bg-slate-900 border border-slate-800/80 hover:border-cyan-500/40 flex items-center justify-between cursor-pointer transition-all group"
-              >
+            sortedResults.map((item, index) => {
+              const itemKey = (item.id || (item as any).productId || (item as any)._id || `search-${index}`).toString();
+              return (
+                <div
+                  key={itemKey}
+                  onClick={() => {
+                    onSelectService(item);
+                    onClose();
+                  }}
+                  className="p-3.5 rounded-2xl bg-slate-900/40 hover:bg-slate-900 border border-slate-800/80 hover:border-cyan-500/40 flex items-center justify-between cursor-pointer transition-all group"
+                >
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-cyan-950 text-cyan-400 group-hover:scale-110 transition-transform">
                     <Zap className="w-4 h-4" />
@@ -120,8 +122,9 @@ export default function SearchModal({
                   </div>
                 </div>
               </div>
-            ))
-          )}
+            );
+          })
+        )}
         </div>
 
         {/* Search Footer */}

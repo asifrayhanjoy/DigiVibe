@@ -16,13 +16,13 @@ const SearchModal = dynamic(() => import("@/components/SearchModal"), { ssr: fal
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { SERVICES } from "@/data/services";
-import { sortAlphabetically } from "@/lib/sorting";
+import { sortAlphabetically, deduplicateServices } from "@/lib/sorting";
 import { getCanonicalCategory, getCategoryQueryParam, isCategoryMatch } from "@/lib/categories";
 
 export default function HomePage() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [servicesList, setServicesList] = useState(() => sortAlphabetically(SERVICES));
+  const [servicesList, setServicesList] = useState(() => sortAlphabetically(deduplicateServices(SERVICES)));
   const { locale } = useLanguage();
   const { requireAuth } = useAuth();
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function HomePage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-          setServicesList(sortAlphabetically(data.products));
+          setServicesList(sortAlphabetically(deduplicateServices(data.products)));
         }
       })
       .catch((err) => console.error("Error loading home page products:", err));
@@ -132,10 +132,12 @@ export default function HomePage() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         searchResults={sortAlphabetically(
-          servicesList.filter(
-            (s) =>
-              s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              s.category.toLowerCase().includes(searchQuery.toLowerCase())
+          deduplicateServices(
+            servicesList.filter(
+              (s) =>
+                s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                s.category.toLowerCase().includes(searchQuery.toLowerCase())
+            )
           )
         )}
         onSelectService={(service) => {

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import ProductCard from './ProductCard';
-import { sortAlphabetically } from '@/lib/sorting';
+import { sortAlphabetically, deduplicateServices } from '@/lib/sorting';
 
 export const VPNProductGrid = ({
   products,
@@ -27,9 +27,12 @@ export const VPNProductGrid = ({
     { label: '30 Days (1 Month)', value: '30 Days' }
   ];
 
-  const filteredProducts = activeTab === 'All'
-    ? products
-    : products.filter((p) => (p.duration || p.validity) === activeTab);
+  const filteredProducts = useMemo(() => {
+    const list = activeTab === 'All'
+      ? products
+      : products.filter((p) => (p.duration || p.validity) === activeTab);
+    return deduplicateServices(list);
+  }, [products, activeTab]);
 
   const sortedProducts = useMemo(() => {
     return sortAlphabetically(filteredProducts);
@@ -56,18 +59,21 @@ export const VPNProductGrid = ({
 
       {/* 2. Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {sortedProducts.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            service={product}
-            currentCategory="vpn"
-            onAddToCart={onAddToCart}
-            onBuyNow={onBuyNow}
-            onEdit={onEditProduct}
-            onDelete={onDeleteProduct}
-          />
-        ))}
+        {sortedProducts.map((product, index) => {
+          const productKey = (product.id || product.productId || (product as any)._id || `vpn-${index}`).toString();
+          return (
+            <ProductCard
+              key={productKey}
+              product={product}
+              service={product}
+              currentCategory="vpn"
+              onAddToCart={onAddToCart}
+              onBuyNow={onBuyNow}
+              onEdit={onEditProduct}
+              onDelete={onDeleteProduct}
+            />
+          );
+        })}
       </div>
     </div>
   );

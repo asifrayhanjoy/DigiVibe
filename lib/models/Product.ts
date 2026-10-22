@@ -37,6 +37,8 @@ const ProductSchema = new Schema(
     terms: { type: String },
     priceNote: { type: String },
     smmPriceMigrated: { type: Boolean, default: false },
+    isPinned: { type: Boolean, default: false },
+    pinned: { type: Boolean, default: false },
   },
   { timestamps: true, strict: false }
 );

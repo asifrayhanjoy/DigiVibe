@@ -78,6 +78,8 @@ function mapProductToServiceItem(doc: any) {
     terms: doc.terms || "",
     priceNote: doc.priceNote || "",
     smmPriceMigrated: !!doc.smmPriceMigrated,
+    isPinned: !!(doc.isPinned ?? doc.pinned),
+    pinned: !!(doc.isPinned ?? doc.pinned),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -165,6 +167,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       maxQuantity,
       terms,
       priceNote,
+      isPinned,
+      pinned,
     } = body;
 
     // Resolve stock status accurately across all representations
@@ -267,6 +271,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (maxQuantity !== undefined) updateData.maxQuantity = maxQuantity ? Number(maxQuantity) : undefined;
     if (terms !== undefined) updateData.terms = terms;
     if (priceNote !== undefined) updateData.priceNote = priceNote;
+    if (isPinned !== undefined || pinned !== undefined) {
+      const pinVal = isPinned !== undefined ? !!isPinned : !!pinned;
+      updateData.isPinned = pinVal;
+      updateData.pinned = pinVal;
+    }
 
     // Collect all candidate identifiers
     const targetProductId = (body.productId || body.id || decodedId).toString().trim();
@@ -428,3 +437,6 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+// PATCH /api/products/[id] - Alias to PUT for partial field updates (like toggling isPinned)
+export const PATCH = PUT;

@@ -29,7 +29,78 @@ export function compareAlphabetical<T extends { title?: string }>(a: T, b: T): n
   return titleA.localeCompare(titleB, undefined, { numeric: true });
 }
 
-export function sortAlphabetically<T extends { title?: string }>(items: T[]): T[] {
+/**
+ * Strict Universal Product/Service Deduplication Utility
+ * 
+ * Prevents duplicate rendering of service cards across all categories,
+ * searching, filtering, and initial loads.
+ * 
+ * Deduplication rules:
+ * 1. Primary: Unique Product ID / Document ID.
+ * 2. Secondary: Canonical product identity (category + normalized title + duration + price)
+ *    to eliminate accidental double documents created in database or static seeds.
+ */
+export function deduplicateServices<T extends { id?: string; productId?: string; _id?: any; title?: string }>(
+  items: T[]
+): T[] {
   if (!Array.isArray(items)) return [];
-  return [...items].sort(compareAlphabetical);
+
+  const seenIds = new Set<string>();
+  const seenCanonicalKeys = new Set<string>();
+  const result: T[] = [];
+
+  for (const item of items) {
+    if (!item) continue;
+
+    const rawId = (item.id || item.productId || (item._id ? item._id.toString() : "") || "").toString().trim();
+    const rawDocId = (item._id ? item._id.toString() : "").trim();
+    const productId = (item.productId || "").toString().trim();
+
+    // 1. Direct ID duplicate check
+    if (rawId && seenIds.has(rawId)) {
+      continue;
+    }
+    if (rawDocId && seenIds.has(rawDocId)) {
+      continue;
+    }
+    if (productId && seenIds.has(productId)) {
+      continue;
+    }
+
+    // 2. Canonical content duplicate check:
+    // Strips emojis and punctuation to detect identical product names in the same category & package
+    const rawTitle = (item.title || "").trim();
+    const cleanTitle = rawTitle
+      .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "")
+      .replace(/[^\w\s\u0980-\u09FF]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+
+    const duration = ((item as any).duration || (item as any).validity || "").toString().trim().toLowerCase();
+    const category = ((item as any).category || "").toString().trim().toLowerCase();
+    const price = (item as any).price !== undefined ? Number((item as any).price) : "";
+
+    const canonicalKey = `${category}:::${cleanTitle}:::${duration}:::${price}`;
+
+    if (cleanTitle && seenCanonicalKeys.has(canonicalKey)) {
+      continue;
+    }
+
+    if (rawId) seenIds.add(rawId);
+    if (rawDocId) seenIds.add(rawDocId);
+    if (productId) seenIds.add(productId);
+    if (cleanTitle) seenCanonicalKeys.add(canonicalKey);
+
+    result.push(item);
+  }
+
+  return result;
 }
+
+export function sortAlphabetically<T extends { id?: string; productId?: string; _id?: any; title?: string }>(items: T[]): T[] {
+  if (!Array.isArray(items)) return [];
+  const deduped = deduplicateServices(items);
+  return [...deduped].sort(compareAlphabetical);
+}
+

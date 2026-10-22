@@ -4,7 +4,7 @@ import Product from "@/lib/models/Product";
 import DeletedProduct from "@/lib/models/DeletedProduct";
 import { SERVICES } from "@/data/services";
 import { getCanonicalCategory } from "@/lib/categories";
-import { compareAlphabetical } from "@/lib/sorting";
+import { compareAlphabetical, deduplicateServices } from "@/lib/sorting";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -62,9 +62,9 @@ function mapProductToServiceItem(doc: any) {
     badge: resolvedBadge,
     tag: resolvedTag,
     badgeColor: doc.badgeColor || "",
-    logo: (doc.imageUrl || doc.image || doc.logo || "").toString().trim(),
-    image: (doc.imageUrl || doc.image || doc.logo || "").toString().trim(),
-    imageUrl: (doc.imageUrl || doc.image || doc.logo || "").toString().trim(),
+    logo: ((productId === "adv-yt-fb-growth-masterclass" || (doc.title || "").includes("ইউটিউব") && (doc.title || "").includes("ফেসবুক")) ? "/images/services/youtube-facebook-growth.svg" : (doc.imageUrl || doc.image || doc.logo || "")).toString().trim(),
+    image: ((productId === "adv-yt-fb-growth-masterclass" || (doc.title || "").includes("ইউটিউব") && (doc.title || "").includes("ফেসবুক")) ? "/images/services/youtube-facebook-growth.svg" : (doc.imageUrl || doc.image || doc.logo || "")).toString().trim(),
+    imageUrl: ((productId === "adv-yt-fb-growth-masterclass" || (doc.title || "").includes("ইউটিউব") && (doc.title || "").includes("ফেসবুক")) ? "/images/services/youtube-facebook-growth.svg" : (doc.imageUrl || doc.image || doc.logo || "")).toString().trim(),
     logoType: doc.logoType !== undefined && doc.logoType !== null ? doc.logoType : "",
     icon: doc.icon || "Sparkles",
     inStock: isAvailable,
@@ -83,6 +83,8 @@ function mapProductToServiceItem(doc: any) {
     terms: doc.terms || "",
     priceNote: doc.priceNote || "",
     smmPriceMigrated: !!doc.smmPriceMigrated,
+    isPinned: !!(doc.isPinned ?? doc.pinned),
+    pinned: !!(doc.isPinned ?? doc.pinned),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -125,8 +127,9 @@ export async function GET(req: Request) {
         tag: item.badge || item.tag || "",
         badge: item.badge || item.subtitle || "",
         badgeColor: item.badgeColor || "",
-        logo: item.logo || item.image || "",
-        image: item.image || item.logo || "",
+        logo: item.logo || item.image || item.imageUrl || "",
+        image: item.image || item.imageUrl || item.logo || "",
+        imageUrl: item.imageUrl || item.image || item.logo || "",
         logoType: item.logoType || "",
         icon: item.icon || "Sparkles",
         inStock: item.inStock !== false && (item as any).inStock !== "false" && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out",
@@ -152,7 +155,38 @@ export async function GET(req: Request) {
       }
     } else {
       // If DB has documents, ensure missing default SERVICES are added using $setOnInsert (skipping deleted items)
-      const seedOperations = activeSeedServices.map((item) => ({
+      // Check existing products first to avoid inserting duplicates of already existing services!
+      const existingProducts = await (Product as any).find({}, { productId: 1, title: 1, category: 1 }).lean();
+      const existingProductIds = new Set(
+        existingProducts.map((p: any) => (p.productId || p.id || (p._id ? p._id.toString() : "")).toString().trim()).filter(Boolean)
+      );
+      const existingCanonicalTitles = new Set(
+        existingProducts.map((p: any) => {
+          const cat = (p.category || "").trim().toLowerCase();
+          const cleanTitle = (p.title || "")
+            .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "")
+            .replace(/[^\w\s\u0980-\u09FF]/g, "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLowerCase();
+          return `${cat}:::${cleanTitle}`;
+        })
+      );
+
+      const missingServices = activeSeedServices.filter((item) => {
+        const idKey = (item.id || "").toString().trim();
+        const cat = (item.category || "").trim().toLowerCase();
+        const cleanTitle = (item.title || "")
+          .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "")
+          .replace(/[^\w\s\u0980-\u09FF]/g, "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .toLowerCase();
+        const titleKey = `${cat}:::${cleanTitle}`;
+        return !existingProductIds.has(idKey) && !existingCanonicalTitles.has(titleKey);
+      });
+
+      const seedOperations = missingServices.map((item) => ({
         updateOne: {
           filter: { productId: item.id },
           update: {
@@ -170,8 +204,9 @@ export async function GET(req: Request) {
               tag: item.badge || item.tag || "",
               badge: item.badge || item.subtitle || "",
               badgeColor: item.badgeColor || "",
-              logo: item.logo || item.image || "",
-              image: item.image || item.logo || "",
+              logo: item.logo || item.image || item.imageUrl || "",
+              image: item.image || item.imageUrl || item.logo || "",
+              imageUrl: item.imageUrl || item.image || item.logo || "",
               logoType: item.logoType || "",
               icon: item.icon || "Sparkles",
               inStock: item.inStock !== false && (item as any).inStock !== "false" && item.stock !== "Stock Out" && item.stock !== "Out of Stock" && item.stock !== "Sold Out",
@@ -265,6 +300,49 @@ export async function GET(req: Request) {
       console.error("SMM price auto-migration warning:", migErr);
     }
 
+    // Database Migration: Ensure all "Advanced Service" & "Student Service" products have simplified easy Bengali text, category update & zero price
+    try {
+      const wideServicesFromCode = (SERVICES as any[]).filter(
+        (s) =>
+          ["advanced", "student", "tech", "ai-voice", "security", "media-marketing", "utilities"].includes(s.category) ||
+          s.id?.startsWith("adv-") ||
+          s.id?.startsWith("student-")
+      );
+      if (wideServicesFromCode.length > 0) {
+        const updateOps = wideServicesFromCode.map((adv) => ({
+          updateMany: {
+            filter: {
+              $or: [{ productId: adv.id }, { id: adv.id }],
+            },
+            update: {
+              $set: {
+                category: adv.category,
+                title: adv.title,
+                subtitle: adv.subtitle,
+                badge: adv.badge,
+                features: adv.features,
+                overview: adv.overview,
+                description: adv.overview || adv.description || "",
+                logoType: adv.logoType,
+                icon: adv.icon,
+                imageUrl: adv.imageUrl || adv.image || "",
+                image: adv.image || adv.imageUrl || "",
+                logo: adv.imageUrl || adv.image || "",
+                price: 0,
+                originalPrice: 0,
+                usdPrice: "",
+                advancedBengaliSimplified: true,
+                updatedAt: new Date().toISOString(),
+              },
+            },
+          },
+        }));
+        await (Product as any).bulkWrite(updateOps);
+      }
+    } catch (advMigErr) {
+      console.error("Advanced & Student services easy Bengali migration notice:", advMigErr);
+    }
+
     const deletedArr = Array.from(deletedIds);
     const objectIdDeletes = deletedArr.filter((id) => id.match(/^[0-9a-fA-F]{24}$/));
     const excludeFilter = deletedArr.length > 0
@@ -277,13 +355,14 @@ export async function GET(req: Request) {
     let products = await (Product as any).find(excludeFilter).sort({ createdAt: -1 }).lean();
 
     const mappedProducts = products.map(mapProductToServiceItem);
-    mappedProducts.sort(compareAlphabetical);
+    const dedupedProducts = deduplicateServices(mappedProducts);
+    dedupedProducts.sort(compareAlphabetical);
 
     return NextResponse.json(
       {
         success: true,
-        count: mappedProducts.length,
-        products: mappedProducts,
+        count: dedupedProducts.length,
+        products: dedupedProducts,
         deletedIds: Array.from(deletedIds),
       },
       {
@@ -343,6 +422,8 @@ export async function POST(req: Request) {
       terms,
       priceNote,
       validity,
+      isPinned,
+      pinned,
     } = body;
 
     if (!title || !category || price === undefined) {
@@ -412,6 +493,8 @@ export async function POST(req: Request) {
       maxQuantity: maxQuantity ? Number(maxQuantity) : undefined,
       terms: terms || "",
       priceNote: priceNote || "",
+      isPinned: !!(isPinned ?? pinned),
+      pinned: !!(isPinned ?? pinned),
     });
 
     const mapped = mapProductToServiceItem(newProduct.toObject());

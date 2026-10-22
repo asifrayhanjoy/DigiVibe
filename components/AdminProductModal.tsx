@@ -171,6 +171,8 @@ export default function AdminProductModal({
 
   if (!isOpen) return null;
 
+  const isZeroPriceAllowed = ["advanced", "student", "tech", "ai-voice", "security", "media-marketing", "utilities"].includes(formData.category);
+
   const handleAddFeature = () => {
     if (newFeatureText.trim()) {
       setFeatures([...features, newFeatureText.trim()]);
@@ -188,7 +190,7 @@ export default function AdminProductModal({
       setErrorMessage("Please enter a valid product title.");
       return;
     }
-    if (formData.price <= 0) {
+    if (!isZeroPriceAllowed && formData.price <= 0) {
       setErrorMessage("Price must be greater than 0.");
       return;
     }
@@ -364,7 +366,13 @@ export default function AdminProductModal({
                 <option value="smm">smm (Social Media Service)</option>
                 <option value="email">email (Email Accounts)</option>
                 <option value="telegram">telegram (Telegram)</option>
-                <option value="advanced">advanced (Advanced Service)</option>
+                <option value="student">student (Student Service)</option>
+                <option value="tech">tech (Advanced Tech)</option>
+                <option value="ai-voice">ai-voice (AI & Voice Automation)</option>
+                <option value="security">security (Digital Security)</option>
+                <option value="media-marketing">media-marketing (Media & Marketing)</option>
+                <option value="utilities">utilities (Smart Utilities)</option>
+                <option value="advanced">advanced (Legacy Advanced Service)</option>
                 <option value="hosting">hosting (Hosting)</option>
               </select>
             </div>
@@ -374,12 +382,12 @@ export default function AdminProductModal({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Price (৳) <span className="text-cyan-400">*</span>
+                Price (৳) {!isZeroPriceAllowed && <span className="text-cyan-400">*</span>}
               </label>
               <input
                 type="number"
-                required
-                min="1"
+                required={!isZeroPriceAllowed}
+                min={isZeroPriceAllowed ? "0" : "1"}
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
                 className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl text-xs sm:text-sm text-white font-bold focus:outline-none transition-colors"
