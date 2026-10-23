@@ -303,7 +303,13 @@ function ServicesContent() {
     }
   }, [isBn]);
 
-  const handleSaveSuccess = useCallback((savedProduct: ServiceItem, returnUrl?: string, targetCategory?: string) => {
+  const handleSaveSuccess = useCallback((
+    savedProduct: ServiceItem,
+    returnUrl?: string,
+    targetCategory?: string,
+    originalId?: string,
+    originalTitle?: string
+  ) => {
     showToast(
       adminModalMode === "edit" ? "Card Updated! ✨" : "Card Created! 🎉",
       `"${savedProduct.title}" has been saved to the database.`
@@ -317,7 +323,13 @@ function ServicesContent() {
       try {
         const targetId = savedProduct.id || (savedProduct as any).productId || (savedProduct as any)._id;
         const stored: string[] = JSON.parse(localStorage.getItem("digivibe_deleted_products") || "[]");
-        const filtered = stored.filter((id) => id !== targetId && id !== savedProduct.id && id !== (savedProduct as any)._id);
+        const filtered = stored.filter(
+          (id) =>
+            id !== targetId &&
+            id !== savedProduct.id &&
+            id !== (savedProduct as any)._id &&
+            id !== originalId
+        );
         localStorage.setItem("digivibe_deleted_products", JSON.stringify(filtered));
       } catch (e) {}
     }
@@ -327,15 +339,20 @@ function ServicesContent() {
     setServicesList((prevList) => {
       const targetId = (savedProduct.id || (savedProduct as any).productId || (savedProduct as any)._id || "").toString().trim();
       const targetDocId = ((savedProduct as any)._id || (savedProduct as any).id || "").toString().trim();
+      const origId = (originalId || "").toString().trim();
+      const origTitle = (originalTitle || "").toString().trim().toLowerCase();
 
       const idx = prevList.findIndex((item) => {
         const itemId = (item.id || (item as any).productId || (item as any)._id || "").toString().trim();
         const itemDocId = ((item as any)._id || (item as any).productId || item.id || "").toString().trim();
-        return (
+        const matchesTarget = Boolean(
           (targetId && (itemId === targetId || itemDocId === targetId)) ||
-          (targetDocId && (itemId === targetDocId || itemDocId === targetDocId)) ||
-          (item.title && savedProduct.title && item.title.trim().toLowerCase() === savedProduct.title.trim().toLowerCase())
+          (targetDocId && (itemId === targetDocId || itemDocId === targetDocId))
         );
+        const matchesOriginal = Boolean(origId && (itemId === origId || itemDocId === origId));
+        const matchesTitle = Boolean(item.title && savedProduct.title && item.title.trim().toLowerCase() === savedProduct.title.trim().toLowerCase());
+        const matchesOrigTitle = Boolean(origTitle && item.title && item.title.trim().toLowerCase() === origTitle);
+        return matchesTarget || matchesOriginal || matchesTitle || matchesOrigTitle;
       });
 
       const customImg = ((savedProduct as any).imageUrl || savedProduct.image || savedProduct.logo || "").toString().trim();
@@ -369,8 +386,10 @@ function ServicesContent() {
         const itemId = (item.id || (item as any).productId || (item as any)._id || "").toString().trim();
         const itemDocId = ((item as any)._id || (item as any).productId || item.id || "").toString().trim();
         const matchesTarget = (targetId && (itemId === targetId || itemDocId === targetId)) || (targetDocId && (itemId === targetDocId || itemDocId === targetDocId));
+        const matchesOriginal = origId && (itemId === origId || itemDocId === origId);
         const matchesTitle = item.title && savedProduct.title && item.title.trim().toLowerCase() === savedProduct.title.trim().toLowerCase();
-        return !matchesTarget && !matchesTitle;
+        const matchesOrigTitle = origTitle && item.title && item.title.trim().toLowerCase() === origTitle;
+        return !matchesTarget && !matchesOriginal && !matchesTitle && !matchesOrigTitle;
       });
       return sortAlphabetically([normalizedSaved, ...filteredPrev]);
     });

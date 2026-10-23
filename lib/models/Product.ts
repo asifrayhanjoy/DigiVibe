@@ -4,6 +4,7 @@ const ProductSchema = new Schema(
   {
     productId: { type: String, required: true, unique: true, index: true },
     title: { type: String, required: true },
+    title_bn: { type: String },
     category: { type: String, required: true, index: true },
     subtitle: { type: String },
     operator: { type: String },

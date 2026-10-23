@@ -50,6 +50,7 @@ function mapProductToServiceItem(doc: any) {
     _id: docId,
     productId: productId || docId,
     title: doc.title,
+    title_bn: doc.title_bn || doc.title,
     category: canonicalCat,
     subtitle: doc.subtitle || "",
     operator: doc.operator || "",
@@ -300,49 +301,6 @@ export async function GET(req: Request) {
       console.error("SMM price auto-migration warning:", migErr);
     }
 
-    // Database Migration: Ensure all "Advanced Service" & "Student Service" products have simplified easy Bengali text, category update & zero price
-    try {
-      const wideServicesFromCode = (SERVICES as any[]).filter(
-        (s) =>
-          ["advanced", "student", "tech", "ai-voice", "security", "media-marketing", "utilities"].includes(s.category) ||
-          s.id?.startsWith("adv-") ||
-          s.id?.startsWith("student-")
-      );
-      if (wideServicesFromCode.length > 0) {
-        const updateOps = wideServicesFromCode.map((adv) => ({
-          updateMany: {
-            filter: {
-              $or: [{ productId: adv.id }, { id: adv.id }],
-            },
-            update: {
-              $set: {
-                category: adv.category,
-                title: adv.title,
-                subtitle: adv.subtitle,
-                badge: adv.badge,
-                features: adv.features,
-                overview: adv.overview,
-                description: adv.overview || adv.description || "",
-                logoType: adv.logoType,
-                icon: adv.icon,
-                imageUrl: adv.imageUrl || adv.image || "",
-                image: adv.image || adv.imageUrl || "",
-                logo: adv.imageUrl || adv.image || "",
-                price: 0,
-                originalPrice: 0,
-                usdPrice: "",
-                advancedBengaliSimplified: true,
-                updatedAt: new Date().toISOString(),
-              },
-            },
-          },
-        }));
-        await (Product as any).bulkWrite(updateOps);
-      }
-    } catch (advMigErr) {
-      console.error("Advanced & Student services easy Bengali migration notice:", advMigErr);
-    }
-
     const deletedArr = Array.from(deletedIds);
     const objectIdDeletes = deletedArr.filter((id) => id.match(/^[0-9a-fA-F]{24}$/));
     const excludeFilter = deletedArr.length > 0
@@ -461,6 +419,7 @@ export async function POST(req: Request) {
     const newProduct = await (Product as any).create({
       productId,
       title: title.trim(),
+      title_bn: body.title_bn || title.trim(),
       category: category.trim(),
       subtitle: subtitle || "",
       operator: operator || "",

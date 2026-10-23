@@ -8,7 +8,7 @@ import { getCanonicalCategory } from "@/lib/categories";
 interface AdminProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSaveSuccess: (product: any, returnUrl?: string, targetCategory?: string) => void;
+  onSaveSuccess: (product: any, returnUrl?: string, targetCategory?: string, originalId?: string, originalTitle?: string) => void;
   mode: "add" | "edit";
   initialData?: ServiceItem | null;
   currentCategory?: string;
@@ -220,8 +220,13 @@ export default function AdminProductModal({
       const customImg = (formData.imageUrl || formData.logo || formData.image || "").toString().trim();
       const resolvedLogoType = typeof formData.logoType === "string" ? formData.logoType.trim() : (formData.logoType || "");
 
+      const origId = ((initialData as any)?.id || (initialData as any)?.productId || (initialData as any)?._id || targetId || "").toString().trim();
+      const origTitle = (initialData?.title || "").trim();
+
       const payload = {
         ...formData,
+        originalId: origId,
+        originalTitle: origTitle,
         id: targetId,
         _id: targetDocId,
         productId: targetId,
@@ -256,12 +261,24 @@ export default function AdminProductModal({
         throw new Error(data.message || "Failed to save product.");
       }
 
+      const returned = data.product || {};
+      const resolvedId = (
+        returned.id ||
+        returned.productId ||
+        targetId ||
+        origId ||
+        returned._id ||
+        targetDocId ||
+        ""
+      ).toString().trim();
+      const resolvedDocId = (returned._id || targetDocId || resolvedId).toString().trim();
+
       const savedProduct = {
         ...payload,
-        ...(data.product || {}),
-        id: targetId,
-        _id: targetDocId,
-        productId: targetId,
+        ...returned,
+        id: resolvedId,
+        _id: resolvedDocId,
+        productId: resolvedId,
         duration: targetDuration,
         validity: targetDuration,
         inStock: isAvailable,
@@ -289,7 +306,7 @@ export default function AdminProductModal({
         targetReturnUrl = cat && cat !== "all" ? `/${activeLocale}/services?cat=${cat}` : `/${activeLocale}/services`;
       }
 
-      onSaveSuccess(savedProduct, targetReturnUrl, targetCategory);
+      onSaveSuccess(savedProduct, targetReturnUrl, targetCategory, origId, origTitle);
       onClose();
     } catch (err: any) {
       setErrorMessage(err.message || "An unexpected error occurred while saving.");

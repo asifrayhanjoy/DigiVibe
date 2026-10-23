@@ -45,6 +45,7 @@ function mapProductToServiceItem(doc: any) {
     _id: docId,
     productId: productId || docId,
     title: doc.title,
+    title_bn: doc.title_bn || doc.title,
     category: canonicalCat,
     subtitle: doc.subtitle || "",
     operator: doc.operator || "",
@@ -205,7 +206,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const finalStatus = isAvailable !== undefined ? (isAvailable ? "in-stock" : "stock-out") : undefined;
 
     const updateData: any = {};
-    if (title !== undefined) updateData.title = typeof title === "string" ? title.trim() : title;
+    if (title !== undefined) {
+      const trimmedTitle = typeof title === "string" ? title.trim() : title;
+      updateData.title = trimmedTitle;
+      updateData.title_bn = body.title_bn || trimmedTitle;
+    }
     if (category !== undefined) updateData.category = typeof category === "string" ? category.trim() : category;
     if (subtitle !== undefined) updateData.subtitle = typeof subtitle === "string" ? subtitle.trim() : subtitle;
     if (operator !== undefined) updateData.operator = operator;
@@ -287,6 +292,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
           (body.id || "").toString().trim(),
           (body.productId || "").toString().trim(),
           (body._id || "").toString().trim(),
+          (body.originalId || "").toString().trim(),
         ].filter(Boolean)
       )
     );
@@ -303,8 +309,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       }
     }
 
-    if (body.title && typeof body.title === "string" && body.title.trim().length > 0) {
-      orConditions.push({ title: body.title.trim() });
+    if (body.originalTitle && typeof body.originalTitle === "string" && body.originalTitle.trim().length > 0) {
+      orConditions.push({ title: body.originalTitle.trim() });
     }
 
     const filter = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
@@ -323,16 +329,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         { new: true, runValidators: false }
       ).lean();
     } else {
-      // 2. Fallback: findOneAndUpdate or create
+      // 2. Fallback: Create directly to prevent MongoDB $or inference errors on upsert
       updateData.productId = targetProductId;
-      updatedDoc = await (Product as any).findOneAndUpdate(
-        filter,
-        { 
-          $set: updateData,
-          $setOnInsert: { productId: targetProductId }
-        },
-        { new: true, upsert: true, runValidators: false }
-      ).lean();
+      const created = await (Product as any).create({
+        ...updateData,
+        productId: targetProductId,
+      });
+      updatedDoc = created?.toObject ? created.toObject() : created;
     }
 
     const mapped = mapProductToServiceItem(updatedDoc || { ...updateData, productId: targetProductId });
