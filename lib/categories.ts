@@ -28,7 +28,6 @@ export const CATEGORY_ALIASES: Record<string, CategoryId> = {
   "social-media-service": "smm",
   "social media service": "smm",
   smm: "smm",
-  media: "smm",
 
   // IP & Proxies
   proxies: "ip",
@@ -107,7 +106,11 @@ export const CATEGORY_ALIASES: Record<string, CategoryId> = {
   "media marketing": "media-marketing",
   media_marketing: "media-marketing",
   mediamarketing: "media-marketing",
+  "media & marketing": "media-marketing",
+  "media and marketing": "media-marketing",
+  "media-and-marketing": "media-marketing",
   "marketing-design": "media-marketing",
+  marketing: "media-marketing",
 
   // Smart Utilities
   utilities: "utilities",
@@ -253,7 +256,31 @@ export function resolveCanonicalCategory(
       return CATEGORY_ALIASES[cleanNormalized];
     }
 
-    // 2. Strict keyword matching in safe priority order
+    // 2. Strict keyword matching in safe priority order (advanced & student compound categories first)
+    if (cleanNormalized.includes("marketing")) {
+      return "media-marketing";
+    }
+    if (
+      cleanNormalized.includes("student") ||
+      cleanNormalized.includes("academic") ||
+      cleanNormalized.includes("thesis") ||
+      cleanNormalized.includes("assignment")
+    ) {
+      return "student";
+    }
+    if (cleanNormalized.includes("security")) {
+      return "security";
+    }
+    if (cleanNormalized.includes("utilit")) {
+      return "utilities";
+    }
+    if (cleanNormalized.includes("voice")) {
+      return "ai-voice";
+    }
+    if (cleanNormalized.includes("tech")) {
+      return "tech";
+    }
+
     // Email / Accounts FIRST so words like 'email' or 'gmail' are never caught by 'ai'
     if (
       cleanNormalized.includes("email") ||
@@ -278,8 +305,7 @@ export function resolveCanonicalCategory(
     // Social Media / SMM
     if (
       cleanNormalized.includes("social") ||
-      cleanNormalized.includes("smm") ||
-      cleanNormalized.includes("media")
+      cleanNormalized.includes("smm")
     ) {
       return "smm";
     }
@@ -303,34 +329,7 @@ export function resolveCanonicalCategory(
       return "hosting";
     }
 
-    // Student Service
-    if (
-      cleanNormalized.includes("student") ||
-      cleanNormalized.includes("academic") ||
-      cleanNormalized.includes("thesis") ||
-      cleanNormalized.includes("assignment")
-    ) {
-      return "student";
-    }
-
-    // 5 Split Advanced Categories
-    if (cleanNormalized.includes("marketing")) {
-      return "media-marketing";
-    }
-    if (cleanNormalized.includes("security")) {
-      return "security";
-    }
-    if (cleanNormalized.includes("utilit")) {
-      return "utilities";
-    }
-    if (cleanNormalized.includes("voice")) {
-      return "ai-voice";
-    }
-    if (cleanNormalized.includes("tech")) {
-      return "tech";
-    }
-
-    // Advanced Service
+    // Advanced Service (Legacy)
     if (cleanNormalized.includes("advanced") || cleanNormalized.includes("rdp")) {
       return "advanced";
     }
@@ -348,19 +347,43 @@ export function resolveCanonicalCategory(
     return "all";
   }
 
-  // If input is a product item object
+  // If input is a product item object:
+  // PRIORITY 1: The product's actual database category is authoritative!
+  const rawCat = (input.category || "").toString().toLowerCase().trim();
+  if (rawCat && rawCat !== "all") {
+    // 1. Direct dictionary match
+    if (CATEGORY_ALIASES[rawCat]) {
+      return CATEGORY_ALIASES[rawCat];
+    }
+    const cleanCat = rawCat.replace(/[/\\_-]+/g, " ").trim();
+    if (CATEGORY_ALIASES[cleanCat]) {
+      return CATEGORY_ALIASES[cleanCat];
+    }
+    // 2. Keyword checks on category
+    if (cleanCat.includes("marketing")) return "media-marketing";
+    if (cleanCat.includes("student") || cleanCat.includes("academic") || cleanCat.includes("thesis") || cleanCat.includes("assignment")) return "student";
+    if (cleanCat.includes("security")) return "security";
+    if (cleanCat.includes("utilit")) return "utilities";
+    if (cleanCat.includes("voice")) return "ai-voice";
+    if (cleanCat.includes("tech")) return "tech";
+    if (cleanCat.includes("email") || cleanCat.includes("mail") || cleanCat.includes("gmail") || cleanCat.includes("account") || cleanCat.includes("pva")) return "email";
+    if (cleanCat.includes("proxy") || cleanCat.includes("proxies") || cleanCat.includes("socks") || /\bip\b/i.test(cleanCat)) return "ip";
+    if (cleanCat.includes("social") || cleanCat.includes("smm")) return "smm";
+    if (cleanCat.includes("vpn")) return "vpn";
+    if (cleanCat.includes("telegram") || /\btg\b/i.test(cleanCat)) return "telegram";
+    if (cleanCat.includes("hosting") || cleanCat.includes("server") || cleanCat.includes("cpanel")) return "hosting";
+    if (cleanCat.includes("advanced") || cleanCat.includes("rdp")) return "advanced";
+    if (/\bai\b/i.test(cleanCat) || cleanCat.includes("subscription") || cleanCat.includes("sub") || /\btool(s)?\b/i.test(cleanCat)) return "subscriptions";
+  }
+
+  // PRIORITY 2: If category property was missing or unrecognized, fallback to explicit catalog ID maps and prefixes
   const id = (input.id || (input as any).productId || (input as any)._id || "").toString().toLowerCase().trim();
-  const cat = (input.category || "").toString().toLowerCase().trim();
   const title = (input.title || "").toString().toLowerCase().trim();
 
-  // 0. Handle 'all' explicitly
-  if (cat === "all" || id === "all") return "all";
+  if (id === "all" || rawCat === "all") return "all";
 
-  // 1. Strict Student Items Identification
+  // Strict Student Items Identification
   if (
-    cat === "student" ||
-    cat === "students" ||
-    cat === "student-service" ||
     id.startsWith("student-") ||
     id === "adv-assignment-thesis-typing" ||
     id === "adv-student-project-presentation" ||
@@ -370,11 +393,11 @@ export function resolveCanonicalCategory(
     return "student";
   }
 
-  // 1b. Strict ID Prefix & Explicit ID Isolation (100% reliable for reference catalog items)
+  // Strict ID Prefix & Explicit ID Isolation
+  if (MEDIA_MARKETING_SERVICE_IDS.has(id)) return "media-marketing";
   if (TECH_SERVICE_IDS.has(id)) return "tech";
   if (AI_VOICE_SERVICE_IDS.has(id)) return "ai-voice";
   if (SECURITY_SERVICE_IDS.has(id)) return "security";
-  if (MEDIA_MARKETING_SERVICE_IDS.has(id)) return "media-marketing";
   if (UTILITIES_SERVICE_IDS.has(id)) return "utilities";
 
   if (id.startsWith("vpn-")) return "vpn";
@@ -383,30 +406,10 @@ export function resolveCanonicalCategory(
   if (id.startsWith("smm-")) return "smm";
   if (id.startsWith("email-")) return "email";
   if (id.startsWith("telegram-")) return "telegram";
-  if (id.startsWith("adv-") || id.startsWith("advanced-")) return "tech";
   if (id.startsWith("hosting-")) return "hosting";
+  if (id.startsWith("adv-") || id.startsWith("advanced-")) return "tech";
 
-  // 2. Direct Alias Dictionary Mapping on Category property
-  if (cat && CATEGORY_ALIASES[cat]) {
-    return CATEGORY_ALIASES[cat];
-  }
-  const cleanCat = cat.replace(/[/\\_-]+/g, " ").trim();
-  if (cleanCat && CATEGORY_ALIASES[cleanCat]) {
-    return CATEGORY_ALIASES[cleanCat];
-  }
-
-  // 3. Strict Category Property Keyword Matching (Ordered safely)
-  if (cleanCat.includes("student") || cleanCat.includes("academic") || cleanCat.includes("thesis") || cleanCat.includes("assignment")) return "student";
-  if (cleanCat.includes("email") || cleanCat.includes("mail") || cleanCat.includes("account") || cleanCat.includes("pva")) return "email";
-  if (cleanCat.includes("proxy") || cleanCat.includes("proxies") || cleanCat.includes("socks") || /\bip\b/i.test(cleanCat)) return "ip";
-  if (cleanCat.includes("social") || cleanCat.includes("smm") || cleanCat.includes("media")) return "smm";
-  if (cleanCat.includes("vpn")) return "vpn";
-  if (cleanCat.includes("telegram") || /\btg\b/i.test(cleanCat)) return "telegram";
-  if (cleanCat.includes("advanced") || cleanCat.includes("rdp")) return "advanced";
-  if (cleanCat.includes("hosting") || cleanCat.includes("server") || cleanCat.includes("cpanel")) return "hosting";
-  if (/\bai\b/i.test(cleanCat) || cleanCat.includes("subscription") || cleanCat.includes("sub") || /\btool(s)?\b/i.test(cleanCat)) return "subscriptions";
-
-  // 4. Title Keyword Isolation
+  // PRIORITY 3: Title Keyword Isolation (last resort fallback)
   if (
     title.includes("অ্যাসাইনমেন্ট") ||
     title.includes("থিসিস") ||
@@ -456,7 +459,7 @@ export function getCanonicalCategory(
  * Maps a canonical category or alias to its preferred active URL query parameter slug.
  * E.g. 'subscriptions' -> 'ai', 'smm' -> 'social', 'ip' -> 'proxies', 'email' -> 'email', 'vpn' -> 'vpn', 'telegram' -> 'telegram', 'hosting' -> 'hosting', 'advanced' -> 'advanced'.
  */
-export function getCategoryQueryParam(categoryOrAlias?: string, fallbackCanonical?: CategoryId): string {
+export function getCategoryQueryParam(categoryOrAlias?: string, fallbackCanonical?: CategoryId | string): string {
   if (!categoryOrAlias || categoryOrAlias === "all") return "";
   const normalized = categoryOrAlias.toLowerCase().trim();
 
@@ -465,7 +468,7 @@ export function getCategoryQueryParam(categoryOrAlias?: string, fallbackCanonica
     return normalized;
   }
 
-  const canonical = fallbackCanonical || resolveCanonicalCategory(categoryOrAlias);
+  const canonical = (fallbackCanonical ? resolveCanonicalCategory(fallbackCanonical) : null) || resolveCanonicalCategory(categoryOrAlias);
   if (canonical === "all") return "";
 
   return CANONICAL_TO_SLUG[canonical] || canonical;

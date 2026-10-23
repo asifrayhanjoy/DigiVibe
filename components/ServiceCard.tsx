@@ -1233,8 +1233,8 @@ export function getAdvancedServiceImage(service: any): string {
 }
 
 interface ServiceCardProps {
-  service?: ServiceItem & { title_bn?: string; description_bn?: string; logoType?: string; usdPrice?: string; subtitle?: string };
-  product?: ServiceItem & { title_bn?: string; description_bn?: string; logoType?: string; usdPrice?: string; subtitle?: string };
+  service?: ServiceItem;
+  product?: ServiceItem;
   currentCategory?: string;
   onAddToCart?: (service: ServiceItem) => void;
   onBuyNow?: (service: ServiceItem) => void;

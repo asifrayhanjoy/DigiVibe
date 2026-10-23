@@ -36,7 +36,8 @@ import {
   RefreshCw,
   Tag,
   AlertCircle,
-  Send
+  Send,
+  Trash2
 } from "lucide-react";
 
 function ServiceDetailPageContent({ params }: { params?: any }) {
@@ -101,6 +102,7 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
   // Modals
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
   const [imgError, setImgError] = useState<boolean>(false);
 
@@ -129,7 +131,7 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
 
       if (allRes.ok) {
         const allData = await allRes.json();
-        if (allData.success && Array.isArray(allData.products) && allData.products.length > 0) {
+        if (allData.success && Array.isArray(allData.products)) {
           setAllProducts(allData.products);
         }
       }
@@ -165,6 +167,34 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
       setCopied(true);
       showToast("Link Copied! 📋", "Product URL copied to clipboard.");
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!service) return;
+    const confirmDelete = window.confirm(`Are you sure you want to permanently delete "${service.title}"? This cannot be undone.`);
+    if (!confirmDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/products/${encodeURIComponent(service.id)}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: service.id, productId: service.id, _id: (service as any)._id }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast("Deleted Successfully", `"${service.title}" was removed from the database.`);
+        router.refresh();
+        router.push(returnUrl);
+      } else {
+        alert(data?.error || data?.message || "Failed to delete product");
+      }
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      alert("Error deleting product: " + (err?.message || "Unknown error"));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -415,15 +445,23 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
           {/* Right Column: Title, Price, Actions & Specs (7 Columns) */}
           <div className="lg:col-span-7 space-y-6">
             <div>
-              {/* ADMIN EDIT CARD BUTTON */}
+              {/* ADMIN CONTROLS (EDIT & DELETE) */}
               {isAdmin && (
-                <div className="mb-3">
+                <div className="mb-3 flex items-center gap-2.5 flex-wrap">
                   <button
                     onClick={() => setIsAdminModalOpen(true)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95 border border-amber-300 cursor-pointer"
                   >
                     <Pencil className="w-4 h-4 stroke-[2.5]" />
                     <span>Edit Product Details (Admin Control)</span>
+                  </button>
+                  <button
+                    onClick={handleDeleteProduct}
+                    disabled={isDeleting}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 hover:text-white font-bold text-xs rounded-xl border border-rose-500/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4 stroke-[2.5]" />
+                    <span>{isDeleting ? "Deleting..." : "Delete Product"}</span>
                   </button>
                 </div>
               )}
@@ -709,6 +747,7 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
             setService((prev: any) => ({
               ...prev,
               ...updated,
+              category: getCanonicalCategory(updated),
               duration: updated.duration || updated.validity || prev?.duration || "7 Days",
               validity: updated.validity || updated.duration || prev?.validity || "7 Days",
               inStock: updated.inStock,
@@ -728,8 +767,10 @@ function ServiceDetailPageContent({ params }: { params?: any }) {
             showToast("Product Updated! ✨", `"${updated.title}" has been saved to the database.`);
             setIsAdminModalOpen(false);
 
-            // Dynamic Category-Aware Redirect: return back to the exact originating category view
-            const destParam = activeCategoryParam || (targetCategory && targetCategory !== "all" ? getCategoryQueryParam(targetCategory) : getCategoryQueryParam(getCanonicalCategory(updated)));
+            // Dynamic Category-Aware Redirect: return back to the updated category view
+            const productCat = getCanonicalCategory(updated);
+            const targetCat = (targetCategory && targetCategory !== "all") ? targetCategory : productCat;
+            const destParam = getCategoryQueryParam(targetCat, targetCat) || activeCategoryParam;
 
             const targetPath = destParam && destParam !== "all"
               ? `/${locale}/services?cat=${destParam}#product-${updated.id}`

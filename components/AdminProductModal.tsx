@@ -63,7 +63,9 @@ export default function AdminProductModal({
     if (isOpen) {
       setErrorMessage("");
       if (mode === "edit" && initialData) {
-        const canonicalCat = getCanonicalCategory(initialData);
+        const canonicalCat = initialData.category
+          ? getCanonicalCategory(initialData.category)
+          : getCanonicalCategory(initialData);
         const rawInStock = initialData.inStock;
         const rawStock = (initialData.stock || "").toString().trim();
         const rawStatus = ((initialData as any).status || (initialData as any).stockStatus || "").toString().trim().toLowerCase();

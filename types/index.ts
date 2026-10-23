@@ -16,6 +16,7 @@ export interface ServiceItem {
   id: string;
   _id?: string;
   title: string;
+  title_bn?: string;
   category: CategoryId | string;
   badge: string;
   rating: number;
@@ -31,6 +32,7 @@ export interface ServiceItem {
   popular?: boolean;
   subtitle?: string;
   description?: string;
+  description_bn?: string;
   logo?: string;
   image?: string;
   imageUrl?: string;

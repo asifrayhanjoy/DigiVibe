@@ -44,38 +44,6 @@ function ServicesContent() {
   );
   const [isLoadingServices, setIsLoadingServices] = useState<boolean>(true);
 
-  // Sync client-side cached pins/deletions safely after initial hydration
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("digivibe_deleted_products");
-      const storedPinned = localStorage.getItem("digivibe_pinned_products");
-      if (stored || storedPinned) {
-        const deletedSet = new Set<string>(stored ? JSON.parse(stored) : []);
-        const pinnedSet = new Set<string>(storedPinned ? JSON.parse(storedPinned) : []);
-        setServicesList((prev) =>
-          sortAlphabetically(
-            deduplicateServices(
-              prev
-                .filter((p) => {
-                  const pId = p.id || (p as any).productId || (p as any)._id;
-                  return !deletedSet.has(pId) && !deletedSet.has(p.id);
-                })
-                .map((p) => {
-                  const pId = p.id || (p as any).productId || (p as any)._id;
-                  const isPinned = !!((p as any).isPinned || (p as any).pinned || pinnedSet.has(pId) || pinnedSet.has(p.id));
-                  return {
-                    ...p,
-                    isPinned,
-                    pinned: isPinned,
-                  };
-                })
-            )
-          )
-        );
-      }
-    } catch (e) {}
-  }, []);
-
   // Admin Modal States
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
   const [adminModalMode, setAdminModalMode] = useState<"add" | "edit">("add");
@@ -116,35 +84,17 @@ function ServicesContent() {
       if (data.success && Array.isArray(data.products)) {
         const deletedSet = new Set<string>(Array.isArray(data.deletedIds) ? data.deletedIds : []);
 
-        // Sync with localStorage
-        if (typeof window !== "undefined") {
-          try {
-            const localStored: string[] = JSON.parse(localStorage.getItem("digivibe_deleted_products") || "[]");
-            const combined = Array.from(new Set([...localStored, ...deletedSet]));
-            localStorage.setItem("digivibe_deleted_products", JSON.stringify(combined));
-            combined.forEach((id) => deletedSet.add(id));
-          } catch (e) {}
-        }
-
-        // Sync pinned items with localStorage
-        const pinnedSet = new Set<string>();
-        if (typeof window !== "undefined") {
-          try {
-            const localPinned: string[] = JSON.parse(localStorage.getItem("digivibe_pinned_products") || "[]");
-            localPinned.forEach((id) => pinnedSet.add(id));
-          } catch (e) {}
-        }
-
-        // Filter out any deleted products from data.products and ensure strict deduplication
+        // Filter out any permanently deleted products and ensure strict deduplication
         const validProducts: ServiceItem[] = deduplicateServices<ServiceItem>(
           data.products
             .filter((p: ServiceItem) => {
-              const key = p.id || (p as any).productId || (p as any)._id;
-              return !deletedSet.has(key) && !deletedSet.has((p as any).productId) && !deletedSet.has((p as any)._id);
+              const key = (p.id || (p as any).productId || (p as any)._id || "").toString().trim();
+              const pId = ((p as any).productId || "").toString().trim();
+              const dId = ((p as any)._id || "").toString().trim();
+              return !deletedSet.has(key) && !deletedSet.has(pId) && !deletedSet.has(dId);
             })
             .map((p: ServiceItem) => {
-              const key = (p.id || (p as any).productId || (p as any)._id || "").toString();
-              const isPinned = !!(p.isPinned ?? (p as any).pinned ?? pinnedSet.has(key));
+              const isPinned = !!(p.isPinned ?? (p as any).pinned);
               return {
                 ...p,
                 isPinned,
@@ -177,7 +127,7 @@ function ServicesContent() {
   }, [searchParams, activeCatQueryParam, activeCategory]);
 
   const handleOpenEditModal = useCallback((service: ServiceItem) => {
-    // 1. Capture the exact active category query parameter (e.g. cat=ai, cat=social, cat=proxies, etc.)
+    // 1. Capture the exact active category query parameter (e.g. cat=ai, cat=social, cat=proxies, cat=media-marketing, cat=student, etc.)
     const rawCat = searchParams?.get("cat") || searchParams?.get("category") || activeCatQueryParam;
     const itemCanonical = getCanonicalCategory(service);
     const effectiveCanonical = activeCategory !== "all" ? activeCategory : itemCanonical;
@@ -210,18 +160,7 @@ function ServicesContent() {
       })
     );
 
-    // 2. Persist to localStorage immediately to prevent flash on reload
-    if (typeof window !== "undefined") {
-      try {
-        const stored: string[] = JSON.parse(localStorage.getItem("digivibe_deleted_products") || "[]");
-        if (!stored.includes(targetId)) stored.push(targetId);
-        if (service.id && !stored.includes(service.id)) stored.push(service.id);
-        if ((service as any)._id && !stored.includes((service as any)._id)) stored.push((service as any)._id);
-        localStorage.setItem("digivibe_deleted_products", JSON.stringify(stored));
-      } catch (e) {}
-    }
-
-    // 3. Make DELETE API call to backend
+    // 2. Direct Database Mutation via DELETE API
     try {
       const res = await fetch(`/api/products/${encodeURIComponent(targetId)}`, {
         method: "DELETE",
@@ -236,20 +175,20 @@ function ServicesContent() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast("Card Deleted 🗑️", `"${targetTitle}" has been deleted.`);
-        fetchServicesFromDB();
+        showToast("Card Deleted 🗑️", `"${targetTitle}" has been deleted from the database.`);
       } else {
         showToast("Delete Failed ❌", data.message || "Could not delete product.");
-        fetchServicesFromDB();
       }
+      router.refresh();
+      fetchServicesFromDB();
     } catch (err: any) {
       console.error("Delete error:", err);
       showToast("Delete Error ❌", err.message || "Failed to delete product.");
       fetchServicesFromDB();
     }
-  }, [fetchServicesFromDB]);
+  }, [fetchServicesFromDB, router]);
 
-  // Admin Pin / Unpin Toggle Handler
+  // Admin Pin / Unpin Toggle Handler - Directly mutates database
   const handleTogglePinProduct = useCallback(async (service: ServiceItem) => {
     const targetId = (service.id || (service as any)._id || (service as any).productId || "").toString().trim();
     if (!targetId) return;
@@ -261,7 +200,7 @@ function ServicesContent() {
     setServicesList((prevList) =>
       prevList.map((item) => {
         const itemKey = (item.id || (item as any)._id || (item as any).productId || "").toString().trim();
-        if (itemKey === targetId || item.id === service.id) {
+        if (itemKey === targetId || item.id === service.id || (item as any)._id === (service as any)._id) {
           return {
             ...item,
             isPinned: newPinState,
@@ -272,36 +211,25 @@ function ServicesContent() {
       })
     );
 
-    // 2. Persist in localStorage for instant retrieval
-    if (typeof window !== "undefined") {
-      try {
-        const storedPinned: string[] = JSON.parse(localStorage.getItem("digivibe_pinned_products") || "[]");
-        let updatedPinned: string[];
-        if (newPinState) {
-          updatedPinned = Array.from(new Set([...storedPinned, targetId, service.id].filter(Boolean)));
-        } else {
-          updatedPinned = storedPinned.filter((id) => id !== targetId && id !== service.id);
-        }
-        localStorage.setItem("digivibe_pinned_products", JSON.stringify(updatedPinned));
-      } catch (e) {}
-    }
-
     showToast(
       newPinState ? (isBn ? "সার্ভিসটি উপরে পিন করা হয়েছে 📌" : "Service Pinned to Top 📌") : (isBn ? "পিন সরানো হয়েছে" : "Service Unpinned"),
       `${service.title} ${newPinState ? (isBn ? "লিস্টের শুরুতে রাখা হয়েছে।" : "is now pinned to the top of the catalog.") : (isBn ? "স্বাভাবিক স্থানে ফিরে গেছে।" : "has been unpinned.")}`
     );
 
-    // 3. Persist to MongoDB Database via PUT
+    // 2. Persist to MongoDB Database via PUT
     try {
       await fetch(`/api/products/${encodeURIComponent(targetId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isPinned: newPinState, pinned: newPinState }),
       });
+      router.refresh();
+      fetchServicesFromDB();
     } catch (err) {
       console.error("Failed to persist pin status to database:", err);
+      fetchServicesFromDB();
     }
-  }, [isBn]);
+  }, [isBn, router, fetchServicesFromDB]);
 
   const handleSaveSuccess = useCallback((
     savedProduct: ServiceItem,
@@ -316,22 +244,6 @@ function ServicesContent() {
     );
     if (savedProduct?.id) {
       setHighlightedId(savedProduct.id);
-    }
-
-    // Clean up from localStorage deleted products if restored or created
-    if (typeof window !== "undefined") {
-      try {
-        const targetId = savedProduct.id || (savedProduct as any).productId || (savedProduct as any)._id;
-        const stored: string[] = JSON.parse(localStorage.getItem("digivibe_deleted_products") || "[]");
-        const filtered = stored.filter(
-          (id) =>
-            id !== targetId &&
-            id !== savedProduct.id &&
-            id !== (savedProduct as any)._id &&
-            id !== originalId
-        );
-        localStorage.setItem("digivibe_deleted_products", JSON.stringify(filtered));
-      } catch (e) {}
     }
 
     // 1. Instant Optimistic State Update: update ONLY the matching card in servicesList
@@ -398,15 +310,13 @@ function ServicesContent() {
     setSearchQuery("");
 
     // 3. Dynamic Category-Aware Redirect:
-    // Determine the exact query parameter that was active before editing (e.g. cat=ai, cat=social, cat=email, cat=vpn, cat=proxies, cat=telegram, cat=hosting, cat=advanced)
-    const rawTargetParam = capturedCategoryParam || activeCatQueryParam;
-    const canonicalDestination: CategoryId = (activeCategory && activeCategory !== "all")
-      ? activeCategory
-      : (rawTargetParam ? getCanonicalCategory({ category: rawTargetParam }) : (targetCategory && targetCategory !== "all" ? (targetCategory as CategoryId) : getCanonicalCategory(savedProduct)));
+    const productCanonical = getCanonicalCategory(savedProduct);
+    const canonicalDestination: CategoryId = (targetCategory && targetCategory !== "all")
+      ? (targetCategory as CategoryId)
+      : productCanonical;
 
-    const effectiveQueryParam = rawTargetParam || (canonicalDestination !== "all" ? getCategoryQueryParam(canonicalDestination, canonicalDestination) : "");
+    const effectiveQueryParam = getCategoryQueryParam(canonicalDestination, canonicalDestination);
 
-    // Keep active category state and active query param fully synchronized
     setActiveCategory(canonicalDestination);
     if (effectiveQueryParam) {
       setActiveCatQueryParam(effectiveQueryParam);
@@ -430,7 +340,7 @@ function ServicesContent() {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }, 200);
-  }, [adminModalMode, capturedCategoryParam, activeCatQueryParam, activeCategory, locale, router, fetchServicesFromDB]);
+  }, [adminModalMode, locale, router, fetchServicesFromDB]);
 
   const hasScrolledRef = useRef<string>("");
 
@@ -498,9 +408,13 @@ function ServicesContent() {
   const processedServices = useMemo(() => {
     let list = servicesList.filter((service) => {
       const matchesCategory = activeCategory === "all" || isCategoryMatch(service, activeCategory);
+      const q = searchQuery.trim().toLowerCase();
       const matchesSearch =
-        searchQuery.trim() === "" ||
-        service.title.toLowerCase().includes(searchQuery.toLowerCase());
+        q === "" ||
+        service.title.toLowerCase().includes(q) ||
+        Boolean(service.title_bn && service.title_bn.toLowerCase().includes(q)) ||
+        Boolean(service.subtitle && service.subtitle.toLowerCase().includes(q)) ||
+        Boolean(service.tag && service.tag.toLowerCase().includes(q));
       return matchesCategory && matchesSearch;
     });
 
@@ -696,21 +610,7 @@ function ServicesContent() {
           getCategoryCount={(catId) =>
             catId === "all"
               ? servicesList.length
-              : catId === "tech"
-                ? Math.max(9, servicesList.filter((s) => isCategoryMatch(s, catId)).length)
-                : catId === "ai-voice"
-                  ? Math.max(9, servicesList.filter((s) => isCategoryMatch(s, catId)).length)
-                  : catId === "security"
-                    ? Math.max(8, servicesList.filter((s) => isCategoryMatch(s, catId)).length)
-                    : catId === "media-marketing"
-                      ? Math.max(9, servicesList.filter((s) => isCategoryMatch(s, catId)).length)
-                      : catId === "utilities"
-                        ? Math.max(8, servicesList.filter((s) => isCategoryMatch(s, catId)).length)
-                        : catId === "advanced"
-                          ? Math.max(43, servicesList.filter((s) => isCategoryMatch(s, catId)).length)
-                          : catId === "student"
-                            ? Math.max(4, servicesList.filter((s) => isCategoryMatch(s, catId)).length)
-                            : servicesList.filter((s) => isCategoryMatch(s, catId)).length
+              : servicesList.filter((s) => isCategoryMatch(s, catId)).length
           }
         />
 
@@ -721,21 +621,7 @@ function ServicesContent() {
               <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-sm shadow-cyan-400/50" />
               <span>
                 Showing <span suppressHydrationWarning className="text-cyan-400 font-extrabold text-sm sm:text-base">
-                  {activeCategory === "tech"
-                    ? Math.max(9, displayedServices.length)
-                    : activeCategory === "ai-voice"
-                      ? Math.max(9, displayedServices.length)
-                      : activeCategory === "security"
-                        ? Math.max(8, displayedServices.length)
-                        : activeCategory === "media-marketing"
-                          ? Math.max(9, displayedServices.length)
-                          : activeCategory === "utilities"
-                            ? Math.max(8, displayedServices.length)
-                            : activeCategory === "advanced"
-                              ? Math.max(43, displayedServices.length)
-                              : activeCategory === "student"
-                                ? Math.max(4, displayedServices.length)
-                                : displayedServices.length}
+                  {displayedServices.length}
                 </span> Products
               </span>
             </div>

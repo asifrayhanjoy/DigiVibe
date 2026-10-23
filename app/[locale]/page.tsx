@@ -31,7 +31,7 @@ export default function HomePage() {
     fetch("/api/products")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && Array.isArray(data.products) && data.products.length > 0) {
+        if (data.success && Array.isArray(data.products)) {
           setServicesList(sortAlphabetically(deduplicateServices(data.products)));
         }
       })
